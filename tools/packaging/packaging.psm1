@@ -1472,10 +1472,10 @@ function New-MSIPackage
         [ValidateScript( {Test-Path $_})]
         [string] $ProductWxsPath = "$PSScriptRoot\..\..\assets\Product.wxs",
 
-        # File describing the MSI Package creation semantics as XLS
+        # File describing the MSI Package creation semantics as XSL
         [ValidateNotNullOrEmpty()]
         [ValidateScript( {Test-Path $_})]
-        [string] $ProductXlsPath = "$PSScriptRoot\..\..\assets\Product.xls",
+        [string] $ProductXslPath = "$PSScriptRoot\..\..\assets\product.xsl",
 
         # Path to Assets folder containing artifacts such as icons, images
         [ValidateNotNullOrEmpty()]
@@ -1547,6 +1547,11 @@ function New-MSIPackage
     $wixObjProductPath = Join-Path $env:Temp "Product.wixobj"
     $wixObjFragmentPath = Join-Path $env:Temp "Fragment.wixobj"
 
+    # cleanup any garbage on the system
+    Remove-Item -ErrorAction SilentlyContinue $wixFragmentPath -Force
+    Remove-Item -ErrorAction SilentlyContinue $wixObjProductPath -Force
+    Remove-Item -ErrorAction SilentlyContinue $wixObjFragmentPath -Force
+
     $packageName = $productSemanticVersionWithName
     if ($ProductNameSuffix) {
         $packageName += "-$ProductNameSuffix"
@@ -1560,21 +1565,29 @@ function New-MSIPackage
     }
 
     log "running heat..."
-    $WiXHeatLog = & $wixHeatExePath dir  $ProductSourcePath -dr  $productVersionWithName -cg $productVersionWithName -gg -sfrag -srd -scom -sreg -out $wixFragmentPath -var env.ProductSourcePath -t $ProductXlsPath -v
+    $WiXHeatLog = & $wixHeatExePath dir  $ProductSourcePath -dr  $productVersionWithName -cg $productVersionWithName -gg -sfrag -srd -scom -sreg -out $wixFragmentPath -var env.ProductSourcePath -t $ProductXslPath -v
+    # fail early if heat failed
+    if(!(Test-path -Path $wixFragmentPath) -or (cat $wixFragmentPath | Select-String -SimpleMatch 'shortcut') -eq $null)
+    {
+        $WiXHeatLog | Out-String | Write-Verbose -Verbose
+        throw "$wixFragmentPath was not produced"
+    }
+
     log "running candle..."
     $WiXCandleLog = & $wixCandleExePath  "$ProductWxsPath"  "$wixFragmentPath" -out (Join-Path "$env:Temp" "\\") -ext WixUIExtension -ext WixUtilExtension -arch $ProductTargetArchitecture -v
     # fail early if candle failed
-    if(!(Test-path -Path $wixObjProductPath))
+    if(!(Test-path -Path $wixObjProductPath) -or !(Test-path -Path $wixObjFragmentPath))
     {
         $WiXCandleLog | Out-String | Write-Verbose -Verbose
-        throw "$wixObjProductPath was not produced"
+        throw "$wixObjProductPath or $wixObjFragmentPath was not produced"
     }
 
     log "running light..."
     # suppress ICE61, because we allow same version upgreades
-    $WiXLightLog = Start-NativeExecution {& $wixLightExePath -sice:ICE61 -out $msiLocationPath -pdbout $msiPdbLocationPath $wixObjProductPath $wixObjFragmentPath -ext WixUIExtension -ext WixUtilExtension -dWixUILicenseRtf="$LicenseFilePath"}
+    $WiXLightLog = & $wixLightExePath -sice:ICE61 -out $msiLocationPath -pdbout $msiPdbLocationPath $wixObjProductPath $wixObjFragmentPath -ext WixUIExtension -ext WixUtilExtension -dWixUILicenseRtf="$LicenseFilePath"
+    $WiXLightLog
 
-    Remove-Item -ErrorAction SilentlyContinue $wixFragmentPath -Force
+    #Remove-Item -ErrorAction SilentlyContinue $wixFragmentPath -Force
     Remove-Item -ErrorAction SilentlyContinue $wixObjProductPath -Force
     Remove-Item -ErrorAction SilentlyContinue $wixObjFragmentPath -Force
 
