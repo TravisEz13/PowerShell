@@ -84,7 +84,7 @@
     <Feature Id="ProductFeature" Title="PowerShell" Level="1">
       <ComponentGroupRef Id="$(var.ProductVersionWithName)"/>
       <ComponentRef Id="ProductVersionFolder"/>
-      <ComponentRef Id="ApplicationProgramsMenuShortcut"/>
+      <ComponentRef Id="ApplicationProgramsFolder"/>
       <ComponentRef Id="RegistryEntries"/>
       <ComponentRef Id="SetPath"/>
       <ComponentRef Id="ExplorerContextMenu"/>
@@ -183,14 +183,10 @@
       </Directory>
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
-          <Component Id="ApplicationProgramsMenuShortcut" Guid="{A77507A7-F970-4618-AC30-20AFE36EE2EB}">
-            <!--File Source="[$(var.ProductVersionWithName)]pwsh.exe" KeyPath="yes">
-              <Shortcut Id="PowerShell_ProgramsMenuShortcut" Name="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" 
-                Description="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" 
-                WorkingDirectory="$(var.ProductVersionWithName)"
-                Directory = "ApplicationProgramsFolder"
-                Icon = "PowerShellExe.ico" />
-            </File-->
+          <Component Id="ApplicationProgramsFolder" Guid="{A77507A7-F970-4618-AC30-20AFE36EE2EB}">
+            <RegistryKey Root="HKMU" Key="Software\Microsoft\PowerShellCore">
+                <RegistryValue Type="string" Value="$(var.ProductSemanticVersion)" Name="ShortCutInstalled" KeyPath="yes"/>
+            </RegistryKey>
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
           </Component>
         </Directory>
