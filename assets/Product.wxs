@@ -34,6 +34,8 @@
     <Property Id="ARPPRODUCTICON" Value="PowerShellExe.ico" />
     <!-- Set properties for add/remove programs -->
     <Property Id="ARPHELPLINK" Value="$(var.InfoURL)" />
+    <!-- Disable advertised shortcuts -->
+    <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
     <!-- custom images -->
     <WixVariable Id="WixUIBannerBmp" Value="assets\WixUIBannerBmp.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="assets\WixUIDialogBmp.bmp" />
@@ -112,9 +114,9 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.ProductProgFilesDir)">
         <Directory Id="INSTALLFOLDER" Name="PowerShell">
-          <Directory Id="$(var.ProductVersionWithName)" Name="$(var.ProductSemanticVersion)">
+          <Directory Id="$(var.ProductVersionWithName)" Name="$(var.ProductSemanticVersion)" >
             <Component Id="ProductVersionFolder" Guid="{e1a7f05e-0cd6-4227-80a8-e4fb311f045c}">
-              <CreateFolder/>
+              <CreateFolder />
             </Component>
             <Component Id="RegistryEntries" Guid="{402e52f7-baf8-489d-af21-f756a6ca3530}">
                 <!-- create key for easy detection of a particular version of a powershell core package 
@@ -128,7 +130,7 @@
                 </RegistryKey>
             </Component>
             <!-- add ourselves to %PATH% so pwsh.exe can be started from Windows PowerShell or cmd.exe -->
-            <Component Id="SetPath" Guid="{9dbb7763-7baf-48e7-b025-3bdedcb0632f}">
+            <Component Id="SetPath" Guid="{9dbb7763-7baf-48e7-b025-3bdedcb0632f}" KeyPath="yes">
               <Environment Id="PATH" Action="set" Name="PATH" Part="last" Permanent="no" System="yes" Value="[$(var.ProductVersionWithName)]"/>
             </Component>
             <!-- Explorer context menu with 2 submenus to open PowerShell normally or as an Administator.
@@ -182,10 +184,14 @@
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)">
           <Component Id="ApplicationProgramsMenuShortcut" Guid="{A77507A7-F970-4618-AC30-20AFE36EE2EB}">
-            <Shortcut Id="PowerShell_ProgramsMenuShortcut" Name="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" Description="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" Target="[$(var.ProductVersionWithName)]pwsh.exe" WorkingDirectory="$(var.ProductVersionWithName)"
-              Icon = "PowerShellExe.ico" />
+            <!--File Source="[$(var.ProductVersionWithName)]pwsh.exe" KeyPath="yes">
+              <Shortcut Id="PowerShell_ProgramsMenuShortcut" Name="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" 
+                Description="$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)" 
+                WorkingDirectory="$(var.ProductVersionWithName)"
+                Directory = "ApplicationProgramsFolder"
+                Icon = "PowerShellExe.ico" />
+            </File-->
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-            <RegistryValue Root="HKLM" Key="Software\Microsoft\$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)\ProgramsMenuShortcut" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
           </Component>
         </Directory>
       </Directory>
