@@ -1552,12 +1552,14 @@ function New-MSIPackage
         $packageName += "-$ProductNameSuffix"
     }
     $msiLocationPath = Join-Path $pwd "$packageName.msi"
+    $msiPdbLocationPath = Join-Path $pwd "$packageName.wixpdb"
 
     if(!$Force.IsPresent -and (Test-Path -Path $msiLocationPath))
     {
         Write-Error -Message "Package already exists, use -Force to overwrite, path:  $msiLocationPath" -ErrorAction Stop
     }
 
+    log "running heat..."
     $WiXHeatLog = & $wixHeatExePath dir  $ProductSourcePath -dr  $productVersionWithName -cg $productVersionWithName -gg -sfrag -srd -scom -sreg -out $wixFragmentPath -var env.ProductSourcePath -t $ProductXlsPath -v
     log "running candle..."
     $WiXCandleLog = & $wixCandleExePath  "$ProductWxsPath"  "$wixFragmentPath" -out (Join-Path "$env:Temp" "\\") -ext WixUIExtension -ext WixUtilExtension -arch $ProductTargetArchitecture -v
@@ -1570,17 +1572,20 @@ function New-MSIPackage
 
     log "running light..."
     # suppress ICE61, because we allow same version upgreades
-    $WiXLightLog = & $wixLightExePath -sice:ICE61 -out $msiLocationPath $wixObjProductPath $wixObjFragmentPath -ext WixUIExtension -ext WixUtilExtension -dWixUILicenseRtf="$LicenseFilePath" -v
+    $WiXLightLog = Start-NativeExecution {& $wixLightExePath -sice:ICE61 -out $msiLocationPath -pdbout $msiPdbLocationPath $wixObjProductPath $wixObjFragmentPath -ext WixUIExtension -ext WixUtilExtension -dWixUILicenseRtf="$LicenseFilePath"}
 
-    Remove-Item -ErrorAction SilentlyContinue *.wixpdb -Force
     Remove-Item -ErrorAction SilentlyContinue $wixFragmentPath -Force
     Remove-Item -ErrorAction SilentlyContinue $wixObjProductPath -Force
     Remove-Item -ErrorAction SilentlyContinue $wixObjFragmentPath -Force
 
-    if (Test-Path $msiLocationPath)
+    if ((Test-Path $msiLocationPath) -and (Test-Path $msiPdbLocationPath))
     {
+        Write-Verbose "You can find the WixPdb @ $msiPdbLocationPath" -Verbose
         Write-Verbose "You can find the MSI @ $msiLocationPath" -Verbose
-        $msiLocationPath
+        [pscustomobject]@{
+            msi=$msiLocationPath
+            wixpdb=$msiPdbLocationPath
+        }
     }
     else
     {
