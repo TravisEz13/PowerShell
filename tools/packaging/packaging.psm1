@@ -2125,7 +2125,13 @@ function New-MSIPackage
     $wixLightExePath = Join-Path $wixToolsetBinPath "Light.exe"
 
     $ProductSemanticVersion = Get-PackageSemanticVersion -Version $ProductVersion
+    $simpleProductVersion = '6'
     $isPreview = $ProductSemanticVersion -like '*-*'
+    if($isPreview)
+    {
+        $simpleProductVersion += '-preview'
+    }
+
     $ProductVersion = Get-PackageVersionAsMajorMinorBuildRevision -Version $ProductVersion
 
     $assetsInSourcePath = Join-Path $ProductSourcePath 'assets'
@@ -2146,6 +2152,7 @@ function New-MSIPackage
     [Environment]::SetEnvironmentVariable("ProductName", $ProductName, "Process")
     [Environment]::SetEnvironmentVariable("ProductCode", $ProductCode, "Process")
     [Environment]::SetEnvironmentVariable("ProductVersion", $ProductVersion, "Process")
+    [Environment]::SetEnvironmentVariable("SimpleProductVersion", $simpleProductVersion, "Process")
     [Environment]::SetEnvironmentVariable("ProductSemanticVersion", $ProductSemanticVersion, "Process")
     [Environment]::SetEnvironmentVariable("ProductVersionWithName", $productVersionWithName, "Process")
     if(!$isPreview)

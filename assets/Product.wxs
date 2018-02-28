@@ -18,6 +18,7 @@
   <?endif?>
   <?define ProductDirectoryName = "$(env.ProductDirectoryName)" ?>
   <?define ProductVersion = "$(env.ProductVersion)" ?>
+  <?define SimpleProductVersion = "$(env.SimpleProductVersion)" ?>
   <?define ProductSemanticVersion = "$(env.ProductSemanticVersion)" ?>
   <?define ProductVersionWithName = "$(var.ProductName)_$(var.ProductVersion)"?>
   <?define ProductSemanticVersionWithName = "$(var.ProductName)-$(env.ProductSemanticVersion)"?>
@@ -226,7 +227,7 @@
                       Icon = "PowerShellExe.ico" />
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
             <!-- HKMU is HKLM when installing perMachine and HKCU when installing perUser-->
-            <RegistryValue Root="HKMU" Key="Software\Microsoft\$(var.ProductSemanticVersionWithNameAndOptionalArchitecture)\ProgramsMenuShortcut" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            <RegistryValue Root="HKMU" Key="Software\Microsoft\PowerShellCore\ProgramsMenuShortcut\$(var.SimpleProductVersion)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
           </Component>
         </Directory>
       </Directory>
