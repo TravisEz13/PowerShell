@@ -902,39 +902,6 @@ namespace System.Management.Automation
 #endif
         }
 
-        internal static void NativeEnumerateDirectory(string directory, out List<string> directories, out List<string> files)
-        {
-            IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
-            NativeMethods.WIN32_FIND_DATA findData;
-
-            files = new List<string>();
-            directories = new List<string>();
-
-            IntPtr findHandle;
-
-            findHandle = NativeMethods.FindFirstFile(directory + "\\*", out findData);
-            if (findHandle != INVALID_HANDLE_VALUE)
-            {
-                do
-                {
-                    if ((findData.dwFileAttributes & NativeMethods.FileAttributes.Directory) != 0)
-                    {
-                        if ((!String.Equals(".", findData.cFileName, StringComparison.OrdinalIgnoreCase)) &&
-                            (!String.Equals("..", findData.cFileName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            directories.Add(directory + "\\" + findData.cFileName);
-                        }
-                    }
-                    else
-                    {
-                        files.Add(directory + "\\" + findData.cFileName);
-                    }
-                }
-                while (NativeMethods.FindNextFile(findHandle, out findData));
-                NativeMethods.FindClose(findHandle);
-            }
-        }
-
         internal static bool IsReservedDeviceName(string destinationPath)
         {
 #if !UNIX
@@ -1360,6 +1327,48 @@ namespace System.Management.Automation
 #else
             return obj != null && Marshal.IsComObject(obj);
 #endif
+        }
+
+        /// <summary>
+        /// EnforceSystemLockDownLanguageMode
+        ///     FullLangauge        ->  ConstrainedLanguage
+        ///     RestrictedLanguage  ->  NoLanguage
+        ///     ConstrainedLanguage ->  ConstrainedLanguage
+        ///     NoLanguage          ->  NoLanguage
+        /// </summary>
+        /// <param name="context">ExecutionContext</param>
+        /// <returns>Previous language mode or null for no language mode change</returns>
+        internal static PSLanguageMode? EnforceSystemLockDownLanguageMode(ExecutionContext context)
+        {
+            PSLanguageMode? oldMode = null;
+
+            if (SystemPolicy.GetSystemLockdownPolicy() == SystemEnforcementMode.Enforce)
+            {
+                switch (context.LanguageMode)
+                {
+                    case PSLanguageMode.FullLanguage:
+                        oldMode = context.LanguageMode;
+                        context.LanguageMode = PSLanguageMode.ConstrainedLanguage;
+                        break;
+
+                    case PSLanguageMode.RestrictedLanguage:
+                        oldMode = context.LanguageMode;
+                        context.LanguageMode = PSLanguageMode.NoLanguage;
+                        break;
+
+                    case PSLanguageMode.ConstrainedLanguage:
+                    case PSLanguageMode.NoLanguage:
+                        break;
+
+                    default:
+                        Diagnostics.Assert(false, "Unexpected PSLanguageMode");
+                        oldMode = context.LanguageMode;
+                        context.LanguageMode = PSLanguageMode.NoLanguage;
+                        break;
+                }
+            }
+
+            return oldMode;
         }
 
         #region Implicit Remoting Batching
