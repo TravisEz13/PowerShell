@@ -32,12 +32,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _date;
             }
+
             set
             {
                 _date = value;
                 _dateSpecified = true;
             }
         }
+
         private DateTime _date;
         private bool _dateSpecified;
 
@@ -52,12 +54,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _year;
             }
+
             set
             {
                 _year = value;
                 _yearSpecified = true;
             }
         }
+
         private int _year;
         private bool _yearSpecified;
 
@@ -72,12 +76,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _month;
             }
+
             set
             {
                 _month = value;
                 _monthSpecified = true;
             }
         }
+
         private int _month;
         private bool _monthSpecified;
 
@@ -92,12 +98,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _day;
             }
+
             set
             {
                 _day = value;
                 _daySpecified = true;
             }
         }
+
         private int _day;
         private bool _daySpecified;
 
@@ -112,12 +120,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _hour;
             }
+
             set
             {
                 _hour = value;
                 _hourSpecified = true;
             }
         }
+
         private int _hour;
         private bool _hourSpecified;
 
@@ -132,12 +142,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _minute;
             }
+
             set
             {
                 _minute = value;
                 _minuteSpecified = true;
             }
         }
+
         private int _minute;
         private bool _minuteSpecified;
 
@@ -152,12 +164,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _second;
             }
+
             set
             {
                 _second = value;
                 _secondSpecified = true;
             }
         }
+
         private int _second;
         private bool _secondSpecified;
 
@@ -172,12 +186,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _millisecond;
             }
+
             set
             {
                 _millisecond = value;
                 _millisecondSpecified = true;
             }
         }
+
         private int _millisecond;
         private bool _millisecondSpecified;
 
@@ -282,20 +298,20 @@ namespace Microsoft.PowerShell.Commands
                 // These are the ISO 8601 "basic" formats, dropping dashes and colons
                 // so that they can be used in file names
 
-                if (String.Equals("FileDate", Format, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals("FileDate", Format, StringComparison.OrdinalIgnoreCase))
                 {
                     Format = "yyyyMMdd";
                 }
-                else if (String.Equals("FileDateUniversal", Format, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals("FileDateUniversal", Format, StringComparison.OrdinalIgnoreCase))
                 {
                     dateToUse = dateToUse.ToUniversalTime();
                     Format = "yyyyMMddZ";
                 }
-                else if (String.Equals("FileDateTime", Format, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals("FileDateTime", Format, StringComparison.OrdinalIgnoreCase))
                 {
                     Format = "yyyyMMddTHHmmssffff";
                 }
-                else if (String.Equals("FileDateTimeUniversal", Format, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals("FileDateTimeUniversal", Format, StringComparison.OrdinalIgnoreCase))
                 {
                     dateToUse = dateToUse.ToUniversalTime();
                     Format = "yyyyMMddTHHmmssffffZ";
@@ -329,6 +345,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 offset++;
             }
+
             for (int i = offset; i < UFormat.Length; i++)
             {
                 if (UFormat[i] == '%')
@@ -375,7 +392,7 @@ namespace Microsoft.PowerShell.Commands
                         case 'F':
                             sb.Append("{0:yyyy}-{0:MM}-{0:dd}");
                             break;
-                            
+
                         case 'G':
                             sb.Append("{0:yyyy}");
                             break;

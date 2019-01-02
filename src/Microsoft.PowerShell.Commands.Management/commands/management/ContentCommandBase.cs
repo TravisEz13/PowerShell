@@ -34,6 +34,7 @@ namespace Microsoft.PowerShell.Commands
         public string[] LiteralPath
         {
             get { return Path; }
+
             set
             {
                 base.SuppressWildcardExpansion = true;
@@ -48,6 +49,7 @@ namespace Microsoft.PowerShell.Commands
         public override string Filter
         {
             get { return base.Filter; }
+
             set { base.Filter = value; }
         }
 
@@ -58,6 +60,7 @@ namespace Microsoft.PowerShell.Commands
         public override string[] Include
         {
             get { return base.Include; }
+
             set { base.Include = value; }
         }
 
@@ -68,6 +71,7 @@ namespace Microsoft.PowerShell.Commands
         public override string[] Exclude
         {
             get { return base.Exclude; }
+
             set { base.Exclude = value; }
         }
 
@@ -87,6 +91,7 @@ namespace Microsoft.PowerShell.Commands
         public override SwitchParameter Force
         {
             get { return base.Force; }
+
             set { base.Force = value; }
         }
 
@@ -145,7 +150,7 @@ namespace Microsoft.PowerShell.Commands
             if (_currentContentItem != null &&
                 ((_currentContentItem.PathInfo == pathInfo) ||
                  (
-                    String.Compare(
+                    string.Compare(
                         pathInfo.Path,
                         _currentContentItem.PathInfo.Path,
                         StringComparison.OrdinalIgnoreCase) == 0)
@@ -179,8 +184,9 @@ namespace Microsoft.PowerShell.Commands
                     }
                     else
                     {
-                        parentPath = SessionState.Path.ParseParent(pathInfo.Path, String.Empty, context);
+                        parentPath = SessionState.Path.ParseParent(pathInfo.Path, string.Empty, context);
                     }
+
                     note = new PSNoteProperty("PSParentPath", parentPath);
                     result.Properties.Add(note, true);
                     tracer.WriteLine("Attaching {0} = {1}", "PSParentPath", parentPath);

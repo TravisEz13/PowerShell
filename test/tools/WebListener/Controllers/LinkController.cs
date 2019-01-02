@@ -27,7 +27,7 @@ namespace mvc.Controllers
                 linkNumber = 1;
             }
 
-            string baseUri = Regex.Replace(UriHelper.GetDisplayUrl(Request), "\\?.*", String.Empty);
+            string baseUri = Regex.Replace(UriHelper.GetDisplayUrl(Request), "\\?.*", string.Empty);
 
             string type = Request.Query.TryGetValue("type", out StringValues typeSV) ? typeSV.FirstOrDefault() : "default";
 
@@ -46,6 +46,7 @@ namespace mvc.Controllers
             {
                 linkList.Add(GetLink(baseUri: baseUri, maxLinks: maxLinks, linkNumber: linkNumber - 1, type: type, whitespace: whitespace, rel: "prev"));
             }
+
             linkList.Add(GetLink(baseUri: baseUri, maxLinks: maxLinks, linkNumber: maxLinks, type: type, whitespace: whitespace, rel: "last"));
             linkList.Add(GetLink(baseUri: baseUri, maxLinks: maxLinks, linkNumber: 1, type: type, whitespace: whitespace, rel: "first"));
             linkList.Add(GetLink(baseUri: baseUri, maxLinks: maxLinks, linkNumber: linkNumber, type: type, whitespace: whitespace, rel: "self"));
@@ -85,8 +86,9 @@ namespace mvc.Controllers
             }
             else
             {
-                linkHeader = String.Join(",", linkList);
+                linkHeader = string.Join(",", linkList);
             }
+
             Response.Headers.Add("Link", linkHeader);
 
             // Generate /Get/ result and append linknumber, maxlinks, and type

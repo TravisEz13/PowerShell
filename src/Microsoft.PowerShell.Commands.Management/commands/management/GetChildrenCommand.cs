@@ -40,6 +40,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _paths;
             }
+
             set
             {
                 _paths = value;
@@ -76,6 +77,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return base.Filter;
             }
+
             set
             {
                 base.Filter = value;
@@ -127,6 +129,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _recurse;
             }
+
             set
             {
                 _recurse = value;
@@ -146,6 +149,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _depth;
             }
+
             set
             {
                 _depth = value;
@@ -172,6 +176,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return base.Force;
             }
+
             set
             {
                 base.Force = value;
@@ -188,6 +193,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _childNames;
             }
+
             set
             {
                 _childNames = value;
@@ -209,7 +215,7 @@ namespace Microsoft.PowerShell.Commands
         internal override object GetDynamicParameters(CmdletProviderContext context)
         {
             object result = null;
-            string path = String.Empty;
+            string path = string.Empty;
 
             if (_paths != null && _paths.Length > 0)
             {
@@ -232,12 +238,14 @@ namespace Microsoft.PowerShell.Commands
                     {
                         result = InvokeProvider.ChildItem.GetChildItemsDynamicParameters(path, Recurse, context);
                     }
+
                     break;
 
                 default:
                     result = InvokeProvider.ChildItem.GetChildItemsDynamicParameters(path, Recurse, context);
                     break;
             }
+
             return result;
         }
 
@@ -281,7 +289,7 @@ namespace Microsoft.PowerShell.Commands
 
             if (_paths == null || _paths.Length == 0)
             {
-                _paths = new string[] { String.Empty };
+                _paths = new string[] { string.Empty };
             }
 
             foreach (string path in _paths)

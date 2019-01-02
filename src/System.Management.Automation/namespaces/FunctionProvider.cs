@@ -57,7 +57,7 @@ namespace Microsoft.PowerShell.Commands
                 new PSDriveInfo(
                     DriveNames.FunctionDrive,
                     ProviderInfo,
-                    String.Empty,
+                    string.Empty,
                     description,
                     null);
 
@@ -125,7 +125,7 @@ namespace Microsoft.PowerShell.Commands
         internal override object GetSessionStateItem(string name)
         {
             Dbg.Diagnostics.Assert(
-                !String.IsNullOrEmpty(name),
+                !string.IsNullOrEmpty(name),
                 "The caller should verify this parameter");
 
             CommandInfo function = SessionState.Internal.GetFunction(name, Context.Origin);
@@ -149,7 +149,7 @@ namespace Microsoft.PowerShell.Commands
         internal override void SetSessionStateItem(string name, object value, bool writeItem)
         {
             Dbg.Diagnostics.Assert(
-                !String.IsNullOrEmpty(name),
+                !string.IsNullOrEmpty(name),
                 "The caller should verify this parameter");
 
             FunctionProviderDynamicParameters dynamicParameters =
@@ -202,6 +202,7 @@ namespace Microsoft.PowerShell.Commands
                         {
                             modifiedItem = SessionState.Internal.SetFunction(name, scriptBlockValue, null, Force, Context.Origin);
                         }
+
                         break;
                     }
 
@@ -219,7 +220,7 @@ namespace Microsoft.PowerShell.Commands
                         break;
                     }
 
-                    String stringValue = value as string;
+                    string stringValue = value as string;
                     if (stringValue != null)
                     {
                         ScriptBlock scriptBlock = ScriptBlock.Create(Context.ExecutionContext, stringValue);
@@ -232,6 +233,7 @@ namespace Microsoft.PowerShell.Commands
                         {
                             modifiedItem = SessionState.Internal.SetFunction(name, scriptBlock, null, Force, Context.Origin);
                         }
+
                         break;
                     }
 
@@ -260,7 +262,7 @@ namespace Microsoft.PowerShell.Commands
         internal override void RemoveSessionStateItem(string name)
         {
             Dbg.Diagnostics.Assert(
-                !String.IsNullOrEmpty(name),
+                !string.IsNullOrEmpty(name),
                 "The caller should verify this parameter");
 
             SessionState.Internal.RemoveFunction(name, Force);
@@ -360,12 +362,14 @@ namespace Microsoft.PowerShell.Commands
         public ScopedItemOptions Options
         {
             get { return _options; }
+
             set
             {
                 _optionsSet = true;
                 _options = value;
             }
         }
+
         private ScopedItemOptions _options = ScopedItemOptions.None;
 
         /// <summary>
@@ -376,6 +380,7 @@ namespace Microsoft.PowerShell.Commands
         {
             get { return _optionsSet; }
         }
+
         private bool _optionsSet;
     }
 }

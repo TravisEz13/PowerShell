@@ -168,6 +168,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 for (int k = 0; k < info.Count; k++)
                     _ctxManager.Process(info[k]);
             }
+
             return true;
         }
 
@@ -250,14 +251,15 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         private enum PreprocessingState { raw, processed, error }
 
         private const int DefaultConsoleWidth = 120;
+        private const int DefaultConsoleHeight = int.MaxValue;
         internal const int StackAllocThreshold = 120;
 
         /// <summary>
         /// test if an object coming from the pipeline needs to be
         /// preprocessed by the default formatter
         /// </summary>
-        /// <param name="o">object to examine for formatting</param>
-        /// <returns>whether the object needs to be shunted to preprocessing</returns>
+        /// <param name="o">Object to examine for formatting.</param>
+        /// <returns>Whether the object needs to be shunted to preprocessing.</returns>
         private bool NeedsPreprocessing(object o)
         {
             FormatEntryData fed = o as FormatEntryData;
@@ -269,6 +271,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     // we allow out of band data in any state
                     ValidateCurrentFormattingState(FormattingState.InsideGroup, o);
                 }
+
                 return false;
             }
             else if (o is FormatStartData)
@@ -361,8 +364,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// shunt object to the formatting pipeline for preprocessing
         /// </summary>
-        /// <param name="o">object to be preprocessed</param>
-        /// <returns>array of objects returned by the preprocessing step</returns>
+        /// <param name="o">Object to be preprocessed.</param>
+        /// <returns>Array of objects returned by the preprocessing step.</returns>
         private Array ApplyFormatting(object o)
         {
             if (_command == null)
@@ -377,8 +380,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// class factory for output context
         /// </summary>
-        /// <param name="parentContext">parent context in the stack</param>
-        /// <param name="formatInfoData"> fromat info data received from the pipeline</param>
+        /// <param name="parentContext">Parent context in the stack.</param>
+        /// <param name="formatInfoData">Fromat info data received from the pipeline.</param>
         /// <returns></returns>
         private FormatMessagesContextManager.OutputContext CreateOutputContext(
                                         FormatMessagesContextManager.OutputContext parentContext,
@@ -429,8 +432,10 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                         {
                             Diagnostics.Assert(false, "Invalid shape. This should never happen");
                         }
+
                         break;
                 }
+
                 goc.Initialize();
                 return goc;
             }
@@ -441,7 +446,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// callback for Fs processing
         /// </summary>
-        /// <param name="c">the context containing the Fs entry</param>
+        /// <param name="c">The context containing the Fs entry.</param>
         private void ProcessFormatStart(FormatMessagesContextManager.OutputContext c)
         {
             // we just add an empty line to the display
@@ -451,8 +456,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// callback for Fe processing
         /// </summary>
-        /// <param name="fe">Fe notification message</param>
-        /// <param name="c">current context, with Fs in it</param>
+        /// <param name="fe">Fe notification message.</param>
+        /// <param name="c">Current context, with Fs in it.</param>
         private void ProcessFormatEnd(FormatEndData fe, FormatMessagesContextManager.OutputContext c)
         {
             //Console.WriteLine("ProcessFormatEnd");
@@ -463,7 +468,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// callback for Gs processing
         /// </summary>
-        /// <param name="c">the context containing the Gs entry</param>
+        /// <param name="c">The context containing the Gs entry.</param>
         private void ProcessGroupStart(FormatMessagesContextManager.OutputContext c)
         {
             //Console.WriteLine("ProcessGroupStart");
@@ -477,14 +482,15 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 writer.Initialize(_lo, _lo.ColumnNumber);
                 writer.WriteObject(goc.Data.groupingEntry.formatValueList);
             }
+
             goc.GroupStart();
         }
 
         /// <summary>
         /// callback for Ge processing
         /// </summary>
-        /// <param name="ge">Ge notification message</param>
-        /// <param name="c">current context, with Gs in it</param>
+        /// <param name="ge">Ge notification message.</param>
+        /// <param name="c">Current context, with Gs in it.</param>
         private void ProcessGroupEnd(GroupEndData ge, FormatMessagesContextManager.OutputContext c)
         {
             //Console.WriteLine("ProcessGroupEnd");
@@ -496,8 +502,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// <summary>
         /// process the current payload object
         /// </summary>
-        /// <param name="fed">FormatEntryData to process</param>
-        /// <param name="c">currently active context</param>
+        /// <param name="fed">FormatEntryData to process.</param>
+        /// <param name="c">Currently active context.</param>
         private void ProcessPayload(FormatEntryData fed, FormatMessagesContextManager.OutputContext c)
         {
             // we assume FormatEntryData as a standard wrapper
@@ -505,6 +511,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             {
                 PSTraceSource.NewArgumentNullException("fed");
             }
+
             if (fed.formatEntryInfo == null)
             {
                 PSTraceSource.NewArgumentNullException("fed.formatEntryInfo");
@@ -591,6 +598,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         internal LineOutput LineOutput
         {
             set { _lo = value; }
+
             get { return _lo; }
         }
 
@@ -744,19 +752,13 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         }
 
         /// <summary>
-        /// In cases like implicit remoting, there is no console so reading the console width results in an exception.
-        /// Instead of handling exception every time we cache this value to increase performance.
-        /// </summary>
-        static private bool _noConsole = false;
-
-        /// <summary>
         /// Tables and Wides need to use spaces for padding to maintain table look even if console window is resized.
         /// For all other output, we use int.MaxValue if the user didn't explicitly specify a width.
         /// If we detect that int.MaxValue is used, first we try to get the current console window width.
         /// However, if we can't read that (for example, implicit remoting has no console window), we default
         /// to something reasonable: 120 columns.
         /// </summary>
-        static private int GetConsoleWindowWidth(int columnNumber)
+        private static int GetConsoleWindowWidth(int columnNumber)
         {
             if (InternalTestHooks.SetConsoleWidthToZero)
             {
@@ -765,10 +767,6 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
 
             if (columnNumber == int.MaxValue)
             {
-                if (_noConsole)
-                {
-                    return DefaultConsoleWidth;
-                }
                 try
                 {
                     // if Console width is set to 0, the default width is returned so that the output string is not null.
@@ -777,11 +775,38 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 }
                 catch
                 {
-                    _noConsole = true;
                     return DefaultConsoleWidth;
                 }
             }
+
             return columnNumber;
+        }
+
+        /// <summary>
+        /// Return the console height.null  If not available (like when remoting), treat as Int.MaxValue.
+        /// </summary>
+        private static int GetConsoleWindowHeight(int rowNumber)
+        {
+            if (InternalTestHooks.SetConsoleHeightToZero)
+            {
+                return DefaultConsoleHeight;
+            }
+
+            if (rowNumber <= 0)
+            {
+                try
+                {
+                    // if Console height is set to 0, the default height is returned.
+                    // This can happen in environments where TERM is not set.
+                    return (Console.WindowHeight > 0) ? Console.WindowHeight : DefaultConsoleHeight;
+                }
+                catch
+                {
+                    return DefaultConsoleHeight;
+                }
+            }
+
+            return rowNumber;
         }
 
         /// <summary>
@@ -833,8 +858,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal FormatOutputContext(FormatMessagesContextManager.OutputContext parentContext, FormatStartData formatData)
                 : base(parentContext)
             {
@@ -886,7 +911,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// called when there is an entry to process, overrides will do
             /// things such as writing a row in a table
             /// </summary>
-            /// <param name="fed">FormatEntryData to process</param>
+            /// <param name="fed">FormatEntryData to process.</param>
             internal virtual void ProcessPayload(FormatEntryData fed) { }
 
             /// <summary>
@@ -902,9 +927,9 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="cmd">reference to the OutCommandInner instance who owns this instance</param>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="cmd">Reference to the OutCommandInner instance who owns this instance.</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal TableOutputContextBase(OutCommandInner cmd,
                 FormatMessagesContextManager.OutputContext parentContext,
                 GroupStartData formatData)
@@ -925,17 +950,30 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
 
         private sealed class TableOutputContext : TableOutputContextBase
         {
+            private int _rowCount = 0;
+            private int _consoleHeight = -1;
+            private int _consoleWidth = -1;
+            private const int WhitespaceAndPagerLineCount = 2;
+            private bool _repeatHeader = false;
+
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="cmd">reference to the OutCommandInner instance who owns this instance</param>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="cmd">Reference to the OutCommandInner instance who owns this instance.</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal TableOutputContext(OutCommandInner cmd,
                 FormatMessagesContextManager.OutputContext parentContext,
                 GroupStartData formatData)
                 : base(cmd, parentContext, formatData)
             {
+                if (parentContext is FormatOutputContext foc)
+                {
+                    if (foc.Data.shapeInfo is TableHeaderInfo thi)
+                    {
+                        _repeatHeader = thi.repeatHeader;
+                    }
+                }
             }
 
             /// <summary>
@@ -952,7 +990,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     columnWidthsHint = tableHint.columnWidths;
                 }
 
-                int columnsOnTheScreen = GetConsoleWindowWidth(this.InnerCommand._lo.ColumnNumber);
+                _consoleHeight = GetConsoleWindowHeight(this.InnerCommand._lo.RowNumber);
+                _consoleWidth = GetConsoleWindowWidth(this.InnerCommand._lo.ColumnNumber);
 
                 int columns = this.CurrentTableHeaderInfo.tableColumnInfoList.Count;
                 if (columns == 0)
@@ -971,7 +1010,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     alignment[k] = tci.alignment;
                     k++;
                 }
-                this.Writer.Initialize(0, columnsOnTheScreen, columnWidths, alignment, this.CurrentTableHeaderInfo.hideHeader);
+
+                this.Writer.Initialize(0, _consoleWidth, columnWidths, alignment, this.CurrentTableHeaderInfo.hideHeader);
             }
 
             /// <summary>
@@ -992,13 +1032,14 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 {
                     properties[k++] = tci.label ?? tci.propertyName;
                 }
-                this.Writer.GenerateHeader(properties, this.InnerCommand._lo);
+
+                _rowCount += this.Writer.GenerateHeader(properties, this.InnerCommand._lo);
             }
 
             /// <summary>
             /// write a row into the table
             /// </summary>
-            /// <param name="fed">FormatEntryData to process</param>
+            /// <param name="fed">FormatEntryData to process.</param>
             internal override void ProcessPayload(FormatEntryData fed)
             {
                 int headerColumns = this.CurrentTableHeaderInfo.tableColumnInfoList.Count;
@@ -1006,6 +1047,12 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 if (headerColumns == 0)
                 {
                     return;
+                }
+
+                if (_repeatHeader && _rowCount >= _consoleHeight - WhitespaceAndPagerLineCount)
+                {
+                    this.InnerCommand._lo.WriteLine(string.Empty);
+                    _rowCount = this.Writer.GenerateHeader(null, this.InnerCommand._lo);
                 }
 
                 TableRowEntry tre = fed.formatEntryInfo as TableRowEntry;
@@ -1029,7 +1076,9 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                         alignment[k] = TextAlignment.Left; // hard coded default
                     }
                 }
-                this.Writer.GenerateRow(values, this.InnerCommand._lo, tre.multiLine, alignment, InnerCommand._lo.DisplayCells);
+
+                this.Writer.GenerateRow(values, this.InnerCommand._lo, tre.multiLine, alignment, InnerCommand._lo.DisplayCells, generatedRows: null);
+                _rowCount++;
             }
 
             private TableHeaderInfo CurrentTableHeaderInfo
@@ -1046,9 +1095,9 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="cmd">reference to the OutCommandInner instance who owns this instance</param>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="cmd">Reference to the OutCommandInner instance who owns this instance.</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal ListOutputContext(OutCommandInner cmd,
                 FormatMessagesContextManager.OutputContext parentContext,
                 GroupStartData formatData)
@@ -1076,6 +1125,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 {
                     props.Add(lvf.label ?? lvf.propertyName);
                 }
+
                 if (props.Count == 0)
                     return null;
                 string[] retVal = new string[props.Count];
@@ -1091,6 +1141,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 {
                     vals.Add(lvf.formatPropertyField.propertyValue);
                 }
+
                 if (vals.Count == 0)
                     return null;
                 string[] retVal = new string[vals.Count];
@@ -1108,7 +1159,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// write a row into the list
             /// </summary>
-            /// <param name="fed">FormatEntryData to process</param>
+            /// <param name="fed">FormatEntryData to process.</param>
             internal override void ProcessPayload(FormatEntryData fed)
             {
                 ListViewEntry lve = fed.formatEntryInfo as ListViewEntry;
@@ -1134,9 +1185,9 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="cmd">reference to the OutCommandInner instance who owns this instance</param>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="cmd">Reference to the OutCommandInner instance who owns this instance.</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal WideOutputContext(OutCommandInner cmd,
                 FormatMessagesContextManager.OutputContext parentContext,
                 GroupStartData formatData)
@@ -1182,7 +1233,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     alignment[k] = TextAlignment.Left;
                 }
 
-                this.Writer.Initialize(0, columnsOnTheScreen, columnWidths, alignment, false);
+                this.Writer.Initialize(0, columnsOnTheScreen, columnWidths, alignment, false, GetConsoleWindowHeight(this.InnerCommand._lo.RowNumber));
             }
 
             /// <summary>
@@ -1204,7 +1255,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// write a row into the table
             /// </summary>
-            /// <param name="fed">FormatEntryData to process</param>
+            /// <param name="fed">FormatEntryData to process.</param>
             internal override void ProcessPayload(FormatEntryData fed)
             {
                 WideViewEntry wve = fed.formatEntryInfo as WideViewEntry;
@@ -1239,7 +1290,8 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     else
                         values[k] = string.Empty;
                 }
-                this.Writer.GenerateRow(values, this.InnerCommand._lo, false, null, InnerCommand._lo.DisplayCells);
+
+                this.Writer.GenerateRow(values, this.InnerCommand._lo, false, null, InnerCommand._lo.DisplayCells, generatedRows: null);
                 _buffer.Reset();
             }
 
@@ -1252,7 +1304,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 /// <summary>
                 /// construct the buffer
                 /// </summary>
-                /// <param name="size">number of entries to cache</param>
+                /// <param name="size">Number of entries to cache.</param>
                 internal StringValuesBuffer(int size)
                 {
                     _arr = new string[size];
@@ -1292,7 +1344,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 /// <summary>
                 /// add an item to the buffer
                 /// </summary>
-                /// <param name="s">string to add</param>
+                /// <param name="s">String to add.</param>
                 internal void Add(string s)
                 {
                     _arr[_lastEmptySpot++] = s;
@@ -1318,9 +1370,9 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// construct a context to push on the stack
             /// </summary>
-            /// <param name="cmd">reference to the OutCommandInner instance who owns this instance</param>
-            /// <param name="parentContext">parent context in the stack</param>
-            /// <param name="formatData">format data to put in the context</param>
+            /// <param name="cmd">Reference to the OutCommandInner instance who owns this instance.</param>
+            /// <param name="parentContext">Parent context in the stack.</param>
+            /// <param name="formatData">Format data to put in the context.</param>
             internal ComplexOutputContext(OutCommandInner cmd,
                 FormatMessagesContextManager.OutputContext parentContext,
                 GroupStartData formatData)
@@ -1337,7 +1389,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             /// <summary>
             /// write a row into the list
             /// </summary>
-            /// <param name="fed">FormatEntryData to process</param>
+            /// <param name="fed">FormatEntryData to process.</param>
             internal override void ProcessPayload(FormatEntryData fed)
             {
                 ComplexViewEntry cve = fed.formatEntryInfo as ComplexViewEntry;

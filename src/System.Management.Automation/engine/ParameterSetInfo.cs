@@ -47,8 +47,8 @@ namespace System.Management.Automation
             MergedCommandParameterMetadata parameterMetadata)
         {
             IsDefault = true;
-            Name = String.Empty;
-            if (String.IsNullOrEmpty(name))
+            Name = string.Empty;
+            if (string.IsNullOrEmpty(name))
             {
                 throw PSTraceSource.NewArgumentException("name");
             }
@@ -97,6 +97,7 @@ namespace System.Management.Automation
                                          {
                                              result.Append(" ");
                                          }
+
                                          result.Append("[");
                                          result.Append(str);
                                          result.Append("]");
@@ -158,6 +159,7 @@ namespace System.Management.Automation
                             sortedPositionalParameters.Add(null);
                         }
                     }
+
                     sortedPositionalParameters[parameter.Position] = parameter;
                 }
             }
@@ -303,6 +305,7 @@ namespace System.Management.Automation
                 Type parameterType = Nullable.GetUnderlyingType(type) ?? type;
                 parameterTypeString = ToStringCodeMethods.Type(parameterType, true);
             }
+
             return parameterTypeString;
         }
 

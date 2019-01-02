@@ -54,6 +54,7 @@ namespace System.Management.Automation
                     throw bindingException;
                 }
             }
+
             this.CommandLineParameters = commandLineParameters;
         }
 
@@ -97,6 +98,7 @@ namespace System.Management.Automation
             {
                 result = parameter.Value;
             }
+
             return result;
         }
 
@@ -120,7 +122,7 @@ namespace System.Management.Automation
         /// </exception>
         internal override void BindParameter(string name, object value, CompiledCommandParameter parameterMetadata)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw PSTraceSource.NewArgumentException("name");
             }

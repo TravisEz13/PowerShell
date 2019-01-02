@@ -21,7 +21,7 @@ namespace Microsoft.PowerShell.Commands
         internal char Delimiter { get; } = ',';
 
         /// <summary>
-        /// Parse a CSV String.
+        /// Parse a CSV string.
         /// </summary>
         /// <param name="csv">
         /// String to be parsed.
@@ -35,6 +35,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return result;
             }
+
             bool inQuote = false;
             for (int i = 0; i < csv.Length; i++)
             {
@@ -98,10 +99,12 @@ namespace Microsoft.PowerShell.Commands
                     }
                 }
             }
+
             if (tempString.Length > 0)
             {
                 result.Add(tempString);
             }
+
             return result;
         }
     }

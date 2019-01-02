@@ -101,7 +101,7 @@ namespace System.Management.Automation
         /// <summary>
         /// Updates properties of the resource
         /// </summary>
-        /// <param name="properties">Updated properties</param>
+        /// <param name="properties">Updated properties.</param>
         public void UpdateProperties(IList<DscResourcePropertyInfo> properties)
         {
             if (properties != null)
@@ -116,7 +116,7 @@ namespace System.Management.Automation
         /// <summary>
         /// Gets the help file path for the cmdlet.
         /// </summary>
-        public string HelpFile { get; internal set; } = String.Empty;
+        public string HelpFile { get; internal set; } = string.Empty;
 
 // HelpFile
     }

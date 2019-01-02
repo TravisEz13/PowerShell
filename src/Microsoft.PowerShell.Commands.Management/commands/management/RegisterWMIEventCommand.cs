@@ -67,6 +67,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _timeOut;
             }
+
             set
             {
                 _timeOut = value;
@@ -85,6 +86,7 @@ namespace Microsoft.PowerShell.Commands
             returnValue.Append(objectName);
             return returnValue.ToString();
         }
+
         private string GetScopeString(string computer, string namespaceParameter)
         {
             StringBuilder returnValue = new StringBuilder("\\\\");
@@ -98,7 +100,7 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Returns the object that generates events to be monitored
         /// </summary>
-        protected override Object GetSourceObject()
+        protected override object GetSourceObject()
         {
             string wmiQuery = this.Query;
             if (this.Class != null)
@@ -113,7 +115,7 @@ namespace Microsoft.PowerShell.Commands
 
                     ErrorRecord errorRecord = new ErrorRecord(
                         new ArgumentException(
-                            String.Format(
+                            string.Format(
                                 Thread.CurrentThread.CurrentCulture,
                                 "Class", this.Class)),
                         "INVALID_QUERY_IDENTIFIER",
@@ -132,7 +134,7 @@ namespace Microsoft.PowerShell.Commands
             if (this.Credential != null)
             {
                 System.Net.NetworkCredential cred = this.Credential.GetNetworkCredential();
-                if (String.IsNullOrEmpty(cred.Domain))
+                if (string.IsNullOrEmpty(cred.Domain))
                 {
                     conOptions.Username = cred.UserName;
                 }
@@ -140,6 +142,7 @@ namespace Microsoft.PowerShell.Commands
                 {
                     conOptions.Username = cred.Domain + "\\" + cred.UserName;
                 }
+
                 conOptions.Password = cred.Password;
             }
 

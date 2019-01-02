@@ -78,7 +78,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <returns></returns>
         internal static bool IsDefaultComputerName(string computerName)
         {
-            return String.IsNullOrEmpty(computerName);
+            return string.IsNullOrEmpty(computerName);
         }
 
         /// <summary>
@@ -144,6 +144,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         internal static bool GenerateLog
         {
             get { return generateLog; }
+
             set { generateLog = value; }
         }
 
@@ -159,6 +160,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         internal static bool GenerateVerboseMessage
         {
             get { return generateVerboseMessage; }
+
             set { generateVerboseMessage = value; }
         }
 
@@ -222,6 +224,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
             //{
             //    return string.Format(CultureInfo.CurrentUICulture, "{0}:", frame.GetMethod());
             //}
+
             return string.Format(CultureInfo.CurrentUICulture, "{0}::{1}        ",
                 frame.GetMethod().DeclaringType.Name,
                 frame.GetMethod().Name);
@@ -252,7 +255,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <param name="message"></param>
         internal static void WriteLog(string message, int indent, params object[] args)
         {
-            String outMessage = String.Empty;
+            String outMessage = string.Empty;
             FormatLogMessage(ref outMessage, message, args);
             WriteLog(outMessage, indent);
         }
@@ -273,7 +276,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <param name="message"></param>
         internal static void WriteLogEx(string message, int indent, params object[] args)
         {
-            String outMessage = String.Empty;
+            String outMessage = string.Empty;
             WriteLogInternal(string.Empty, 0, -1);
             FormatLogMessage(ref outMessage, message, args);
             WriteLogInternal(outMessage, indent, 3);
@@ -310,7 +313,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         [Conditional("LOGENABLE")]
         private static void FormatLogMessage(ref String outMessage, string message, params object[] args)
         {
-            outMessage = String.Format(CultureInfo.CurrentCulture, message, args);
+            outMessage = string.Format(CultureInfo.CurrentCulture, message, args);
         }
 
         /// <summary>
@@ -340,10 +343,12 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
                 {
                     indent = 0;
                 }
+
                 if (indent > 5)
                 {
                     indent = 5;
                 }
+
                 string sourceInformation = string.Empty;
                 if (depth != -1)
                 {
@@ -356,6 +361,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
                         DateTime.Now.Second,
                         GetSourceCodeInformation(true, depth));
                 }
+
                 lock (logLock)
                 {
                     using (FileStream fs = new FileStream(logFile,FileMode.OpenOrCreate))
@@ -396,7 +402,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <param name="argumentName"></param>
         public static void ValidateNoNullorWhiteSpaceArgument(string obj, string argumentName)
         {
-            if (String.IsNullOrWhiteSpace(obj))
+            if (string.IsNullOrWhiteSpace(obj))
             {
                 throw new ArgumentException(argumentName);
             }
@@ -409,7 +415,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <param name="parameterName"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException">Throw if the given value is not a valid name (class name or property name)</exception>
+        /// <exception cref="ArgumentException">Throw if the given value is not a valid name (class name or property name).</exception>
         public static string ValidateArgumentIsValidName(string parameterName, string value)
         {
             DebugHelper.WriteLogEx();
@@ -425,8 +431,9 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
                     return trimed;
                 }
             }
+
             DebugHelper.WriteLogEx("An invalid name: {0}={1}", 0, parameterName, value);
-            throw new ArgumentException(String.Format(CultureInfo.CurrentUICulture, Strings.InvalidParameterValue, value, parameterName));
+            throw new ArgumentException(string.Format(CultureInfo.CurrentUICulture, Strings.InvalidParameterValue, value, parameterName));
         }
 
         /// <summary>
@@ -436,7 +443,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         /// <param name="parameterName"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException">Throw if the given value contains any invalid name (class name or property name)</exception>
+        /// <exception cref="ArgumentException">Throw if the given value contains any invalid name (class name or property name).</exception>
         public static String[] ValidateArgumentIsValidName(string parameterName, String[] value)
         {
             if (value != null)
@@ -444,13 +451,15 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
                 foreach (string propertyName in value)
                 {
                     // * is wild char supported in select properties
-                    if ((propertyName != null) && (String.Compare(propertyName.Trim(), "*", StringComparison.OrdinalIgnoreCase) == 0))
+                    if ((propertyName != null) && (string.Compare(propertyName.Trim(), "*", StringComparison.OrdinalIgnoreCase) == 0))
                     {
                         continue;
                     }
+
                     ValidationHelper.ValidateArgumentIsValidName(parameterName, propertyName);
                 }
             }
+
             return value;
         }
     }

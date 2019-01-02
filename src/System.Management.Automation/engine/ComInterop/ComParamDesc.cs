@@ -15,14 +15,14 @@ namespace System.Management.Automation.ComInterop
     /// </summary>
     internal class ComParamDesc
     {
-        # region private fields
+        #region private fields
 
         private readonly VarEnum _vt;
         private readonly string _name;
 
-        # endregion
+        #endregion
 
-        # region ctor
+        #region ctor
 
         /// <summary>
         /// Creates a representation for the parameter of a COM method
@@ -34,7 +34,7 @@ namespace System.Management.Automation.ComInterop
             // yields a runtime exception in the ToString() function.
             DefaultValue = DBNull.Value;
 
-            if (!String.IsNullOrEmpty(name))
+            if (!string.IsNullOrEmpty(name))
             {
                 // This is a parameter, not a return value
                 IsOut = (elemDesc.desc.paramdesc.wParamFlags & PARAMFLAG.PARAMFLAG_FOUT) != 0;
@@ -81,7 +81,7 @@ namespace System.Management.Automation.ComInterop
         /// TODO: Return values should be represented by a different type
         /// </summary>
         internal ComParamDesc(ref ELEMDESC elemDesc)
-            : this(ref elemDesc, String.Empty)
+            : this(ref elemDesc, string.Empty)
         {
         }
 
@@ -122,9 +122,9 @@ namespace System.Management.Automation.ComInterop
             return result.ToString();
         }
 
-        # endregion
+        #endregion
 
-        # region properties
+        #region properties
 
         public bool IsOut { get; }
 
@@ -141,7 +141,7 @@ namespace System.Management.Automation.ComInterop
         /// </summary>
         internal object DefaultValue { get; }
 
-        # endregion
+        #endregion
     }
 }
 

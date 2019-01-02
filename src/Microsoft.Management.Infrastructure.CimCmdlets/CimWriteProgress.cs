@@ -46,7 +46,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
             this.activity = theActivity;
             this.activityID = theActivityID;
             this.currentOperation = theCurrentOperation;
-            if (String.IsNullOrEmpty(theStatusDescription))
+            if (string.IsNullOrEmpty(theStatusDescription))
             {
                 this.statusDescription = Strings.DefaultStatusDescription;
             }
@@ -54,6 +54,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
             {
                 this.statusDescription = theStatusDescription;
             }
+
             this.percentageCompleted = thePercentageCompleted;
             this.secondsRemaining = theSecondsRemaining;
         }

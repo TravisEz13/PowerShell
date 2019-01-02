@@ -7,24 +7,20 @@
  *
  */
 
-using System.Management.Automation.Tracing;
-using System.IO;
-using System.Xml;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Threading;
-using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
 using System.Management.Automation.Internal;
-#if !CORECLR
+using System.Management.Automation.Remoting.Server;
+using System.Management.Automation.Runspaces.Internal;
+using System.Management.Automation.Tracing;
+using System.Runtime.InteropServices;
+#if !UNIX
 using System.Security.Principal;
 #endif
-
-// Don't expose the System.Management.Automation namespace here. This is transport layer
-// and it shouldn't know anything about the engine.
-using System.Management.Automation.Remoting.Server;
-// TODO: this seems ugly...Remoting datatypes should be in remoting namespace
-using System.Management.Automation.Runspaces.Internal;
+using System.Xml;
+using System.Threading;
 
 using PSRemotingCryptoHelper = System.Management.Automation.Internal.PSRemotingCryptoHelper;
 using WSManConnectionInfo = System.Management.Automation.Runspaces.WSManConnectionInfo;
@@ -228,6 +224,7 @@ namespace System.Management.Automation.Remoting.Client
                             {
                                 msgSB.Insert(currentToken.EndColumn - 1, ",", 1);
                             }
+
                             break;
                     }
                 }
@@ -254,9 +251,9 @@ namespace System.Management.Automation.Remoting.Client
         /// Helper method to convert a transport error code value
         /// to a fully qualified error Id string.
         /// </summary>
-        /// <param name="transportErrorCode">transport error code</param>
-        /// <param name="defaultFQEID">Default FQEID</param>
-        /// <returns>Fully qualified error Id string</returns>
+        /// <param name="transportErrorCode">Transport error code.</param>
+        /// <param name="defaultFQEID">Default FQEID.</param>
+        /// <returns>Fully qualified error Id string.</returns>
         internal static string GetFQEIDFromTransportError(
             int transportErrorCode,
             string defaultFQEID)
@@ -551,8 +548,8 @@ namespace System.Management.Automation.Remoting.Client
         /// <param name="connectionInfo">
         /// Connection info to use while connecting to the remote machine.
         /// </param>
-        /// <param name="cryptoHelper">crypto helper</param>
-        /// <param name="sessionName">session friendly name</param>
+        /// <param name="cryptoHelper">Crypto helper.</param>
+        /// <param name="sessionName">Session friendly name.</param>
         /// <exception cref="PSInvalidOperationException">
         /// 1. Create Session failed with a non-zero error code.
         /// </exception>
@@ -567,6 +564,7 @@ namespace System.Management.Automation.Remoting.Client
                 throw new PSRemotingTransportException(
                     StringUtil.Format(RemotingErrorIdStrings.WSManInitFailed, WSManAPIData.ErrorCode));
             }
+
             Dbg.Assert(connectionInfo != null, "connectionInfo cannot be null");
 
             CryptoHelper = cryptoHelper;
@@ -906,7 +904,7 @@ namespace System.Management.Automation.Remoting.Client
         internal override void ConnectAsync()
         {
             Dbg.Assert(!isClosed, "object already disposed");
-            Dbg.Assert(!String.IsNullOrEmpty(ConnectionInfo.ShellUri), "shell uri cannot be null or empty.");
+            Dbg.Assert(!string.IsNullOrEmpty(ConnectionInfo.ShellUri), "shell uri cannot be null or empty.");
 
             ReceivedDataCollection.PrepareForStreamConnect();
             // additional content with connect shell call. Negotiation and connect related messages
@@ -1030,7 +1028,7 @@ namespace System.Management.Automation.Remoting.Client
         internal override void CreateAsync()
         {
             Dbg.Assert(!isClosed, "object already disposed");
-            Dbg.Assert(!String.IsNullOrEmpty(ConnectionInfo.ShellUri), "shell uri cannot be null or empty.");
+            Dbg.Assert(!string.IsNullOrEmpty(ConnectionInfo.ShellUri), "shell uri cannot be null or empty.");
             Dbg.Assert(WSManAPIData != null, "WSManApiData should always be created before session creation.");
 
             List<WSManNativeApi.WSManOption> shellOptions = new List<WSManNativeApi.WSManOption>(WSManAPIData.CommonOptionSet);
@@ -1224,6 +1222,7 @@ namespace System.Management.Automation.Remoting.Client
                 {
                     RemoveSessionTransportManager(_sessionContextID);
                 }
+
                 return;
             }
 
@@ -1241,7 +1240,7 @@ namespace System.Management.Automation.Remoting.Client
         ///   With default configuration remoting from V3 client to V2 server will break as V3 client can send upto 500KB in a single Send packet
         ///   So if server version is known to be V2, we'll downgrade the max env size to 150KB (V2's default) if the current value is 500KB (V3 default)
         /// </summary>
-        /// <param name="serverProtocolVersion">server negotiated protocol version</param>
+        /// <param name="serverProtocolVersion">Server negotiated protocol version.</param>
         internal void AdjustForProtocolVariations(Version serverProtocolVersion)
         {
             if (serverProtocolVersion <= RemotingConstants.ProtocolVersionWin7RTM)
@@ -1380,6 +1379,7 @@ namespace System.Management.Automation.Remoting.Client
             {
                 additionalUriSuffixString = ";MSP=7a83d074-bb86-4e52-aa3e-6cc73cc066c8";
             }
+
             if (string.IsNullOrEmpty(connectionUri.Query))
             {
                 // if there is no query string already, create one..see RFC 3986
@@ -1553,6 +1553,7 @@ namespace System.Management.Automation.Remoting.Client
                     WSManNativeApi.WSManSessionOption.WSMAN_OPTION_ALLOW_NEGOTIATE_IMPLICIT_CREDENTIALS,
                     new WSManNativeApi.WSManDataDWord(1));
             }
+
             if (connectionInfo.UseUTF16)
             {
                 SetWSManSessionOption(WSManNativeApi.WSManSessionOption.WSMAN_OPTION_UTF16, 1);
@@ -1704,7 +1705,7 @@ namespace System.Management.Automation.Remoting.Client
         /// <summary>
         /// Call back from worker thread / queue to raise Robust Connection notification event.
         /// </summary>
-        /// <param name="privateData">ConnectionStatusEventArgs</param>
+        /// <param name="privateData">ConnectionStatusEventArgs.</param>
         internal override void ProcessPrivateData(object privateData)
         {
             // Raise the Robust
@@ -1762,7 +1763,7 @@ namespace System.Management.Automation.Remoting.Client
         /// session create/connect retry attempt may be beneficial then do the
         /// retry attempt.
         /// </summary>
-        /// <param name="sessionCreateErrorCode">Error code returned from Create response</param>
+        /// <param name="sessionCreateErrorCode">Error code returned from Create response.</param>
         /// <returns>True if a session create retry has been started.</returns>
         private bool RetrySessionCreation(int sessionCreateErrorCode)
         {
@@ -2561,6 +2562,7 @@ namespace System.Management.Automation.Remoting.Client
         {
             WSManAPIDataCommon tempWSManApiData = WSManAPIData;
             if (tempWSManApiData == null) { return; }
+
             WSManAPIData = null;
 
             // Dispose and de-initialize the WSManAPIData instance object on separate worker thread to ensure
@@ -2591,7 +2593,7 @@ namespace System.Management.Automation.Remoting.Client
             // Dispose
             private bool _isDisposed;
             private object _syncObject = new object();
-#if !CORECLR
+#if !UNIX
             private WindowsIdentity _identityToImpersonate;
 #endif
 
@@ -2600,11 +2602,9 @@ namespace System.Management.Automation.Remoting.Client
             /// </summary>
             internal WSManAPIDataCommon()
             {
-#if !CORECLR
+#if !UNIX
                 // Check for thread impersonation and save identity for later de-initialization.
-                _identityToImpersonate = WindowsIdentity.GetCurrent();
-                _identityToImpersonate = (_identityToImpersonate.ImpersonationLevel == TokenImpersonationLevel.Impersonation) ?
-                    _identityToImpersonate : null;
+                Utils.TryGetWindowsImpersonatedIdentity(out _identityToImpersonate);
 #endif
 
                 _handle = IntPtr.Zero;
@@ -2648,9 +2648,13 @@ namespace System.Management.Automation.Remoting.Client
             }
 
             internal int ErrorCode { get; }
+
             internal WSManNativeApi.WSManStreamIDSet_ManToUn InputStreamSet { get { return _inputStreamSet; } }
+
             internal WSManNativeApi.WSManStreamIDSet_ManToUn OutputStreamSet { get { return _outputStreamSet; } }
+
             internal List<WSManNativeApi.WSManOption> CommonOptionSet { get; }
+
             internal IntPtr WSManAPIHandle { get { return _handle; } }
 
             /// <summary>
@@ -2665,6 +2669,7 @@ namespace System.Management.Automation.Remoting.Client
                 lock (_syncObject)
                 {
                     if (_isDisposed) { return; }
+
                     _isDisposed = true;
                 }
 
@@ -2673,42 +2678,25 @@ namespace System.Management.Automation.Remoting.Client
 
                 if (IntPtr.Zero != _handle)
                 {
-#if !CORECLR
-                    // If we initialized with thread impersonation make sure de-initialize is run with same.
-                    WindowsImpersonationContext impersonationContext = null;
+                    int result = 0;
+
+#if !UNIX
+                    // If we initialized with thread impersonation, make sure de-initialize is run with the same.
                     if (_identityToImpersonate != null)
                     {
-                        try
-                        {
-                            _identityToImpersonate.Impersonate();
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            _handle = IntPtr.Zero;
-                            return;
-                        }
+                        result = WindowsIdentity.RunImpersonated(
+                            _identityToImpersonate.AccessToken,
+                            () => WSManNativeApi.WSManDeinitialize(_handle, 0));
                     }
+                    else
+                    {
+#endif
+                        result = WSManNativeApi.WSManDeinitialize(_handle, 0);
+#if !UNIX
+                    }
+#endif
 
-                    try
-                    {
-#endif
-                    int result = WSManNativeApi.WSManDeinitialize(_handle, 0);
                     Dbg.Assert(result == 0, "WSManDeinitialize returned non-zero value");
-#if !CORECLR
-                    }
-                    finally
-                    {
-                        if (impersonationContext != null)
-                        {
-                            try
-                            {
-                                impersonationContext.Undo();
-                                impersonationContext.Dispose();
-                            }
-                            catch (System.Security.SecurityException) { }
-                        }
-                    }
-#endif
                     _handle = IntPtr.Zero;
                 }
             }
@@ -3123,6 +3111,7 @@ namespace System.Management.Automation.Remoting.Client
                 {
                     RemoveCmdTransportManager(_cmdContextId);
                 }
+
                 return;
             }
 

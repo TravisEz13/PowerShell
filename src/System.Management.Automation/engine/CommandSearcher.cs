@@ -249,6 +249,7 @@ namespace System.Management.Automation
             {
                 currentMatch = GetNextAlias();
             }
+
             return currentMatch;
         }
 
@@ -368,6 +369,7 @@ namespace System.Management.Automation
                     // The enumerator may throw if there are no more matches
                 }
             }
+
             return currentMatch;
         }
 
@@ -376,7 +378,7 @@ namespace System.Management.Automation
             CommandInfo currentMatch = null;
             string path = DoPowerShellRelativePathLookup();
 
-            if (!String.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
                 currentMatch = GetInfoFromPath(path);
             }
@@ -587,7 +589,7 @@ namespace System.Management.Automation
                     break;
                 }
 
-                if (String.Equals(extension, StringLiterals.PowerShellScriptFileExtension, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(extension, StringLiterals.PowerShellScriptFileExtension, StringComparison.OrdinalIgnoreCase))
                 {
                     if ((_commandTypes & CommandTypes.ExternalScript) != 0)
                     {
@@ -603,6 +605,7 @@ namespace System.Management.Automation
                         result = new ExternalScriptInfo(scriptName, path, _context);
                         break;
                     }
+
                     break;
                 }
 
@@ -706,6 +709,7 @@ namespace System.Management.Automation
                     result.Name,
                     result.Definition);
             }
+
             return result;
         }
 
@@ -832,6 +836,7 @@ namespace System.Management.Automation
                     }
                 }
             }
+
             return result;
         }
 
@@ -853,6 +858,7 @@ namespace System.Management.Automation
                     }
                 }
             }
+
             return result;
         }
 
@@ -871,6 +877,7 @@ namespace System.Management.Automation
                         break;
                     }
                 }
+
                 if (module == null)
                 {
                     module = modules[0];
@@ -919,6 +926,7 @@ namespace System.Management.Automation
             {
                 result = GetFunctionFromModules(function);
             }
+
             return result;
         }
 
@@ -996,6 +1004,7 @@ namespace System.Management.Automation
 
             return traceResult(result);
         }
+
         private IEnumerator<CmdletInfo> _matchingCmdlet;
 
         private static CmdletInfo traceResult(CmdletInfo result)
@@ -1007,6 +1016,7 @@ namespace System.Management.Automation
                     result.Name,
                     result.ImplementingType);
             }
+
             return result;
         }
 
@@ -1037,6 +1047,7 @@ namespace System.Management.Automation
                     }
                 }
             }
+
             return result;
         }
 
@@ -1149,7 +1160,7 @@ namespace System.Management.Automation
         /// <param name="name">
         /// The name of the command to search for.
         /// </param>
-        /// <param name="commandDiscovery">get names for command discovery</param>
+        /// <param name="commandDiscovery">Get names for command discovery.</param>
         /// <returns>
         /// A collection of the patterns used to find the command.
         /// The patterns are as follows:
@@ -1167,7 +1178,7 @@ namespace System.Management.Automation
         internal Collection<string> ConstructSearchPatternsFromName(string name, bool commandDiscovery = false)
         {
             Dbg.Assert(
-                !String.IsNullOrEmpty(name),
+                !string.IsNullOrEmpty(name),
                 "Caller should verify name");
 
             Collection<string> result = new Collection<string>();
@@ -1177,7 +1188,7 @@ namespace System.Management.Automation
 
             bool commandNameAddedFirst = false;
 
-            if (!String.IsNullOrEmpty(Path.GetExtension(name)))
+            if (!string.IsNullOrEmpty(Path.GetExtension(name)))
             {
                 result.Add(name);
                 commandNameAddedFirst = true;
@@ -1212,6 +1223,7 @@ namespace System.Management.Automation
             {
                 result.Add(name);
             }
+
             return result;
         }
 
@@ -1228,7 +1240,7 @@ namespace System.Management.Automation
         private static bool IsQualifiedPSPath(string commandName)
         {
             Dbg.Assert(
-                !String.IsNullOrEmpty(commandName),
+                !string.IsNullOrEmpty(commandName),
                 "The caller should have verified the commandName");
 
             bool result =
@@ -1398,7 +1410,7 @@ namespace System.Management.Automation
 
                     string fileName = Path.GetFileName(_commandName);
 
-                    if (!String.IsNullOrEmpty(fileName))
+                    if (!string.IsNullOrEmpty(fileName))
                     {
                         fileName = fileName.TrimEnd(Utils.Separators.PathSearchTrimEnd);
                         _pathSearcher =
@@ -1437,7 +1449,7 @@ namespace System.Management.Automation
 
                         string fileName = Path.GetFileName(_commandName);
 
-                        if (!String.IsNullOrEmpty(fileName))
+                        if (!string.IsNullOrEmpty(fileName))
                         {
                             fileName = fileName.TrimEnd(Utils.Separators.PathSearchTrimEnd);
                             _pathSearcher =
@@ -1476,6 +1488,7 @@ namespace System.Management.Automation
             {
                 _pathSearcher.Reset();
             }
+
             _currentMatch = null;
             _currentState = SearchState.SearchingAliases;
             _matchingAlias = null;
@@ -1485,8 +1498,10 @@ namespace System.Management.Automation
         internal CommandOrigin CommandOrigin
         {
             get { return _commandOrigin; }
+
             set { _commandOrigin = value; }
         }
+
         private CommandOrigin _commandOrigin = CommandOrigin.Internal;
 
         /// <summary>

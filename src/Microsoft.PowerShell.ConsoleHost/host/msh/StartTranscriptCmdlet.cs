@@ -32,6 +32,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _outFilename;
             }
+
             set
             {
                 _isFilenameSet = true;
@@ -51,6 +52,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _outFilename;
             }
+
             set
             {
                 _isFilenameSet = true;
@@ -58,6 +60,7 @@ namespace Microsoft.PowerShell.Commands
                 _isLiteralPath = true;
             }
         }
+
         private bool _isLiteralPath = false;
 
         /// <summary>
@@ -82,6 +85,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _shouldAppend;
             }
+
             set
             {
                 _shouldAppend = value;
@@ -103,11 +107,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _force;
             }
+
             set
             {
                 _force = value;
             }
         }
+
         private bool _force;
 
         /// <summary>
@@ -121,11 +127,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _noclobber;
             }
+
             set
             {
                 _noclobber = value;
             }
         }
+
         private bool _noclobber;
 
         /// <summary>
@@ -133,6 +141,15 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter()]
         public SwitchParameter IncludeInvocationHeader
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Gets or sets whether to use minimal transcript header.
+        /// </summary>
+        [Parameter]
+        public SwitchParameter UseMinimalHeader
         {
             get; set;
         }
@@ -203,7 +220,7 @@ namespace Microsoft.PowerShell.Commands
                         }
                         else
                         {
-                            string errorMessage = String.Format(
+                            string errorMessage = string.Format(
                                 System.Globalization.CultureInfo.CurrentCulture,
                                 TranscriptStrings.TranscriptFileReadOnly,
                                 effectiveFilePath);
@@ -221,7 +238,7 @@ namespace Microsoft.PowerShell.Commands
 
                 System.Management.Automation.Remoting.PSSenderInfo psSenderInfo =
                     this.SessionState.PSVariable.GetValue("PSSenderInfo") as System.Management.Automation.Remoting.PSSenderInfo;
-                Host.UI.StartTranscribing(effectiveFilePath, psSenderInfo, IncludeInvocationHeader.ToBool());
+                Host.UI.StartTranscribing(effectiveFilePath, psSenderInfo, IncludeInvocationHeader.ToBool(), UseMinimalHeader.IsPresent);
 
                 // ch.StartTranscribing(effectiveFilePath, Append);
 
@@ -243,7 +260,7 @@ namespace Microsoft.PowerShell.Commands
                 {
                 }
 
-                string errorMessage = String.Format(
+                string errorMessage = string.Format(
                     System.Globalization.CultureInfo.CurrentCulture,
                     TranscriptStrings.CannotStartTranscription,
                     e.Message);
@@ -289,6 +306,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 path = null;
             }
+
             if (string.IsNullOrEmpty(path))
             {
                 CmdletProviderContext cmdletProviderContext = new CmdletProviderContext(this);
@@ -303,6 +321,7 @@ namespace Microsoft.PowerShell.Commands
                     ReportWrongProviderType(provider.FullName);
                 }
             }
+
             return path;
         }
 

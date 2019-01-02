@@ -41,7 +41,7 @@ namespace System.Management.Automation
         internal ExternalScriptInfo(string name, string path, ExecutionContext context)
             : base(name, CommandTypes.ExternalScript, context)
         {
-            if (String.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
                 throw PSTraceSource.NewArgumentException("path");
             }
@@ -68,7 +68,7 @@ namespace System.Management.Automation
         /// </exception>
         internal ExternalScriptInfo(string name, string path) : base(name, CommandTypes.ExternalScript)
         {
-            if (String.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
             {
                 throw PSTraceSource.NewArgumentException("path");
             }
@@ -138,7 +138,8 @@ namespace System.Management.Automation
         {
             get { return _path; }
         }
-        private readonly string _path = String.Empty;
+
+        private readonly string _path = string.Empty;
 
         /// <summary>
         /// Gets the path to the script file.
@@ -168,7 +169,7 @@ namespace System.Management.Automation
                 foreach (CommandParameterSetInfo parameterSet in ParameterSets)
                 {
                     synopsis.AppendLine(
-                        String.Format(
+                        string.Format(
                             Globalization.CultureInfo.CurrentCulture,
                             "{0} {1}",
                             Name,
@@ -190,6 +191,7 @@ namespace System.Management.Automation
 
                 return Context.EngineSessionState.CheckScriptVisibility(_path);
             }
+
             set { throw PSTraceSource.NewNotImplementedException(); }
         }
 
@@ -217,6 +219,7 @@ namespace System.Management.Automation
 
                 return _scriptBlock;
             }
+
             private set
             {
                 _scriptBlock = value;
@@ -226,6 +229,7 @@ namespace System.Management.Automation
                 }
             }
         }
+
         private ScriptBlock _scriptBlock;
         private ScriptBlockAst _scriptBlockAst;
 
@@ -261,10 +265,12 @@ namespace System.Management.Automation
             {
                 this.ScriptBlock = ScriptBlock.TryGetCachedScriptBlock(_path, scriptContents);
             }
+
             if (_scriptBlock != null)
             {
                 return (ScriptBlockAst)_scriptBlock.Ast;
             }
+
             if (_scriptBlockAst == null)
             {
                 ParseError[] errors;
@@ -298,6 +304,7 @@ namespace System.Management.Automation
                     ScriptBlock.CacheScriptBlock(_scriptBlock.Clone(), _path, scriptContents);
                 }
             }
+
             return _scriptBlockAst;
         }
 
@@ -338,6 +345,7 @@ namespace System.Management.Automation
         {
             set { _signatureChecked = value; }
         }
+
         private bool _signatureChecked;
 
         #region Internal
@@ -354,6 +362,7 @@ namespace System.Management.Automation
                         new CommandMetadata(this.ScriptBlock, this.Name, LocalPipeline.GetExecutionContextFromTLS()));
             }
         }
+
         private CommandMetadata _commandMetadata;
 
         /// <summary>
@@ -467,6 +476,7 @@ namespace System.Management.Automation
                 return _scriptContents;
             }
         }
+
         private string _scriptContents;
 
         /// <summary>
@@ -484,6 +494,7 @@ namespace System.Management.Automation
                 return _originalEncoding;
             }
         }
+
         private Encoding _originalEncoding;
 
         private void ReadScriptContents()

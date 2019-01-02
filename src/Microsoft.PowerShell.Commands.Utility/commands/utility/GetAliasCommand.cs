@@ -27,8 +27,10 @@ namespace Microsoft.PowerShell.Commands
         public string[] Name
         {
             get { return _names; }
+
             set { _names = value ?? new string[] { "*" }; }
         }
+
         private string[] _names = new string[] { "*" };
 
         /// <summary>
@@ -38,8 +40,10 @@ namespace Microsoft.PowerShell.Commands
         public string[] Exclude
         {
             get { return _excludes; }
+
             set { _excludes = value ?? new string[0]; }
         }
+
         private string[] _excludes = new string[0];
 
         /// <summary>
@@ -91,7 +95,7 @@ namespace Microsoft.PowerShell.Commands
             //get the command origin
             CommandOrigin origin = MyInvocation.CommandOrigin;
             string displayString = "name";
-            if (!String.IsNullOrEmpty(Scope))
+            if (!string.IsNullOrEmpty(Scope))
             {
                 // This can throw PSArgumentException and PSArgumentOutOfRangeException
                 // but just let them go as this is terminal for the pipeline and the
@@ -124,6 +128,7 @@ namespace Microsoft.PowerShell.Commands
                     {
                         continue;
                     }
+
                     if (SessionStateUtilities.MatchesAnyWildcardPattern(tableEntry.Value.Definition, excludePatterns, false))
                     {
                         continue;
@@ -141,6 +146,7 @@ namespace Microsoft.PowerShell.Commands
                         continue;
                     }
                 }
+
                 if (ContainsWildcard)
                 {
                     // Only write the command if it is visible to the requestor

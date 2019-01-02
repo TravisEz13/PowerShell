@@ -192,6 +192,7 @@ namespace System.Management.Automation
             {
                 // ignore if there is a failure
             }
+
             _tempDirectory = null;
         }
 
@@ -244,6 +245,7 @@ namespace System.Management.Automation
             {
                 envHome = GetTemporaryDirectory();
             }
+
             string xdgConfigHomeDefault = Path.Combine(envHome, ".config", "powershell");
             string xdgDataHomeDefault = Path.Combine(envHome, ".local", "share", "powershell");
             string xdgModuleDefault = Path.Combine(xdgDataHomeDefault, "Modules");
@@ -253,7 +255,7 @@ namespace System.Management.Automation
             {
                 case Platform.XDG_Type.CONFIG:
                     //the user has set XDG_CONFIG_HOME corresponding to profile path
-                    if (String.IsNullOrEmpty(xdgconfighome))
+                    if (string.IsNullOrEmpty(xdgconfighome))
                     {
                         //xdg values have not been set
                         return xdgConfigHomeDefault;
@@ -266,7 +268,7 @@ namespace System.Management.Automation
 
                 case Platform.XDG_Type.DATA:
                     //the user has set XDG_DATA_HOME corresponding to module path
-                    if (String.IsNullOrEmpty(xdgdatahome))
+                    if (string.IsNullOrEmpty(xdgdatahome))
                     {
                         // create the xdg folder if needed
                         if (!Directory.Exists(xdgDataHomeDefault))
@@ -281,6 +283,7 @@ namespace System.Management.Automation
                                 return GetTemporaryDirectory();
                             }
                         }
+
                         return xdgDataHomeDefault;
                     }
                     else
@@ -290,7 +293,7 @@ namespace System.Management.Automation
 
                 case Platform.XDG_Type.USER_MODULES:
                     //the user has set XDG_DATA_HOME corresponding to module path
-                    if (String.IsNullOrEmpty(xdgdatahome))
+                    if (string.IsNullOrEmpty(xdgdatahome))
                     {
                         //xdg values have not been set
                         if (!Directory.Exists(xdgModuleDefault)) //module folder not always guaranteed to exist
@@ -305,6 +308,7 @@ namespace System.Management.Automation
                                 return GetTemporaryDirectory();
                             }
                         }
+
                         return xdgModuleDefault;
                     }
                     else
@@ -317,7 +321,7 @@ namespace System.Management.Automation
 
                 case Platform.XDG_Type.CACHE:
                     //the user has set XDG_CACHE_HOME
-                    if (String.IsNullOrEmpty(xdgcachehome))
+                    if (string.IsNullOrEmpty(xdgcachehome))
                     {
                         //xdg values have not been set
                         if (!Directory.Exists(xdgCacheDefault)) //module folder not always guaranteed to exist
@@ -403,20 +407,24 @@ namespace System.Management.Automation
             {
                 envHome = Platform.GetTemporaryDirectory();
             }
+
             switch (folder)
             {
                 case System.Environment.SpecialFolder.ProgramFiles:
                     folderPath = "/bin";
                     if (!System.IO.Directory.Exists(folderPath)) { folderPath = null; }
+
                     break;
                 case System.Environment.SpecialFolder.ProgramFilesX86:
                     folderPath = "/usr/bin";
                     if (!System.IO.Directory.Exists(folderPath)) { folderPath = null; }
+
                     break;
                 case System.Environment.SpecialFolder.System:
                 case System.Environment.SpecialFolder.SystemX86:
                     folderPath = "/sbin";
                     if (!System.IO.Directory.Exists(folderPath)) { folderPath = null; }
+
                     break;
                 case System.Environment.SpecialFolder.Personal:
                     folderPath = envHome;
@@ -432,9 +440,10 @@ namespace System.Management.Automation
                         catch (UnauthorizedAccessException)
                         {
                             // directory creation may fail if the account doesn't have filesystem permission such as some service accounts
-                            folderPath = String.Empty;
+                            folderPath = string.Empty;
                         }
                     }
+
                     break;
                 default:
                     throw new NotSupportedException();
@@ -572,6 +581,7 @@ namespace System.Management.Automation
                     {
                         s_userName = NativeMethods.GetUserName();
                     }
+
                     return s_userName ?? string.Empty;
                 }
             }
@@ -591,6 +601,7 @@ namespace System.Management.Automation
                             return dir;
                         }
                     }
+
                     return "/tmp";
                 }
             }
@@ -637,6 +648,7 @@ namespace System.Management.Automation
                     {
                         return invalidPid;
                     }
+
                     return Int32.Parse(parts[3]);
                 }
                 catch (Exception)

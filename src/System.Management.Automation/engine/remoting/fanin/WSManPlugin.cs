@@ -199,7 +199,7 @@ namespace System.Management.Automation.Remoting
                         RemotingErrorIdStrings.WSManPluginNullInvalidInput,
                         "requestDetails",
                         "WSManPluginShell"),
-                    String.Empty);
+                    string.Empty);
                 return;
             }
 
@@ -240,7 +240,7 @@ namespace System.Management.Automation.Remoting
                 return;
             }
 
-            if (String.IsNullOrEmpty(extraInfo))
+            if (string.IsNullOrEmpty(extraInfo))
             {
                 ReportOperationComplete(
                     requestDetails,
@@ -263,7 +263,7 @@ namespace System.Management.Automation.Remoting
             int result = WSManPluginConstants.ExitCodeSuccess;
             WSManPluginShellSession mgdShellSession;
             WSManPluginOperationShutdownContext context;
-            System.Byte[] convertedBase64 = null;
+            byte[] convertedBase64 = null;
 
             try
             {
@@ -277,7 +277,6 @@ namespace System.Management.Automation.Remoting
                 {
                     serverTransportMgr = new WSManPluginServerTransportManager(BaseTransportManager.DefaultFragmentSize, new PSRemotingCryptoHelperServer());
                 }
-
                 else
                 {
                     serverTransportMgr = new WSManPluginServerTransportManager(BaseTransportManager.DefaultFragmentSize, null);
@@ -442,6 +441,7 @@ namespace System.Management.Automation.Remoting
                     //this will called OperationComplete
                     PerformCloseOperation(context);
                 }
+
                 return;
             }
 
@@ -534,8 +534,8 @@ namespace System.Management.Automation.Remoting
         /// <summary>
         /// Retrieves a WSManPluginShellSession if matched.
         /// </summary>
-        /// <param name="key">Shell context (WSManPluginRequest.unmanagedHandle)</param>
-        /// <returns>null WSManPluginShellSession if not matched. The object if matched.</returns>
+        /// <param name="key">Shell context (WSManPluginRequest.unmanagedHandle).</param>
+        /// <returns>Null WSManPluginShellSession if not matched. The object if matched.</returns>
         private WSManPluginShellSession GetFromActiveShellSessions(
             IntPtr key)
         {
@@ -563,6 +563,7 @@ namespace System.Management.Automation.Remoting
                     count = _activeShellSessions.Count;
                 }
             }
+
             if (-1 != count)
             {
                 // Raise session count changed event
@@ -573,10 +574,10 @@ namespace System.Management.Automation.Remoting
         /// <summary>
         /// Triggers a shell close from an event handler.
         /// </summary>
-        /// <param name="source">Shell context</param>
+        /// <param name="source">Shell context.</param>
         /// <param name="e"></param>
         private void HandleShellSessionClosed(
-            Object source,
+            object source,
             EventArgs e)
         {
             DeleteFromActiveShellSessions((IntPtr)source);
@@ -606,7 +607,7 @@ namespace System.Management.Automation.Remoting
                         RemotingErrorIdStrings.WSManPluginNullInvalidInput,
                         "requestDetails",
                         inputFunctionName),
-                    String.Empty);
+                    string.Empty);
                 return false;
             }
 
@@ -621,6 +622,7 @@ namespace System.Management.Automation.Remoting
                         inputFunctionName));
                 return false;
             }
+
             return true;
         }
 
@@ -684,7 +686,7 @@ namespace System.Management.Automation.Remoting
                         RemotingErrorIdStrings.WSManPluginNullInvalidInput,
                         "requestDetails",
                         "StopCommand"),
-                    String.Empty);
+                    string.Empty);
                 return;
             }
 
@@ -1000,7 +1002,7 @@ namespace System.Management.Automation.Remoting
         /// Helper method to retrieve the WSMan client token from the __WINRM_RUNAS_CLIENT_TOKEN__
         /// environment variable, which is set in the WSMan layer for Virtual or RunAs accounts.
         /// </summary>
-        /// <returns>ClientToken IntPtr</returns>
+        /// <returns>ClientToken IntPtr.</returns>
         private IntPtr GetRunAsClientToken()
         {
             string clientTokenStr = System.Environment.GetEnvironmentVariable(WSManRunAsClientTokenName);
@@ -1034,16 +1036,17 @@ namespace System.Management.Automation.Remoting
             {
                 WSManNativeApi.WSManOption option = options[i];
 
-                if (String.Equals(option.name, WSManPluginConstants.PowerShellStartupProtocolVersionName, StringComparison.Ordinal))
+                if (string.Equals(option.name, WSManPluginConstants.PowerShellStartupProtocolVersionName, StringComparison.Ordinal))
                 {
                     if (!EnsureProtocolVersionComplies(requestDetails, option.value))
                     {
                         return false;
                     }
+
                     isProtocolVersionDeclared = true;
                 }
 
-                if (0 == String.Compare(option.name, 0, WSManPluginConstants.PowerShellOptionPrefix, 0, WSManPluginConstants.PowerShellOptionPrefix.Length, StringComparison.Ordinal))
+                if (0 == string.Compare(option.name, 0, WSManPluginConstants.PowerShellOptionPrefix, 0, WSManPluginConstants.PowerShellOptionPrefix.Length, StringComparison.Ordinal))
                 {
                     if (option.mustComply)
                     {
@@ -1086,7 +1089,7 @@ namespace System.Management.Automation.Remoting
             WSManNativeApi.WSManPluginRequest requestDetails,
             string clientVersionString)
         {
-            if (String.Equals(clientVersionString, WSManPluginConstants.PowerShellStartupProtocolVersionValue, StringComparison.Ordinal))
+            if (string.Equals(clientVersionString, WSManPluginConstants.PowerShellStartupProtocolVersionValue, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -1279,7 +1282,7 @@ namespace System.Management.Automation.Remoting
             // Close Command
             if (IntPtr.Zero != commandContext)
             {
-                if (!String.Equals(code, WSManPluginConstants.CtrlCSignal, StringComparison.Ordinal))
+                if (!string.Equals(code, WSManPluginConstants.CtrlCSignal, StringComparison.Ordinal))
                 {
                     // Close operations associated with this command..
                     WSManPluginOperationShutdownContext cmdCtxt = new WSManPluginOperationShutdownContext(pluginContext, shellContext, commandContext, false);
@@ -1401,8 +1404,8 @@ namespace System.Management.Automation.Remoting
                 PSKeyword.ManagedPlugin | PSKeyword.UseAlwaysAnalytic,
                 (requestDetails.unmanagedHandle).ToString(),
                 Convert.ToString(errorCode, CultureInfo.InvariantCulture),
-                String.Empty,
-                String.Empty);
+                string.Empty,
+                string.Empty);
 
             ReportOperationComplete(requestDetails.unmanagedHandle, errorCode);
         }
@@ -1419,8 +1422,8 @@ namespace System.Management.Automation.Remoting
             Dbg.Assert(requestDetails != null, "requestDetails cannot be null in operation complete.");
 
             WSManPluginErrorCodes error = WSManPluginErrorCodes.NoError;
-            String errorMessage = String.Empty;
-            String stackTrace = String.Empty;
+            string errorMessage = string.Empty;
+            string stackTrace = string.Empty;
 
             if (reasonForClose != null)
             {
@@ -1549,7 +1552,7 @@ namespace System.Management.Automation.Remoting
         /// </summary>
         /// <param name="requestDetails"></param>
         /// <param name="errorCode"></param>
-        /// <param name="errorMessage">Pre-formatted localized string</param>
+        /// <param name="errorMessage">Pre-formatted localized string.</param>
         /// <returns></returns>
         internal static void ReportOperationComplete(
             WSManNativeApi.WSManPluginRequest requestDetails,

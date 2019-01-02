@@ -37,11 +37,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _path;
             }
+
             set
             {
                 _path = value;
             }
         }
+
         private string _path;
 
         /// <summary>
@@ -55,11 +57,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _schemaVersion;
             }
+
             set
             {
                 _schemaVersion = value;
             }
         }
+
         private Version _schemaVersion = new Version("2.0.0.0");
 
         /// <summary>
@@ -72,11 +76,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _guid;
             }
+
             set
             {
                 _guid = value;
             }
         }
+
         private Guid _guid = Guid.NewGuid();
 
         /// <summary>
@@ -89,11 +95,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _author;
             }
+
             set
             {
                 _author = value;
             }
         }
+
         private string _author;
 
         /// <summary>
@@ -106,11 +114,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _description;
             }
+
             set
             {
                 _description = value;
             }
         }
+
         private string _description;
 
         /// <summary>
@@ -123,11 +133,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _companyName;
             }
+
             set
             {
                 _companyName = value;
             }
         }
+
         private string _companyName;
 
         /// <summary>
@@ -140,11 +152,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _copyright;
             }
+
             set
             {
                 _copyright = value;
             }
         }
+
         private string _copyright;
 
         /// <summary>
@@ -157,11 +171,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _sessionType;
             }
+
             set
             {
                 _sessionType = value;
             }
         }
+
         private SessionType _sessionType = SessionType.Default;
 
         /// <summary>
@@ -174,11 +190,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _transcriptDirectory;
             }
+
             set
             {
                 _transcriptDirectory = value;
             }
         }
+
         private string _transcriptDirectory = null;
 
         /// <summary>
@@ -244,11 +262,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _scriptsToProcess;
             }
+
             set
             {
                 _scriptsToProcess = value;
             }
         }
+
         private string[] _scriptsToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -262,11 +282,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _roleDefinitions;
             }
+
             set
             {
                 _roleDefinitions = value;
             }
         }
+
         private IDictionary _roleDefinitions;
 
         /// <summary>
@@ -277,8 +299,10 @@ namespace Microsoft.PowerShell.Commands
         public IDictionary RequiredGroups
         {
             get { return _requiredGroups; }
+
             set { _requiredGroups = value; }
         }
+
         private IDictionary _requiredGroups;
 
         /// <summary>
@@ -291,12 +315,14 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _languageMode;
             }
+
             set
             {
                 _languageMode = value;
                 _isLanguageModeSpecified = true;
             }
         }
+
         private PSLanguageMode _languageMode = PSLanguageMode.NoLanguage;
         private bool _isLanguageModeSpecified;
 
@@ -310,11 +336,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _executionPolicy;
             }
+
             set
             {
                 _executionPolicy = value;
             }
         }
+
         private ExecutionPolicy _executionPolicy = ExecutionPolicy.Restricted;
 
         /// <summary>
@@ -327,11 +355,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _powerShellVersion;
             }
+
             set
             {
                 _powerShellVersion = value;
             }
         }
+
         private Version _powerShellVersion;
 
         /// <summary>
@@ -345,11 +375,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _modulesToImport;
             }
+
             set
             {
                 _modulesToImport = value;
             }
         }
+
         private object[] _modulesToImport;
 
         /// <summary>
@@ -363,11 +395,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleAliases;
             }
+
             set
             {
                 _visibleAliases = value;
             }
         }
+
         private string[] _visibleAliases = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -375,36 +409,40 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter()]
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
-        public Object[] VisibleCmdlets
+        public object[] VisibleCmdlets
         {
             get
             {
                 return _visibleCmdlets;
             }
+
             set
             {
                 _visibleCmdlets = value;
             }
         }
-        private Object[] _visibleCmdlets = null;
+
+        private object[] _visibleCmdlets = null;
 
         /// <summary>
         /// A list of visible functions
         /// </summary>
         [Parameter()]
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
-        public Object[] VisibleFunctions
+        public object[] VisibleFunctions
         {
             get
             {
                 return _visibleFunctions;
             }
+
             set
             {
                 _visibleFunctions = value;
             }
         }
-        private Object[] _visibleFunctions = null;
+
+        private object[] _visibleFunctions = null;
 
         /// <summary>
         /// A list of visible external commands (scripts and applications)
@@ -417,11 +455,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleExternalCommands;
             }
+
             set
             {
                 _visibleExternalCommands = value;
             }
         }
+
         private string[] _visibleExternalCommands = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -435,11 +475,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleProviders;
             }
+
             set
             {
                 _visibleProviders = value;
             }
         }
+
         private string[] _visibleProviders = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -453,11 +495,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _aliasDefinitions;
             }
+
             set
             {
                 _aliasDefinitions = value;
             }
         }
+
         private IDictionary[] _aliasDefinitions;
 
         /// <summary>
@@ -471,11 +515,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _functionDefinitions;
             }
+
             set
             {
                 _functionDefinitions = value;
             }
         }
+
         private IDictionary[] _functionDefinitions;
 
         /// <summary>
@@ -489,11 +535,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _variableDefinitions;
             }
+
             set
             {
                 _variableDefinitions = value;
             }
         }
+
         private object _variableDefinitions;
 
         /// <summary>
@@ -508,11 +556,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _environmentVariables;
             }
+
             set
             {
                 _environmentVariables = value;
             }
         }
+
         private IDictionary _environmentVariables;
 
         /// <summary>
@@ -526,11 +576,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _typesToProcess;
             }
+
             set
             {
                 _typesToProcess = value;
             }
         }
+
         private string[] _typesToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -544,11 +596,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _formatsToProcess;
             }
+
             set
             {
                 _formatsToProcess = value;
             }
         }
+
         private string[] _formatsToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -562,11 +616,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _assembliesToLoad;
             }
+
             set
             {
                 _assembliesToLoad = value;
             }
         }
+
         private string[] _assembliesToLoad;
 
         /// <summary>
@@ -584,7 +640,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void ProcessRecord()
         {
-            Debug.Assert(!String.IsNullOrEmpty(_path));
+            Debug.Assert(!string.IsNullOrEmpty(_path));
 
             ProviderInfo provider = null;
             PSDriveInfo drive;
@@ -634,24 +690,26 @@ namespace Microsoft.PowerShell.Commands
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Guid, RemotingErrorIdStrings.DISCGUIDComment, SessionConfigurationUtils.QuoteName(_guid), streamWriter, false));
 
                 // Author
-                if (String.IsNullOrEmpty(_author))
+                if (string.IsNullOrEmpty(_author))
                 {
                     _author = Environment.UserName;
                 }
+
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Author, RemotingErrorIdStrings.DISCAuthorComment,
                     SessionConfigurationUtils.QuoteName(_author), streamWriter, false));
 
                 // Description
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Description, RemotingErrorIdStrings.DISCDescriptionComment,
-                    SessionConfigurationUtils.QuoteName(_description), streamWriter, String.IsNullOrEmpty(_description)));
+                    SessionConfigurationUtils.QuoteName(_description), streamWriter, string.IsNullOrEmpty(_description)));
 
                 // Company name
                 if (ShouldGenerateConfigurationSnippet("CompanyName"))
                 {
-                    if (String.IsNullOrEmpty(_companyName))
+                    if (string.IsNullOrEmpty(_companyName))
                     {
                         _companyName = Modules.DefaultCompanyName;
                     }
+
                     result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.CompanyName, RemotingErrorIdStrings.DISCCompanyNameComment,
                         SessionConfigurationUtils.QuoteName(_companyName), streamWriter, false));
                 }
@@ -659,10 +717,11 @@ namespace Microsoft.PowerShell.Commands
                 // Copyright
                 if (ShouldGenerateConfigurationSnippet("Copyright"))
                 {
-                    if (String.IsNullOrEmpty(_copyright))
+                    if (string.IsNullOrEmpty(_copyright))
                     {
                         _copyright = StringUtil.Format(Modules.DefaultCopyrightMessage, _author);
                     }
+
                     result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Copyright, RemotingErrorIdStrings.DISCCopyrightComment,
                         SessionConfigurationUtils.QuoteName(_copyright), streamWriter, false));
                 }
@@ -674,9 +733,9 @@ namespace Microsoft.PowerShell.Commands
                 string resultData = null;
 
                 // Transcript directory
-                resultData = String.IsNullOrEmpty(_transcriptDirectory) ? "'C:\\Transcripts\\'" : SessionConfigurationUtils.QuoteName(_transcriptDirectory);
+                resultData = string.IsNullOrEmpty(_transcriptDirectory) ? "'C:\\Transcripts\\'" : SessionConfigurationUtils.QuoteName(_transcriptDirectory);
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.TranscriptDirectory, RemotingErrorIdStrings.DISCTranscriptDirectoryComment,
-                    resultData, streamWriter, String.IsNullOrEmpty(_transcriptDirectory)));
+                    resultData, streamWriter, string.IsNullOrEmpty(_transcriptDirectory)));
 
                 // Run as virtual account
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.RunAsVirtualAccount, RemotingErrorIdStrings.DISCRunAsVirtualAccountComment,
@@ -766,6 +825,7 @@ namespace Microsoft.PowerShell.Commands
                             _languageMode = PSLanguageMode.FullLanguage;
                         }
                     }
+
                     result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.LanguageMode, RemotingErrorIdStrings.DISCLanguageModeComment,
                         SessionConfigurationUtils.QuoteName(_languageMode), streamWriter, false));
                 }
@@ -787,6 +847,7 @@ namespace Microsoft.PowerShell.Commands
                         isExample = true;
                         _powerShellVersion = PSVersionInfo.PSVersion;
                     }
+
                     result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.PowerShellVersion, RemotingErrorIdStrings.DISCPowerShellVersionComment,
                         SessionConfigurationUtils.QuoteName(_powerShellVersion), streamWriter, isExample));
                 }
@@ -915,9 +976,9 @@ namespace Microsoft.PowerShell.Commands
 
                             foreach (string functionKey in hashtable.Keys)
                             {
-                                if (!String.Equals(functionKey, ConfigFileConstants.FunctionNameToken, StringComparison.OrdinalIgnoreCase) &&
-                                    !String.Equals(functionKey, ConfigFileConstants.FunctionValueToken, StringComparison.OrdinalIgnoreCase) &&
-                                    !String.Equals(functionKey, ConfigFileConstants.FunctionOptionsToken, StringComparison.OrdinalIgnoreCase))
+                                if (!string.Equals(functionKey, ConfigFileConstants.FunctionNameToken, StringComparison.OrdinalIgnoreCase) &&
+                                    !string.Equals(functionKey, ConfigFileConstants.FunctionValueToken, StringComparison.OrdinalIgnoreCase) &&
+                                    !string.Equals(functionKey, ConfigFileConstants.FunctionOptionsToken, StringComparison.OrdinalIgnoreCase))
                                 {
                                     PSArgumentException e = new PSArgumentException(StringUtil.Format(RemotingErrorIdStrings.DISCTypeContainsInvalidKey,
                                         functionKey, ConfigFileConstants.FunctionDefinitions, _path));
@@ -979,8 +1040,8 @@ namespace Microsoft.PowerShell.Commands
 
                                 foreach (string variableKey in hashtable.Keys)
                                 {
-                                    if (!String.Equals(variableKey, ConfigFileConstants.VariableNameToken, StringComparison.OrdinalIgnoreCase) &&
-                                        !String.Equals(variableKey, ConfigFileConstants.VariableValueToken, StringComparison.OrdinalIgnoreCase))
+                                    if (!string.Equals(variableKey, ConfigFileConstants.VariableNameToken, StringComparison.OrdinalIgnoreCase) &&
+                                        !string.Equals(variableKey, ConfigFileConstants.VariableValueToken, StringComparison.OrdinalIgnoreCase))
                                     {
                                         PSArgumentException e = new PSArgumentException(StringUtil.Format(RemotingErrorIdStrings.DISCTypeContainsInvalidKey,
                                             variableKey, ConfigFileConstants.VariableDefinitions, _path));
@@ -1039,6 +1100,7 @@ namespace Microsoft.PowerShell.Commands
                         isExample = true;
                         _assembliesToLoad = new string[] { "System.Web", "System.OtherAssembly, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" };
                     }
+
                     result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.AssembliesToLoad, RemotingErrorIdStrings.DISCAssembliesToLoadComment,
                         SessionConfigurationUtils.CombineStringArray(_assembliesToLoad), streamWriter, isExample));
                 }
@@ -1087,11 +1149,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _path;
             }
+
             set
             {
                 _path = value;
             }
         }
+
         private string _path;
 
         /// <summary>
@@ -1104,11 +1168,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _guid;
             }
+
             set
             {
                 _guid = value;
             }
         }
+
         private Guid _guid = Guid.NewGuid();
 
         /// <summary>
@@ -1121,11 +1187,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _author;
             }
+
             set
             {
                 _author = value;
             }
         }
+
         private string _author;
 
         /// <summary>
@@ -1138,11 +1206,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _description;
             }
+
             set
             {
                 _description = value;
             }
         }
+
         private string _description;
 
         /// <summary>
@@ -1155,11 +1225,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _companyName;
             }
+
             set
             {
                 _companyName = value;
             }
         }
+
         private string _companyName;
 
         /// <summary>
@@ -1172,11 +1244,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _copyright;
             }
+
             set
             {
                 _copyright = value;
             }
         }
+
         private string _copyright;
 
         /// <summary>
@@ -1190,11 +1264,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _modulesToImport;
             }
+
             set
             {
                 _modulesToImport = value;
             }
         }
+
         private object[] _modulesToImport;
 
         /// <summary>
@@ -1208,11 +1284,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleAliases;
             }
+
             set
             {
                 _visibleAliases = value;
             }
         }
+
         private string[] _visibleAliases = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1220,36 +1298,40 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         [Parameter()]
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
-        public Object[] VisibleCmdlets
+        public object[] VisibleCmdlets
         {
             get
             {
                 return _visibleCmdlets;
             }
+
             set
             {
                 _visibleCmdlets = value;
             }
         }
-        private Object[] _visibleCmdlets = null;
+
+        private object[] _visibleCmdlets = null;
 
         /// <summary>
         /// A list of visible functions
         /// </summary>
         [Parameter()]
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
-        public Object[] VisibleFunctions
+        public object[] VisibleFunctions
         {
             get
             {
                 return _visibleFunctions;
             }
+
             set
             {
                 _visibleFunctions = value;
             }
         }
-        private Object[] _visibleFunctions = null;
+
+        private object[] _visibleFunctions = null;
 
         /// <summary>
         /// A list of visible external commands (scripts and applications)
@@ -1262,11 +1344,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleExternalCommands;
             }
+
             set
             {
                 _visibleExternalCommands = value;
             }
         }
+
         private string[] _visibleExternalCommands = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1280,11 +1364,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _visibleProviders;
             }
+
             set
             {
                 _visibleProviders = value;
             }
         }
+
         private string[] _visibleProviders = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1298,11 +1384,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _scriptsToProcess;
             }
+
             set
             {
                 _scriptsToProcess = value;
             }
         }
+
         private string[] _scriptsToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1316,11 +1404,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _aliasDefinitions;
             }
+
             set
             {
                 _aliasDefinitions = value;
             }
         }
+
         private IDictionary[] _aliasDefinitions;
 
         /// <summary>
@@ -1334,11 +1424,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _functionDefinitions;
             }
+
             set
             {
                 _functionDefinitions = value;
             }
         }
+
         private IDictionary[] _functionDefinitions;
 
         /// <summary>
@@ -1352,11 +1444,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _variableDefinitions;
             }
+
             set
             {
                 _variableDefinitions = value;
             }
         }
+
         private object _variableDefinitions;
 
         /// <summary>
@@ -1371,11 +1465,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _environmentVariables;
             }
+
             set
             {
                 _environmentVariables = value;
             }
         }
+
         private IDictionary _environmentVariables;
 
         /// <summary>
@@ -1389,11 +1485,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _typesToProcess;
             }
+
             set
             {
                 _typesToProcess = value;
             }
         }
+
         private string[] _typesToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1407,11 +1505,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _formatsToProcess;
             }
+
             set
             {
                 _formatsToProcess = value;
             }
         }
+
         private string[] _formatsToProcess = Utils.EmptyArray<string>();
 
         /// <summary>
@@ -1425,11 +1525,13 @@ namespace Microsoft.PowerShell.Commands
             {
                 return _assembliesToLoad;
             }
+
             set
             {
                 _assembliesToLoad = value;
             }
         }
+
         private string[] _assembliesToLoad;
 
         #endregion
@@ -1440,7 +1542,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void ProcessRecord()
         {
-            Debug.Assert(!String.IsNullOrEmpty(_path));
+            Debug.Assert(!string.IsNullOrEmpty(_path));
 
             ProviderInfo provider = null;
             PSDriveInfo drive;
@@ -1486,30 +1588,33 @@ namespace Microsoft.PowerShell.Commands
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Guid, RemotingErrorIdStrings.DISCGUIDComment, SessionConfigurationUtils.QuoteName(_guid), streamWriter, false));
 
                 // Author
-                if (String.IsNullOrEmpty(_author))
+                if (string.IsNullOrEmpty(_author))
                 {
                     _author = Environment.UserName;
                 }
+
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Author, RemotingErrorIdStrings.DISCAuthorComment,
                     SessionConfigurationUtils.QuoteName(_author), streamWriter, false));
 
                 // Description
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Description, RemotingErrorIdStrings.DISCDescriptionComment,
-                    SessionConfigurationUtils.QuoteName(_description), streamWriter, String.IsNullOrEmpty(_description)));
+                    SessionConfigurationUtils.QuoteName(_description), streamWriter, string.IsNullOrEmpty(_description)));
 
                 // Company name
-                if (String.IsNullOrEmpty(_companyName))
+                if (string.IsNullOrEmpty(_companyName))
                 {
                     _companyName = Modules.DefaultCompanyName;
                 }
+
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.CompanyName, RemotingErrorIdStrings.DISCCompanyNameComment,
                     SessionConfigurationUtils.QuoteName(_companyName), streamWriter, false));
 
                 // Copyright
-                if (String.IsNullOrEmpty(_copyright))
+                if (string.IsNullOrEmpty(_copyright))
                 {
                     _copyright = StringUtil.Format(Modules.DefaultCopyrightMessage, _author);
                 }
+
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.Copyright, RemotingErrorIdStrings.DISCCopyrightComment,
                     SessionConfigurationUtils.QuoteName(_copyright), streamWriter, false));
 
@@ -1618,9 +1723,9 @@ namespace Microsoft.PowerShell.Commands
 
                             foreach (string functionKey in hashtable.Keys)
                             {
-                                if (!String.Equals(functionKey, ConfigFileConstants.FunctionNameToken, StringComparison.OrdinalIgnoreCase) &&
-                                    !String.Equals(functionKey, ConfigFileConstants.FunctionValueToken, StringComparison.OrdinalIgnoreCase) &&
-                                    !String.Equals(functionKey, ConfigFileConstants.FunctionOptionsToken, StringComparison.OrdinalIgnoreCase))
+                                if (!string.Equals(functionKey, ConfigFileConstants.FunctionNameToken, StringComparison.OrdinalIgnoreCase) &&
+                                    !string.Equals(functionKey, ConfigFileConstants.FunctionValueToken, StringComparison.OrdinalIgnoreCase) &&
+                                    !string.Equals(functionKey, ConfigFileConstants.FunctionOptionsToken, StringComparison.OrdinalIgnoreCase))
                                 {
                                     PSArgumentException e = new PSArgumentException(StringUtil.Format(RemotingErrorIdStrings.DISCTypeContainsInvalidKey,
                                         functionKey, ConfigFileConstants.FunctionDefinitions, _path));
@@ -1679,8 +1784,8 @@ namespace Microsoft.PowerShell.Commands
 
                                 foreach (string variableKey in hashtable.Keys)
                                 {
-                                    if (!String.Equals(variableKey, ConfigFileConstants.VariableNameToken, StringComparison.OrdinalIgnoreCase) &&
-                                        !String.Equals(variableKey, ConfigFileConstants.VariableValueToken, StringComparison.OrdinalIgnoreCase))
+                                    if (!string.Equals(variableKey, ConfigFileConstants.VariableNameToken, StringComparison.OrdinalIgnoreCase) &&
+                                        !string.Equals(variableKey, ConfigFileConstants.VariableValueToken, StringComparison.OrdinalIgnoreCase))
                                     {
                                         PSArgumentException e = new PSArgumentException(StringUtil.Format(RemotingErrorIdStrings.DISCTypeContainsInvalidKey,
                                             variableKey, ConfigFileConstants.VariableDefinitions, _path));
@@ -1728,6 +1833,7 @@ namespace Microsoft.PowerShell.Commands
                     isExample = true;
                     _assembliesToLoad = new string[] { "System.Web", "System.OtherAssembly, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" };
                 }
+
                 result.Append(SessionConfigurationUtils.ConfigFragment(ConfigFileConstants.AssembliesToLoad, RemotingErrorIdStrings.DISCAssembliesToLoadComment,
                     SessionConfigurationUtils.CombineStringArray(_assembliesToLoad), streamWriter, isExample));
 
@@ -1773,8 +1879,8 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Return a single-quoted string. Any embedded single quotes will be doubled.
         /// </summary>
-        /// <param name="name">The string to quote</param>
-        /// <returns>The quoted string</returns>
+        /// <param name="name">The string to quote.</param>
+        /// <returns>The quoted string.</returns>
         internal static string QuoteName(object name)
         {
             if (name == null)
@@ -1785,8 +1891,8 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Return a script block string wrapped in curly braces.
         /// </summary>
-        /// <param name="sb">The string to wrap</param>
-        /// <returns>The wrapped string</returns>
+        /// <param name="sb">The string to wrap.</param>
+        /// <returns>The wrapped string.</returns>
         internal static string WrapScriptBlock(object sb)
         {
             if (sb == null)
@@ -1838,7 +1944,7 @@ namespace Microsoft.PowerShell.Commands
 
             sb.Append("@{");
 
-            var keys = table.Keys.Cast<String>().OrderBy(x => x);
+            var keys = table.Keys.Cast<string>().OrderBy(x => x);
             foreach (var key in keys)
             {
                 sb.Append(writer.NewLine);
@@ -1973,15 +2079,15 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// Combines an array of strings into a single string block
         /// </summary>
-        /// <param name="values">string values</param>
-        /// <returns>string block</returns>
+        /// <param name="values">String values.</param>
+        /// <returns>String block.</returns>
         internal static string CombineStringArray(string[] values)
         {
             StringBuilder sb = new StringBuilder();
 
             for (int i = 0; i < values.Length; i++)
             {
-                if (!String.IsNullOrEmpty(values[i]))
+                if (!string.IsNullOrEmpty(values[i]))
                 {
                     sb.Append(QuoteName(values[i]));
 
@@ -2004,7 +2110,7 @@ namespace Microsoft.PowerShell.Commands
             for (int i = 0; i < values.Length; i++)
             {
                 string strVal = values[i] as string;
-                if (!String.IsNullOrEmpty(strVal))
+                if (!string.IsNullOrEmpty(strVal))
                 {
                     sb.Append(QuoteName(strVal));
                 }
@@ -2018,6 +2124,7 @@ namespace Microsoft.PowerShell.Commands
                         PSArgumentException e = new PSArgumentException(message);
                         caller.ThrowTerminatingError(e.ErrorRecord);
                     }
+
                     sb.Append(CombineHashtable(hashVal, writer));
                 }
 

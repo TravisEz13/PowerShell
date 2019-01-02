@@ -109,6 +109,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     _multilineTables = value;
                 }
             }
+
             get
             {
                 if (_multilineTables.HasValue)
@@ -116,6 +117,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return false;
             }
         }
+
         private bool? _multilineTables;
 
         internal FormatErrorPolicy formatErrorPolicy = new FormatErrorPolicy();
@@ -137,6 +139,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     _showErrorsAsMessages = value;
                 }
             }
+
             get
             {
                 if (_showErrorsAsMessages.HasValue)
@@ -144,6 +147,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return false;
             }
         }
+
         private bool? _showErrorsAsMessages;
 
         /// <summary>
@@ -159,6 +163,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     _showErrorsInFormattedOutput = value;
                 }
             }
+
             get
             {
                 if (_showErrorsInFormattedOutput.HasValue)
@@ -166,6 +171,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return false;
             }
         }
+
         private bool? _showErrorsInFormattedOutput;
 
         /// <summary>
@@ -192,6 +198,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                     _propertyCountForTable = value;
                 }
             }
+
             get
             {
                 if (_propertyCountForTable.HasValue)
@@ -199,6 +206,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
                 return 4;
             }
         }
+
         private int? _propertyCountForTable;
 
         internal List<FormatShapeSelectionOnType> formatShapeSelectionOnTypeList = new List<FormatShapeSelectionOnType>();
@@ -370,18 +378,22 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
             {
                 return FormatShape.Table.ToString();
             }
+
             if (control is ListControlBody)
             {
                 return FormatShape.List.ToString();
             }
+
             if (control is WideControlBody)
             {
                 return FormatShape.Wide.ToString();
             }
+
             if (control is ComplexControlBody)
             {
                 return FormatShape.Complex.ToString();
             }
+
             return string.Empty;
         }
 
@@ -424,6 +436,11 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// RULE: valid only for table and wide only
         /// </summary>
         internal bool? autosize = null;
+
+        /// <summary>
+        /// RULE: only valid for table
+        /// </summary>
+        internal bool repeatHeader = false;
     }
 
     /// <summary>
@@ -617,7 +634,7 @@ namespace System.Management.Automation
         /// <param name="viewDefinitions"></param>
         public ExtendedTypeDefinition(string typeName, IEnumerable<FormatViewDefinition> viewDefinitions) : this()
         {
-            if (String.IsNullOrEmpty(typeName))
+            if (string.IsNullOrEmpty(typeName))
                 throw PSTraceSource.NewArgumentNullException("typeName");
             if (viewDefinitions == null)
                 throw PSTraceSource.NewArgumentNullException("viewDefinitions");
@@ -635,7 +652,7 @@ namespace System.Management.Automation
         /// <param name="typeName"></param>
         public ExtendedTypeDefinition(string typeName) : this()
         {
-            if (String.IsNullOrEmpty(typeName))
+            if (string.IsNullOrEmpty(typeName))
                 throw PSTraceSource.NewArgumentNullException("typeName");
 
             TypeNames.Add(typeName);
@@ -673,7 +690,7 @@ namespace System.Management.Automation
         /// <summary/>
         public FormatViewDefinition(string name, PSControl control)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
                 throw PSTraceSource.NewArgumentNullException("name");
             if (control == null)
                 throw PSTraceSource.NewArgumentNullException("control");
@@ -780,7 +797,7 @@ namespace System.Management.Automation
         /// <summary>Public constructor for DisplayEntry</summary>
         public DisplayEntry(string value, DisplayEntryValueType type)
         {
-            if (String.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value))
                 if (value == null || type == DisplayEntryValueType.Property)
                     throw PSTraceSource.NewArgumentNullException("value");
 
@@ -799,7 +816,7 @@ namespace System.Management.Automation
             Value = expression.expressionValue;
             ValueType = expression.isScriptBlock ? DisplayEntryValueType.ScriptBlock : DisplayEntryValueType.Property;
 
-            if (String.IsNullOrEmpty(Value))
+            if (string.IsNullOrEmpty(Value))
                 if (Value == null || ValueType == DisplayEntryValueType.Property)
                     throw PSTraceSource.NewArgumentNullException("value");
         }
@@ -843,6 +860,7 @@ namespace System.Management.Automation
                     if (result.TypeNames.Count > 0)
                         isEmpty = false;
                 }
+
                 if (entrySelectedByCondition != null)
                 {
                     result.SelectionCondition = new List<DisplayEntry>(entrySelectedByCondition);

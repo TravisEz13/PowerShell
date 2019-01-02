@@ -24,7 +24,7 @@ namespace System.Management.Automation
         /// <summary>
         /// Add an new SessionStateVariable entry to this session state object...
         /// </summary>
-        /// <param name="entry">The entry to add</param>
+        /// <param name="entry">The entry to add.</param>
         internal void AddSessionStateEntry(SessionStateVariableEntry entry)
         {
             PSVariable v = new PSVariable(entry.Name, entry.Value,
@@ -556,6 +556,7 @@ namespace System.Management.Automation
                 result = ((IEnumerator<PSVariable>)searcher).Current;
                 scope = searcher.CurrentLookupScope;
             }
+
             return result;
         }
 
@@ -1026,7 +1027,7 @@ namespace System.Management.Automation
         /// </exception>
         internal object SetVariable(PSVariable variable, bool force, CommandOrigin origin)
         {
-            if (variable == null || String.IsNullOrEmpty(variable.Name))
+            if (variable == null || string.IsNullOrEmpty(variable.Name))
             {
                 throw PSTraceSource.NewArgumentException("variable");
             }
@@ -1138,6 +1139,7 @@ namespace System.Management.Automation
             {
                 throw PSTraceSource.NewArgumentNullException("variablePath");
             }
+
             CmdletProviderContext context = null;
             SessionStateScope scope = null;
 
@@ -1178,6 +1180,7 @@ namespace System.Management.Automation
                 {
                     varResult.Options = varResult.Options | ScopedItemOptions.Private;
                 }
+
                 result = varResult;
             }
             else
@@ -1359,6 +1362,7 @@ namespace System.Management.Automation
                     }
 #endif
             }
+
             return result;
         }
 
@@ -1398,7 +1402,7 @@ namespace System.Management.Automation
         /// </exception>
         internal object SetVariableAtScope(PSVariable variable, string scopeID, bool force, CommandOrigin origin)
         {
-            if (variable == null || String.IsNullOrEmpty(variable.Name))
+            if (variable == null || string.IsNullOrEmpty(variable.Name))
             {
                 throw PSTraceSource.NewArgumentException("variable");
             }
@@ -1434,7 +1438,7 @@ namespace System.Management.Automation
         /// </exception>
         internal object NewVariable(PSVariable variable, bool force)
         {
-            if (variable == null || String.IsNullOrEmpty(variable.Name))
+            if (variable == null || string.IsNullOrEmpty(variable.Name))
             {
                 throw PSTraceSource.NewArgumentException("variable");
             }
@@ -1478,7 +1482,7 @@ namespace System.Management.Automation
         /// </exception>
         internal object NewVariableAtScope(PSVariable variable, string scopeID, bool force)
         {
-            if (variable == null || String.IsNullOrEmpty(variable.Name))
+            if (variable == null || string.IsNullOrEmpty(variable.Name))
             {
                 throw PSTraceSource.NewArgumentException("variable");
             }
@@ -1691,7 +1695,7 @@ namespace System.Management.Automation
         /// </exception>
         internal void RemoveVariableAtScope(string name, string scopeID, bool force)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw PSTraceSource.NewArgumentException("name");
             }
@@ -1869,7 +1873,7 @@ namespace System.Management.Automation
         internal List<PSVariable> ExportedVariables { get; } = new List<PSVariable>();
 
         #endregion variables
-    }           // SessionStateInternal class
+    }
 }
 
 #pragma warning restore 56500

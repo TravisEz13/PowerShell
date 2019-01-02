@@ -41,7 +41,7 @@ namespace System.Management.Automation.Remoting
         // shell context.
         internal RegisteredWaitHandle registeredShutDownWaitHandle;
         internal WSManPluginServerTransportManager transportMgr;
-        internal System.Int32 registeredShutdownNotification;
+        internal int registeredShutdownNotification;
 
         // event that gets raised when session is closed.."source" will provide
         // IntPtr for "creationRequestDetails" which can be used to free
@@ -132,8 +132,8 @@ namespace System.Management.Automation.Remoting
             string stream,
             WSManNativeApi.WSManData_UnToMan inboundData)
         {
-            if ((!String.Equals(stream, WSManPluginConstants.SupportedInputStream, StringComparison.Ordinal)) &&
-                (!String.Equals(stream, WSManPluginConstants.SupportedPromptResponseStream, StringComparison.Ordinal)))
+            if ((!string.Equals(stream, WSManPluginConstants.SupportedInputStream, StringComparison.Ordinal)) &&
+                (!string.Equals(stream, WSManPluginConstants.SupportedPromptResponseStream, StringComparison.Ordinal)))
             {
                 WSManPluginInstance.ReportOperationComplete(
                     requestDetails,
@@ -184,7 +184,7 @@ namespace System.Management.Automation.Remoting
         }
 
         internal void SendOneItemToSessionHelper(
-            System.Byte[] data,
+            byte[] data,
             string stream)
         {
             transportMgr.ProcessRawData(data, stream);
@@ -215,7 +215,7 @@ namespace System.Management.Automation.Remoting
                 return false;
             }
 
-            if (!String.Equals(streamSet.streamIDs[0], WSManPluginConstants.SupportedOutputStream, StringComparison.Ordinal))
+            if (!string.Equals(streamSet.streamIDs[0], WSManPluginConstants.SupportedOutputStream, StringComparison.Ordinal))
             {
                 // only "stdout" is the supported output stream.
                 WSManPluginInstance.ReportOperationComplete(
@@ -318,6 +318,7 @@ namespace System.Management.Automation.Remoting
             {
                 reasonForClose = eventArgs.Exception;
             }
+
             Close(reasonForClose);
         }
 
@@ -458,8 +459,8 @@ namespace System.Management.Automation.Remoting
             IntPtr responseXml = IntPtr.Zero;
             try
             {
-                System.Byte[] inputData;
-                System.Byte[] outputData;
+                byte[] inputData;
+                byte[] outputData;
 
                 // Retrieve the string (Base64 encoded)
                 inputData = ServerOperationHelpers.ExtractEncodedXmlElement(
@@ -472,7 +473,7 @@ namespace System.Management.Automation.Remoting
                     _remoteSession.ExecuteConnect(inputData, out outputData);
 
                     //construct Xml to send back
-                    string responseData = String.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    string responseData = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                                     "<{0} xmlns=\"{1}\">{2}</{0}>",
                                     WSManNativeApi.PS_CONNECTRESPONSE_XML_TAG,
                                     WSManNativeApi.PS_XML_NAMESPACE,
@@ -641,6 +642,7 @@ namespace System.Management.Automation.Remoting
                 cmdSession.SessionClosed -= new EventHandler<EventArgs>(this.HandleCommandSessionClosed);
                 cmdSession.Close(reasonForClose);
             }
+
             copyCmdSessions.Clear();
         }
 
@@ -658,7 +660,7 @@ namespace System.Management.Automation.Remoting
         }
 
         private void HandleServerRemoteSessionClosed(
-            Object sender,
+            object sender,
             RemoteSessionStateMachineEventArgs eventArgs)
         {
             Exception reasonForClose = null;
@@ -666,11 +668,12 @@ namespace System.Management.Automation.Remoting
             {
                 reasonForClose = eventArgs.Reason;
             }
+
             Close(reasonForClose);
         }
 
         private void HandleCommandSessionClosed(
-            Object source,
+            object source,
             EventArgs e)
         {
             // command context is passed as "source" parameter
@@ -759,7 +762,7 @@ namespace System.Management.Automation.Remoting
                 return false;
             }
 
-            System.Byte[] convertedBase64 = Convert.FromBase64String(arguments.args[0]);
+            byte[] convertedBase64 = Convert.FromBase64String(arguments.args[0]);
             transportMgr.ProcessRawData(convertedBase64, WSManPluginConstants.SupportedInputStream);
 
             return true;

@@ -154,7 +154,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         /// Helper method to set the WriteStreamType property
         /// based on note properties of a PSObject object.
         /// </summary>
-        /// <param name="so">PSObject</param>
+        /// <param name="so">PSObject.</param>
         internal void SetStreamTypeFromPSObject(
             System.Management.Automation.PSObject so)
         {
@@ -220,6 +220,7 @@ namespace Microsoft.PowerShell.Commands.Internal.Format
         public override string ClassId2e4f51ef21dd47e99d3c952918aff9cd { get { return CLSID; } }
 
         public bool hideHeader;
+        public bool repeatHeader;
         public List<TableColumnInfo> tableColumnInfoList;
     }
 

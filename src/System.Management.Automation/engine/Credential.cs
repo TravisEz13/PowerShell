@@ -97,11 +97,13 @@ namespace System.Management.Automation
             {
                 return s_delegate;
             }
+
             set
             {
                 s_delegate = value;
             }
         }
+
         private static GetSymmetricEncryptionKey s_delegate = null;
 
         /// <summary>
@@ -198,8 +200,8 @@ namespace System.Management.Automation
         /// Initializes a new instance of the PSCredential class with a
         /// username and password.
         /// </summary>
-        /// <param name="userName"> User's name. </param>
-        /// <param name="password"> User's password. </param>
+        /// <param name="userName">User's name.</param>
+        /// <param name="password">User's password.</param>
         public PSCredential(string userName, SecureString password)
         {
             Utils.CheckArgForNullOrEmpty(userName, "userName");
@@ -272,7 +274,7 @@ namespace System.Management.Automation
         /// Provides an explicit cast to get a NetworkCredential
         /// from this PSCredential.
         /// </summary>
-        /// <param name="credential"> PSCredential to convert. </param>
+        /// <param name="credential">PSCredential to convert.</param>
         /// <returns>
         ///     null if the current object has not been initialized.
         ///     null if the current credentials are incompatible with
@@ -321,7 +323,7 @@ namespace System.Management.Automation
                                             out string user,
                                             out string domain)
         {
-            if (String.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(input))
             {
                 user = domain = null;
                 return false;

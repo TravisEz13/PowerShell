@@ -336,6 +336,7 @@ namespace Microsoft.PowerShell.Commands
                                         separatorIndex + 1);
                             }
                         }
+
                         break;
 
                     case parentSet:
@@ -345,7 +346,7 @@ namespace Microsoft.PowerShell.Commands
                             result =
                                 SessionState.Path.ParseParent(
                                     pathsToParse[index],
-                                    String.Empty,
+                                    string.Empty,
                                     CmdletProviderContext,
                                     true);
                         }
@@ -356,7 +357,7 @@ namespace Microsoft.PowerShell.Commands
                             // provider.  Since the paths for these types of
                             // providers can't be split, asking for the parent
                             // is asking for an empty string.
-                            result = String.Empty;
+                            result = string.Empty;
                         }
 
                         break;
@@ -457,7 +458,7 @@ namespace Microsoft.PowerShell.Commands
             }
             else
             {
-                string driveName = String.Empty;
+                string driveName = string.Empty;
 
                 if (SessionState.Path.IsPSAbsolute(path, out driveName))
                 {

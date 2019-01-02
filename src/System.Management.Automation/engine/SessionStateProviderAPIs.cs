@@ -31,6 +31,7 @@ namespace System.Management.Automation
                 return ExecutionContext.TopLevelSessionState.Providers;
             }
         }
+
         private Dictionary<string, List<ProviderInfo>> _providers =
             new Dictionary<string, List<ProviderInfo>>(
                     SessionStateConstants.DefaultDictionaryCapacity, StringComparer.OrdinalIgnoreCase);
@@ -49,6 +50,7 @@ namespace System.Management.Automation
                 return ExecutionContext.TopLevelSessionState.ProvidersCurrentWorkingDrive;
             }
         }
+
         private Dictionary<ProviderInfo, PSDriveInfo> _providersCurrentWorkingDrive = new Dictionary<ProviderInfo, PSDriveInfo>();
 
         /// <summary>
@@ -118,6 +120,7 @@ namespace System.Management.Automation
                 // NTRAID#Windows OS Bugs-1009281-2004/02/11-JeffJon
                 this.ExecutionContext.ReportEngineStartupError(e);
             }
+
             return provider;
         }
 
@@ -226,6 +229,7 @@ namespace System.Management.Automation
             {
                 drive.DriveBeingCreated = false;
             }
+
             return result;
         }
 
@@ -735,7 +739,7 @@ namespace System.Management.Automation
         {
             bool result = false;
 
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw PSTraceSource.NewArgumentException("name");
             }
@@ -773,7 +777,7 @@ namespace System.Management.Automation
         /// </exception>
         internal Collection<ProviderInfo> GetProvider(string name)
         {
-            if (String.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw PSTraceSource.NewArgumentException("name");
             }
@@ -791,6 +795,7 @@ namespace System.Management.Automation
 
                 throw e;
             }
+
             return GetProvider(providerName);
         }
 
@@ -834,6 +839,7 @@ namespace System.Management.Automation
                     throw NewAmbiguousProviderName(name, matchingProviders);
                 }
             }
+
             return matchingProviders[0];
         }
 
@@ -875,17 +881,17 @@ namespace System.Management.Automation
                 }
             }
 
-            if (!String.IsNullOrEmpty(providerName.PSSnapInName))
+            if (!string.IsNullOrEmpty(providerName.PSSnapInName))
             {
                 // Be sure the PSSnapin/Module name matches
 
                 foreach (ProviderInfo provider in matchingProviders)
                 {
-                    if (String.Equals(
+                    if (string.Equals(
                             provider.PSSnapInName,
                             providerName.PSSnapInName,
                            StringComparison.OrdinalIgnoreCase) ||
-                        String.Equals(
+                        string.Equals(
                             provider.ModuleName,
                             providerName.PSSnapInName,
                             StringComparison.OrdinalIgnoreCase))
@@ -901,6 +907,7 @@ namespace System.Management.Automation
                     result.Add(provider);
                 }
             }
+
             return result;
         }
 
@@ -920,6 +927,7 @@ namespace System.Management.Automation
                         result.Add(provider);
                     }
                 }
+
                 return result;
             }
         }
@@ -927,7 +935,7 @@ namespace System.Management.Automation
         /// <summary>
         /// Copy the Providers from another session state instance...
         /// </summary>
-        /// <param name="ss">the session state instance to copy from...</param>
+        /// <param name="ss">The session state instance to copy from...</param>
         internal void CopyProviders(SessionStateInternal ss)
         {
             if (ss == null || ss.Providers == null)
@@ -1023,7 +1031,7 @@ namespace System.Management.Automation
                             "InitializeDefaultDrivesException",
                             SessionStateStrings.InitializeDefaultDrivesException,
                             provider,
-                            String.Empty,
+                            string.Empty,
                             e);
 
                     context.WriteError(
@@ -1285,6 +1293,7 @@ namespace System.Management.Automation
                     }
                 }
             }
+
             return null;
         }
 
@@ -1387,7 +1396,7 @@ namespace System.Management.Automation
                 throw PSTraceSource.NewArgumentNullException("context");
             }
 
-            if (String.IsNullOrEmpty(providerName))
+            if (string.IsNullOrEmpty(providerName))
             {
                 throw PSTraceSource.NewArgumentException("providerName");
             }
@@ -1569,6 +1578,7 @@ namespace System.Management.Automation
                 {
                     count += matchingProviders.Count;
                 }
+
                 return count;
             }
         }

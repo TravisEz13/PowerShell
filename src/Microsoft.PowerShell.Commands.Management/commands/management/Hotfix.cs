@@ -103,6 +103,7 @@ namespace Microsoft.PowerShell.Commands
                         if (i < Id.Length - 1)
                             QueryString.Append(" Or ");
                     }
+
                     QueryString.Append(")");
                 }
                 else
@@ -110,6 +111,7 @@ namespace Microsoft.PowerShell.Commands
                     QueryString.Append("Select * from Win32_QuickFixEngineering");
                     foundRecord = true;
                 }
+
                 _searchProcess = new ManagementObjectSearcher(scope, new ObjectQuery(QueryString.ToString()));
                 foreach (ManagementObject obj in _searchProcess.Get())
                 {
@@ -126,7 +128,7 @@ namespace Microsoft.PowerShell.Commands
                     // try to translate the SID to a more friendly username
                     // just stick with the SID if anything goes wrong
                     string installed = (string)obj["InstalledBy"];
-                    if (!String.IsNullOrEmpty(installed))
+                    if (!string.IsNullOrEmpty(installed))
                     {
                         try
                         {
@@ -153,11 +155,13 @@ namespace Microsoft.PowerShell.Commands
                     WriteObject(obj);
                     foundRecord = true;
                 }
+
                 if (!foundRecord && !_inputContainsWildcard)
                 {
                     Exception Ex = new ArgumentException(StringUtil.Format(HotFixResources.NoEntriesFound, computer));
                     WriteError(new ErrorRecord(Ex, "GetHotFixNoEntriesFound", ErrorCategory.ObjectNotFound, null));
                 }
+
                 if (_searchProcess != null)
                 {
                     this.Dispose();
@@ -190,6 +194,7 @@ namespace Microsoft.PowerShell.Commands
                     {
                         return true;
                     }
+
                     if (WildcardPattern.ContainsWildcardCharacters(desc))
                     {
                         _inputContainsWildcard = true;
@@ -200,6 +205,7 @@ namespace Microsoft.PowerShell.Commands
             {
                 return false;
             }
+
             return false;
         }
 

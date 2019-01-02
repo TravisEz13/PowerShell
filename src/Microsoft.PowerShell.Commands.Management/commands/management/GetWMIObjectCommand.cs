@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell.Commands
         public string[] Property
         {
             get { return (string[])_property.Clone(); }
+
             set { _property = value; }
         }
 
@@ -93,14 +94,15 @@ namespace Microsoft.PowerShell.Commands
         internal string GetQueryString()
         {
             StringBuilder returnValue = new StringBuilder("select ");
-            returnValue.Append(String.Join(", ", _property));
+            returnValue.Append(string.Join(", ", _property));
             returnValue.Append(" from ");
             returnValue.Append(Class);
-            if (!String.IsNullOrEmpty(Filter))
+            if (!string.IsNullOrEmpty(Filter))
             {
                 returnValue.Append(" where ");
                 returnValue.Append(Filter);
             }
+
             return returnValue.ToString();
         }
         /// <summary>
@@ -124,6 +126,7 @@ namespace Microsoft.PowerShell.Commands
             filterClass = filterClass.Replace('?', '_');
             return filterClass;
         }
+
         internal bool IsLocalizedNamespace(string sNamespace)
         {
             bool toReturn = false;
@@ -131,8 +134,10 @@ namespace Microsoft.PowerShell.Commands
             {
                 toReturn = true;
             }
+
             return toReturn;
         }
+
         internal bool ValidateClassFormat()
         {
             string filterClass = this.Class;
@@ -156,8 +161,10 @@ namespace Microsoft.PowerShell.Commands
                     newClassName.Append(']');
                     continue;
                 }
+
                 return false;
             }
+
             this.Class = newClassName.ToString();
             return true;
         }
@@ -181,6 +188,7 @@ namespace Microsoft.PowerShell.Commands
                 queryStringBuilder.Append(filterClass);
                 queryStringBuilder.Append("'");
             }
+
             ObjectQuery classQuery = new ObjectQuery(queryStringBuilder.ToString());
 
             EnumerationOptions enumOptions = new EnumerationOptions();
@@ -208,7 +216,7 @@ namespace Microsoft.PowerShell.Commands
                     {
                         ErrorRecord errorRecord = new ErrorRecord(
                        new ArgumentException(
-                           String.Format(
+                           string.Format(
                                Thread.CurrentThread.CurrentCulture,
                                "Class", this.Class)),
                        "INVALID_QUERY_IDENTIFIER",
@@ -219,6 +227,7 @@ namespace Microsoft.PowerShell.Commands
                         WriteError(errorRecord);
                         return;
                     }
+
                     foreach (string name in ComputerName)
                     {
                         if (this.Recurse.IsPresent)
@@ -325,6 +334,7 @@ namespace Microsoft.PowerShell.Commands
                                 WriteError(errorRecord);
                                 continue;
                             }
+
                             ManagementObjectSearcher searcher = this.GetObjectList(scope);
                             if (searcher == null)
                                 continue;
@@ -334,6 +344,7 @@ namespace Microsoft.PowerShell.Commands
                             }
                         }
                     }
+
                     return;
                 }
 
@@ -369,19 +380,19 @@ namespace Microsoft.PowerShell.Commands
                         if (e.ErrorCode.Equals(ManagementStatus.InvalidClass))
                         {
                             string className = GetClassNameFromQuery(queryString);
-                            string errorMsg = String.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
+                            string errorMsg = string.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
                                                         e.Message, className);
                             errorRecord = new ErrorRecord(new ManagementException(errorMsg), "GetWMIManagementException", ErrorCategory.InvalidType, null);
                         }
                         else if (e.ErrorCode.Equals(ManagementStatus.InvalidQuery))
                         {
-                            string errorMsg = String.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
+                            string errorMsg = string.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
                                                         e.Message, queryString);
                             errorRecord = new ErrorRecord(new ManagementException(errorMsg), "GetWMIManagementException", ErrorCategory.InvalidArgument, null);
                         }
                         else if (e.ErrorCode.Equals(ManagementStatus.InvalidNamespace))
                         {
-                            string errorMsg = String.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
+                            string errorMsg = string.Format(CultureInfo.InvariantCulture, WmiResources.WmiQueryFailure,
                                                         e.Message, this.Namespace);
                             errorRecord = new ErrorRecord(new ManagementException(errorMsg), "GetWMIManagementException", ErrorCategory.InvalidArgument, null);
                         }
