@@ -1362,6 +1362,45 @@ namespace System.Management.Automation
         internal static void LogScriptBlockCreation(ScriptBlock scriptBlock, bool force)
         {
             ScriptBlockLogging logSetting = GetScriptBlockLoggingSetting();
+            if(System.Environment.GetEnvironmentVariable("NewLogging").EqualsOrdinalIgnoreCase("True"))
+            {
+                ExecutionContext executionContext = LocalPipeline.GetExecutionContextFromTLS();
+
+                    // If script block logging is explicitly disabled, or it's from a trusted
+                    // file or internal, skip logging.
+                    if (logSetting?.EnableScriptBlockLogging == false ||
+                        scriptBlock.ScriptBlockData.IsProductCode)
+                    {
+                        return;
+                    }
+
+                    string scriptBlockText = scriptBlock.Ast.Extent.Text;
+
+                    // Maximum size of ETW events is 64kb. Split a message if it is larger than 20k (Unicode) characters.
+                    if (scriptBlockText.Length < 20000)
+                    {
+                        NewLogging.PostLog(scriptBlockText,scriptBlock.Id,scriptBlock.File);
+                    }
+                    else
+                    {
+                        // But split the segments into random sizes (10k + between 0 and 10kb extra)
+                        // so that attackers can't creatively force their scripts to span well-known
+                        // segments (making simple rules less reliable).
+                        int segmentSize = 10000 + (new Random()).Next(10000);
+                        int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
+                        int currentLocation = 0;
+                        int currentSegmentSize = 0;
+
+                        for (int segment = 0; segment < segments; segment++)
+                        {
+                            currentLocation = segment * segmentSize;
+                            currentSegmentSize = Math.Min(segmentSize, scriptBlockText.Length - currentLocation);
+
+                            string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
+                            NewLogging.PostLog(textToLog,scriptBlock.Id,scriptBlock.File);
+                        }
+                    }
+            }
             if (force || logSetting?.EnableScriptBlockLogging == true)
             {
                 if (!scriptBlock.HasLogged || InternalTestHooks.ForceScriptBlockLogging)
