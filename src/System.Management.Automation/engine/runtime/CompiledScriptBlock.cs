@@ -1366,6 +1366,16 @@ namespace System.Management.Automation
             {
                 ExecutionContext executionContext = LocalPipeline.GetExecutionContextFromTLS();
 
+                string parentScriptBlock = string.Empty;
+                if(executionContext != null)
+                {
+                    var stack = executionContext.Debugger.GetCallStack().FirstOrDefault();
+                    if(stack != null)
+                    {
+                        parentScriptBlock = stack.Position.Text;
+                    }
+                }
+
                     // If script block logging is explicitly disabled, or it's from a trusted
                     // file or internal, skip logging.
                     if (logSetting?.EnableScriptBlockLogging == false ||
@@ -1379,7 +1389,7 @@ namespace System.Management.Automation
                     // Maximum size of ETW events is 64kb. Split a message if it is larger than 20k (Unicode) characters.
                     if (scriptBlockText.Length < 20000)
                     {
-                        NewLogging.PostLog(scriptBlockText,scriptBlock.Id,scriptBlock.File);
+                        NewLogging.PostLog(scriptBlockText,scriptBlock.Id,scriptBlock.File, parentScriptBlock);
                     }
                     else
                     {
@@ -1397,7 +1407,7 @@ namespace System.Management.Automation
                             currentSegmentSize = Math.Min(segmentSize, scriptBlockText.Length - currentLocation);
 
                             string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
-                            NewLogging.PostLog(textToLog,scriptBlock.Id,scriptBlock.File);
+                            NewLogging.PostLog(textToLog,scriptBlock.Id,scriptBlock.File,parentScriptBlock);
                         }
                     }
             }
