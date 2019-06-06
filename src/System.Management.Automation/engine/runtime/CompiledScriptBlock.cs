@@ -1376,40 +1376,33 @@ namespace System.Management.Automation
                     }
                 }
 
-                    // If script block logging is explicitly disabled, or it's from a trusted
-                    // file or internal, skip logging.
-                    if (logSetting?.EnableScriptBlockLogging == false ||
-                        scriptBlock.ScriptBlockData.IsProductCode)
-                    {
-                        return;
-                    }
+                // If the script block is from a trusted
+                // file or internal, skip logging.
+                if (scriptBlock.ScriptBlockData.IsProductCode)
+                {
+                    return;
+                }
 
-                    string scriptBlockText = scriptBlock.Ast.Extent.Text;
+                string scriptBlockText = scriptBlock.Ast.Extent.Text;
+                ScriptBlockAst scriptBlockAst = scriptBlock.Ast as ScriptBlockAst;
+                string innerScriptBlockText = scriptBlockText;
+                if(scriptBlockAst != null)
+                {
+                    innerScriptBlockText = scriptBlockAst.EndBlock.Extent.Text;
+                }
+                string scriptBlockHash=CRC32Hash.ComputeHash(innerScriptBlockText);
+                string parentScriptBlockHash = string.Empty;
+                if(!string.IsNullOrEmpty(parentScriptBlock))
+                {
+                    parentScriptBlockHash = CRC32Hash.ComputeHash(parentScriptBlock);
+                }
 
-                    // Maximum size of ETW events is 64kb. Split a message if it is larger than 20k (Unicode) characters.
-                    if (scriptBlockText.Length < 20000)
-                    {
-                        NewLogging.PostLog(scriptBlockText,scriptBlock.Id,scriptBlock.File, parentScriptBlock);
-                    }
-                    else
-                    {
-                        // But split the segments into random sizes (10k + between 0 and 10kb extra)
-                        // so that attackers can't creatively force their scripts to span well-known
-                        // segments (making simple rules less reliable).
-                        int segmentSize = 10000 + (new Random()).Next(10000);
-                        int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
-                        int currentLocation = 0;
-                        int currentSegmentSize = 0;
-
-                        for (int segment = 0; segment < segments; segment++)
-                        {
-                            currentLocation = segment * segmentSize;
-                            currentSegmentSize = Math.Min(segmentSize, scriptBlockText.Length - currentLocation);
-
-                            string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
-                            NewLogging.PostLog(textToLog,scriptBlock.Id,scriptBlock.File,parentScriptBlock);
-                        }
-                    }
+                NewLogging.PostLog(
+                        scriptBlockText: scriptBlockText,
+                        file: scriptBlock.File,
+                        scriptBlockHash: scriptBlockHash,
+                        parentScriptBlockHash: parentScriptBlockHash
+                    );
             }
             if (force || logSetting?.EnableScriptBlockLogging == true)
             {
