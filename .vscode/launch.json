@@ -17,7 +17,8 @@
             "type": "coreclr",
             "request": "attach",
             "justMyCode": false,
-            "processId": "${command:pickProcess}"
+            "processId": "${command:pickProcess}",
+            "requireExactSource": false
         },
         {
             "type": "PowerShell",
