@@ -56,7 +56,7 @@ namespace System.Management.Automation
         }
 
         // LogType is name of the event type that is being submitted to Azure Monitor
-        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_9";
+        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_10";
 
         // You can use an optional field to specify the timestamp from the data. If the time field is not specified, Azure Monitor assumes the time is the message ingestion time
         static string TimeStampField = "";
@@ -74,12 +74,15 @@ namespace System.Management.Automation
             internal int NumberOfParts{get;set;}
             internal DateTime UtcTime{get;set;}
             internal string CommandName{get;set;}
+            internal int BatchOrder{get;set;}
+            internal int RunspaceId{get;set;}
+            internal string RunspaceName{get;set;}
         }
 
         // Maximum size of Azure Log Analytics events is 32kb. Split a message if it is larger than 20k (Unicode) characters.
         // https://docs.microsoft.com/en-us/azure/azure-monitor/platform/data-collector-api
         static int maxSegmentChars = 10000;
-        public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash, DateTime utcTime, string commandName)
+        public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash, DateTime utcTime, string commandName, int runspaceId, string runspaceName)
         {
 
             if (scriptBlockText.Length < maxSegmentChars)
@@ -92,7 +95,9 @@ namespace System.Management.Automation
                     PartNumber = 1,
                     NumberOfParts = 1,
                     UtcTime=utcTime,
-                    CommandName= commandName
+                    CommandName= commandName,
+                    RunspaceId= runspaceId,
+                    RunspaceName = runspaceName
                 };
                 loggingQueue.Enqueue(loggingParams);
                 StartLoggingTask();
@@ -121,7 +126,9 @@ namespace System.Management.Automation
                         PartNumber = segment,
                         NumberOfParts = segments,
                         UtcTime=utcTime,
-                        CommandName= commandName
+                        CommandName= commandName,
+                        RunspaceId= runspaceId,
+                        RunspaceName = runspaceName
                     };
                     loggingQueue.Enqueue(loggingParams);
                     StartLoggingTask();
@@ -158,6 +165,7 @@ namespace System.Management.Automation
                     loggingQueue.TryDequeue(out LoggingParams itemToLog);
                     if(itemToLog != null)
                     {
+                        itemToLog.BatchOrder = readyToLog.Count;
                         readyToLog.Add(itemToLog);
                     }
                     if(readyToLog.Count >= maxEventsPerBatch)
@@ -201,6 +209,9 @@ namespace System.Management.Automation
                         fields.Add("ScriptBlockHash", loggingParams.ScriptBlockHash);
                         fields.Add("UtcTime", loggingParams.UtcTime);
                         fields.Add("CommandName",loggingParams.CommandName);
+                        fields.Add("BatchOrder", loggingParams.BatchOrder);
+                        fields.Add("RunspaceName", loggingParams.RunspaceName);
+                        fields.Add("RunspaceId", loggingParams.RunspaceId);
 
                         if(!string.IsNullOrEmpty(loggingParams.ParentScriptBlockHash))
                         {

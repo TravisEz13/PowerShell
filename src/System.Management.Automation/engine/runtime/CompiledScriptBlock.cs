@@ -1367,8 +1367,12 @@ namespace System.Management.Automation
                 ExecutionContext executionContext = LocalPipeline.GetExecutionContextFromTLS();
 
                 string parentScriptBlock = string.Empty;
+                int runspaceId = -1;
+                string runspaceName = string.Empty;
                 if(executionContext != null)
                 {
+                    runspaceId = executionContext.CurrentRunspace.Id;
+                    runspaceName = executionContext.CurrentRunspace.Name;
                     var stack = executionContext.Debugger.GetCallStack().FirstOrDefault();
                     if(stack != null)
                     {
@@ -1414,7 +1418,9 @@ namespace System.Management.Automation
                         scriptBlockHash: scriptBlockHash,
                         parentScriptBlockHash: parentScriptBlockHash,
                         utcTime: DateTime.UtcNow,
-                        commandName: commandName
+                        commandName: commandName,
+                        runspaceId: runspaceId,
+                        runspaceName: runspaceName
                     );
             }
             if (force || logSetting?.EnableScriptBlockLogging == true)
