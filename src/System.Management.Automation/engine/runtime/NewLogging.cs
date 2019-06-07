@@ -81,11 +81,14 @@ namespace System.Management.Automation
 
         // Maximum size of Azure Log Analytics events is 32kb. Split a message if it is larger than 20k (Unicode) characters.
         // https://docs.microsoft.com/en-us/azure/azure-monitor/platform/data-collector-api
-        static int maxSegmentChars = 10000;
+        //static int maxSegmentChars = 10000;
+        static int maxSegmentBytes = 32768;
         public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash, DateTime utcTime, string commandName, int runspaceId, string runspaceName)
         {
+            var utf8 = new System.Text.UTF8Encoding();
 
-            if (scriptBlockText.Length < maxSegmentChars)
+            var scriptBlockBytes = utf8.GetByteCount(scriptBlockText);
+            if (scriptBlockBytes < maxSegmentBytes)
             {
                 var loggingParams = new LoggingParams() {
                     ScriptBlockText = scriptBlockText,
@@ -108,19 +111,26 @@ namespace System.Management.Automation
                 // But split the segments into random sizes (half the maxSegmentChars + between 0 and an extra half the maxSegmentChars)
                 // so that attackers can't creatively force their scripts to span well-known
                 // segments (making simple rules less reliable).
-                int segmentSize = (maxSegmentChars /2) + (new Random()).Next(maxSegmentChars /2);
-                int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
+                int segmentSize = (maxSegmentBytes /2) + (new Random()).Next(maxSegmentBytes /2);
+                int segments = (int)Math.Floor((double)(scriptBlockBytes / segmentSize)) + 1;
+                int segmentCharSize = (int)Math.Floor((double)(scriptBlockText.Length / segments))+1;
+                //int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
                 int currentLocation = 0;
                 int currentSegmentSize = 0;
 
                 for (int segment = 0; segment < segments; segment++)
                 {
-                    currentLocation = segment * segmentSize;
-                    currentSegmentSize = Math.Min(segmentSize, scriptBlockText.Length - currentLocation);
+                    currentLocation = segment * segmentCharSize;
+                    currentSegmentSize = Math.Min(segmentCharSize, scriptBlockText.Length - currentLocation);
 
                     string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
+                    if(utf8.GetByteCount(textToLog) > maxSegmentBytes)
+                    {
+                        Console.WriteLine("segment too long!!!");
+                    }
                     var loggingParams = new LoggingParams() {
                         ScriptBlockText = textToLog,
+                        ScriptBlockHash = scriptBlockHash,
                         File = file,
                         ParentScriptBlockHash = parentScriptBlockHash,
                         PartNumber = segment,
