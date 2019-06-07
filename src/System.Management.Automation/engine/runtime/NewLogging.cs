@@ -204,7 +204,7 @@ namespace System.Management.Automation
                         //fields.Add("OriginalScriptBlock", originalScriptBlock);
                         fields.Add("ScriptBlockText", loggingParams.ScriptBlockText);
                         fields.Add("PartNumber", loggingParams.PartNumber);
-                        fields.Add("NumberOfParts", loggingParams.PartNumber);
+                        fields.Add("NumberOfParts", loggingParams.NumberOfParts);
 
                         fields.Add("ScriptBlockHash", loggingParams.ScriptBlockHash);
                         fields.Add("UtcTime", loggingParams.UtcTime);
