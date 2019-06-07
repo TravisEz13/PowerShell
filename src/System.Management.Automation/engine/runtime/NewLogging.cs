@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -54,10 +56,14 @@ namespace System.Management.Automation
         }
 
         // LogType is name of the event type that is being submitted to Azure Monitor
-        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_7";
+        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_9";
 
         // You can use an optional field to specify the timestamp from the data. If the time field is not specified, Azure Monitor assumes the time is the message ingestion time
         static string TimeStampField = "";
+
+        static ConcurrentQueue<LoggingParams> loggingQueue = new ConcurrentQueue<LoggingParams>();
+
+        static Task loggingTask = null;
 
         internal class LoggingParams{
             internal string ScriptBlockText{get;set;}
@@ -66,12 +72,14 @@ namespace System.Management.Automation
             internal string ParentScriptBlockHash{get;set;}
             internal int PartNumber{get;set;}
             internal int NumberOfParts{get;set;}
+            internal DateTime UtcTime{get;set;}
+            internal string CommandName{get;set;}
         }
 
         // Maximum size of Azure Log Analytics events is 32kb. Split a message if it is larger than 20k (Unicode) characters.
         // https://docs.microsoft.com/en-us/azure/azure-monitor/platform/data-collector-api
         static int maxSegmentChars = 10000;
-        public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash)
+        public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash, DateTime utcTime, string commandName)
         {
 
             if (scriptBlockText.Length < maxSegmentChars)
@@ -82,9 +90,13 @@ namespace System.Management.Automation
                     File = file,
                     ParentScriptBlockHash = parentScriptBlockHash,
                     PartNumber = 1,
-                    NumberOfParts = 1
+                    NumberOfParts = 1,
+                    UtcTime=utcTime,
+                    CommandName= commandName
                 };
-                PostLog(loggingParams);
+                loggingQueue.Enqueue(loggingParams);
+                StartLoggingTask();
+                //PostLog(loggingParams);
             }
             else
             {
@@ -107,48 +119,100 @@ namespace System.Management.Automation
                         File = file,
                         ParentScriptBlockHash = parentScriptBlockHash,
                         PartNumber = segment,
-                        NumberOfParts = segments
+                        NumberOfParts = segments,
+                        UtcTime=utcTime,
+                        CommandName= commandName
                     };
-                    PostLog(loggingParams);
+                    loggingQueue.Enqueue(loggingParams);
+                    StartLoggingTask();
+
+                    //PostLog(loggingParams);
                 }
             }
         }
 
-        public static void PostLog(LoggingParams loggingParams)
+        public static void StartLoggingTask()
         {
-            Action<object> action = (object loggingParamsObj)=>{
+            if(loggingTask == null ||
+                (loggingTask.Status != TaskStatus.Running &&
+                loggingTask.Status != TaskStatus.Created &&
+                loggingTask.Status != TaskStatus.WaitingForActivation &&
+                loggingTask.Status != TaskStatus.WaitingToRun))
+            {
+                loggingTask = new Task(LoggingImpl);
+                loggingTask.Start();
+                return;
+            }
+        }
+
+        static int maxEventsPerBatch = 100;
+        static void LoggingImpl()
+        {
+            List<LoggingParams> readyToLog = new List<LoggingParams>();
+            int waits = 5;
+            while (waits > 0)
+            {
+                while(!loggingQueue.IsEmpty)
+                {
+                    waits = 5;
+                    loggingQueue.TryDequeue(out LoggingParams itemToLog);
+                    if(itemToLog != null)
+                    {
+                        readyToLog.Add(itemToLog);
+                    }
+                    if(readyToLog.Count >= maxEventsPerBatch)
+                    {
+                        PostLog(readyToLog);
+                        readyToLog.Clear();
+                    }
+                }
+                if(readyToLog.Count > 0 && waits < 5)
+                {
+                    PostLog(readyToLog);
+                    readyToLog.Clear();
+                }
+
+                waits--;
+                Thread.Sleep(1000);
+            }
+        }
+
+        public static void PostLog(IEnumerable<LoggingParams> loggingParamsArray)
+        {
                 // Maximum size of ETW events is 64kb. Split a message if it is larger than 20k (Unicode) characters.
-                    LoggingParams loggingParams = loggingParamsObj as LoggingParams;
-                    Hashtable[] fields = {new Hashtable()};
-                    fields[0].Add("Computer", Environment.MachineName);
-                    fields[0].Add("User", Environment.UserName);
-                    //fields[0].Add("PsMachineName", Environment.MachineName);
-                    fields[0].Add("PsProcessId", pid.ToString());
-                    if(!string.IsNullOrEmpty(loggingParams.File))
+                    List<Hashtable> hashtables = new List<Hashtable>();
+                    foreach(LoggingParams loggingParams in loggingParamsArray)
                     {
-                        fields[0].Add("File", loggingParams.File);
+                        Hashtable  fields =  new Hashtable();
+                        fields.Add("Computer", Environment.MachineName);
+                        fields.Add("User", Environment.UserName);
+                        //fields[0].Add("PsMachineName", Environment.MachineName);
+                        fields.Add("PsProcessId", pid.ToString());
+                        if(!string.IsNullOrEmpty(loggingParams.File))
+                        {
+                            fields.Add("File", loggingParams.File);
+                        }
+
+                        //fields.Add("OriginalScriptBlock", originalScriptBlock);
+                        fields.Add("ScriptBlockText", loggingParams.ScriptBlockText);
+                        fields.Add("PartNumber", loggingParams.PartNumber);
+                        fields.Add("NumberOfParts", loggingParams.PartNumber);
+
+                        fields.Add("ScriptBlockHash", loggingParams.ScriptBlockHash);
+                        fields.Add("UtcTime", loggingParams.UtcTime);
+                        fields.Add("CommandName",loggingParams.CommandName);
+
+                        if(!string.IsNullOrEmpty(loggingParams.ParentScriptBlockHash))
+                        {
+                            fields.Add("ParentScriptBlockHash", loggingParams.ParentScriptBlockHash);
+                        }
+                        hashtables.Add(fields);
                     }
 
-                    //fields[0].Add("OriginalScriptBlock", originalScriptBlock);
-                    fields[0].Add("ScriptBlockText", loggingParams.ScriptBlockText);
-                    fields[0].Add("PartNumber", loggingParams.PartNumber);
-                    fields[0].Add("NumberOfParts", loggingParams.PartNumber);
-
-                    fields[0].Add("ScriptBlockHash", loggingParams.ScriptBlockHash);
-
-                    if(!string.IsNullOrEmpty(loggingParams.ParentScriptBlockHash))
-                    {
-                        fields[0].Add("ParentScriptBlockHash", loggingParams.ParentScriptBlockHash);
-                    }
-
-                    var json =  JsonConvert.SerializeObject(fields);
+                    var json =  JsonConvert.SerializeObject(hashtables.ToArray());
                     var datestring = DateTime.UtcNow.ToString("r");
 
                     PostData(datestring, json);
-            };
-            var task = new Task(action,loggingParams);
-            task.Start();
-            task.Wait();
         }
 
         // Build the API signature

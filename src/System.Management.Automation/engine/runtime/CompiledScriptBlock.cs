@@ -1372,7 +1372,8 @@ namespace System.Management.Automation
                     var stack = executionContext.Debugger.GetCallStack().FirstOrDefault();
                     if(stack != null)
                     {
-                        parentScriptBlock = stack.Position.Text;
+                        //parentScriptBlock = stack.Position.Text;
+                        parentScriptBlock = stack.FunctionContext._scriptBlock.Ast.Extent.Text;
                     }
                 }
 
@@ -1384,13 +1385,23 @@ namespace System.Management.Automation
                 }
 
                 string scriptBlockText = scriptBlock.Ast.Extent.Text;
-                ScriptBlockAst scriptBlockAst = scriptBlock.Ast as ScriptBlockAst;
-                string innerScriptBlockText = scriptBlockText;
+                CommandAst commandAst = scriptBlock.Ast.Find((Ast ast)=>{
+                        if(ast is CommandAst) {
+                            return true;
+                        }
+                        return false;
+                    },true) as CommandAst;
+                string commandName = string.Empty;
+                if(commandAst!=null)
+                {
+                    commandName = commandAst.GetCommandName();
+                }
+                /* string innerScriptBlockText = scriptBlockText;
                 if(scriptBlockAst != null)
                 {
                     innerScriptBlockText = scriptBlockAst.EndBlock.Extent.Text;
-                }
-                string scriptBlockHash=CRC32Hash.ComputeHash(innerScriptBlockText);
+                }*/
+                string scriptBlockHash=CRC32Hash.ComputeHash(scriptBlockText);
                 string parentScriptBlockHash = string.Empty;
                 if(!string.IsNullOrEmpty(parentScriptBlock))
                 {
@@ -1401,7 +1412,9 @@ namespace System.Management.Automation
                         scriptBlockText: scriptBlockText,
                         file: scriptBlock.File,
                         scriptBlockHash: scriptBlockHash,
-                        parentScriptBlockHash: parentScriptBlockHash
+                        parentScriptBlockHash: parentScriptBlockHash,
+                        utcTime: DateTime.UtcNow,
+                        commandName: commandName
                     );
             }
             if (force || logSetting?.EnableScriptBlockLogging == true)
