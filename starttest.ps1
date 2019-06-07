@@ -50,13 +50,24 @@ if($AccuracyTest.IsPresent)
 }
 if($LargScriptBlockTest.IsPresent)
 {
+    $utf8 = [System.Text.UTF8Encoding]::new()
     $sb=[System.Text.StringBuilder]::new()
-    $sbLine = @'
-    $null=Invoke-Expression('d'+"i"+'r');
-    $null=Invoke-Expression('$p'+"i"+'d');
-    $null=ge`T`-cOMmA`ND get-*;
-'@
-    while($sb.Length -lt (10000*($segments-1)))
+    $sbLine = '$null="'
+    128513..128591| ForEach-Object {
+        $charCreateScriptBlock=[scriptblock]::create(('write-output `u{0}{1:x}{2}' -f '{', $_, '}'))
+        &$charCreateScriptBlock
+    } | ForEach-Object {
+        $sbLine += $_
+    }
+    128640..128704| ForEach-Object {
+        $charCreateScriptBlock=[scriptblock]::create(('write-output `u{0}{1:x}{2}' -f '{', $_, '}'))
+        &$charCreateScriptBlock
+    } | ForEach-Object {
+        $sbLine += $_
+    }
+    $sbLine+='";'
+    Write-Host $sbLine
+    while($utf8.GetByteCount($sb.ToString()) -lt (32768*($segments-1)))
     {
         $null=$sb.AppendLine($sbLine)
     }
