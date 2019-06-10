@@ -29,6 +29,10 @@ namespace System.Management.Automation
                 client.DefaultRequestHeaders.Add("Log-Type", LogType);
                 return client;
             });
+
+        static ThreadLocal<Random> rand = new ThreadLocal<Random>(()=>{
+                return new Random();
+            });
         // An example JSON object, with key/value pairs
         // static string json = @"[{""OriginalScriptBlock"":""DemoValue1"",""DemoField2"":""DemoValue2""},{""DemoField3"":""DemoValue3"",""DemoField4"":""DemoValue4""}]";
 
@@ -111,9 +115,12 @@ namespace System.Management.Automation
                 // But split the segments into random sizes (half the maxSegmentChars + between 0 and an extra half the maxSegmentChars)
                 // so that attackers can't creatively force their scripts to span well-known
                 // segments (making simple rules less reliable).
-                int segmentSize = (maxSegmentBytes /2) + (new Random()).Next(maxSegmentBytes /2);
-                int segments = (int)Math.Floor((double)(scriptBlockBytes / segmentSize)) + 1;
-                int segmentCharSize = (int)Math.Floor((double)(scriptBlockText.Length / segments))+1;
+                int segmentSize = (maxSegmentBytes /2) + rand.Value.Next(maxSegmentBytes /2);
+                int baseSegments = (int)Math.Floor((double)(scriptBlockBytes / segmentSize)) + 1;
+                int baseSegmentCharSize = scriptBlockText.Length / baseSegments;
+
+                int segmentCharSize = (baseSegmentCharSize /2) + rand.Value.Next(baseSegmentCharSize /2);
+                int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentCharSize)) + 1;
                 //int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
                 int currentLocation = 0;
                 int currentSegmentSize = 0;
