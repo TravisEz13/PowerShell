@@ -3,7 +3,8 @@ param(
     [switch]$AccuracyTest,
     [int]$Iterations=100,
     [switch]$LargScriptBlockTest,
-    [int]$Segments=2
+    [int]$Segments=2,
+    [switch]$SkipEnable
     )
 if($PerfTest.IsPresent)
 {
@@ -32,7 +33,10 @@ $env:CustomerId = 'Put the workspace id here'
 $env:sharedKey = 'put share key here'
 
 #>
-."$PSScriptRoot\setloggingenv.ps1"
+if(!$SkipEnable.IsPresent)
+{
+    ."$PSScriptRoot\setloggingenv.ps1"
+}
 $env:NewLogging = "True"
 if($PerfTest.IsPresent)
 {
@@ -48,11 +52,13 @@ if($AccuracyTest.IsPresent)
         #start-Sleep -Milliseconds 50
     }
 }
+$blocks=@{}
 if($LargScriptBlockTest.IsPresent)
 {
     $utf8 = [System.Text.UTF8Encoding]::new()
     $sb=[System.Text.StringBuilder]::new()
     $sbLine = '$null="'
+    Write-Verbose "Generating sb Line..." -Verbose
     128513..128591| ForEach-Object {
         $charCreateScriptBlock=[scriptblock]::create(('write-output `u{0}{1:x}{2}' -f '{', $_, '}'))
         &$charCreateScriptBlock
@@ -66,16 +72,46 @@ if($LargScriptBlockTest.IsPresent)
         $sbLine += $_
     }
     $sbLine+='";'
-    Write-Host $sbLine
+    $blocks[0] = $sbLine
+    #Write-Host $sbLine
+    $mbSize = (32768*$segments)/1mb
+    Write-Verbose "Generating sb of $mbSize MB ..." -Verbose
+    $powerToUse = 2
+
     while($utf8.GetByteCount($sb.ToString()) -lt (32768*($segments-1)))
     {
-        $null=$sb.AppendLine($sbLine)
+        $string = $sb.ToString()
+        $size = $utf8.GetByteCount($string)
+        #Write-Verbose "script of $($size / 1MB) MB ..." -Verbose
+        $pow = [MATH]::Round([Math]::Log($size,$powerToUse))
+        $blocks[$pow] = $string
+        $remainingSize = (32768*($segments-1)) - $size
+        $remainingPow = [Math]::Floor( [Math]::Log($remainingSize,$powerToUse))
+        if($remainingPow -gt 0)
+        {
+            #$remainingPow--
+        }
+        #Write-Verbose "should add $remainingPow" -Verbose
+
+
+        if($blocks.ContainsKey($remainingPow))
+        {
+            #Write-Verbose "adding $remainingPow" -Verbose
+            $null=$sb.AppendLine($blocks.$remainingPow)
+        }
+        else{
+            $maxPow = ($blocks.Keys | Where-Object { $_ -lt $remainingPow} | Measure-Object -Maximum).Maximum
+            #Write-Verbose "adding max- $maxPow" -Verbose
+            $null=$sb.AppendLine($blocks.$maxPow)
+        }
     }
-    & ([scriptblock]::Create($sb.ToString()))
+    $sbString = $sb.ToString()
+    Write-Verbose "Executing script of $([int] ($utf8.GetByteCount($sbString) / 1MB)) MB ..." -Verbose
+    & ([scriptblock]::Create($sbString))
 }
 
 Invoke-Expression('$p'+"i"+'d')
 
-$null=ge`T`-cOMmA`ND get-*
+$null=ge`T`-cOMmA`ND get-*; $null=ge`T`-module
 $null=Invoke-Expression('d'+"i"+'r')
 
