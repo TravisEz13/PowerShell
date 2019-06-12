@@ -1361,8 +1361,9 @@ namespace System.Management.Automation
 
         internal static void LogScriptBlockCreation(ScriptBlock scriptBlock, bool force)
         {
+            bool written = false;
             ScriptBlockLogging logSetting = GetScriptBlockLoggingSetting();
-            if(System.Environment.GetEnvironmentVariable("NewLogging").EqualsOrdinalIgnoreCase("True"))
+            if(!scriptBlock.HasLogged && System.Environment.GetEnvironmentVariable("NewLogging").EqualsOrdinalIgnoreCase("True"))
             {
                 ExecutionContext executionContext = LocalPipeline.GetExecutionContextFromTLS();
 
@@ -1373,6 +1374,9 @@ namespace System.Management.Automation
                 {
                     runspaceId = executionContext.CurrentRunspace.Id;
                     runspaceName = executionContext.CurrentRunspace.Name;
+                    // We haven't started executing the ScriptBlock we are logging
+                    // So the first script block is the previous script block relative to the
+                    // ScriptBlock we are logging
                     var stack = executionContext.Debugger.GetCallStack().FirstOrDefault();
                     if(stack != null)
                     {
@@ -1388,6 +1392,9 @@ namespace System.Management.Automation
                     return;
                 }
 
+                // This is to deal with issues like:
+                //  $null=ge`T`-cOMmA`ND get-*; ge`T`-module
+                // but this will only deal with the first command
                 string scriptBlockText = scriptBlock.Ast.Extent.Text;
                 CommandAst commandAst = scriptBlock.Ast.Find((Ast ast)=>{
                         if(ast is CommandAst) {
@@ -1422,6 +1429,7 @@ namespace System.Management.Automation
                         runspaceId: runspaceId,
                         runspaceName: runspaceName
                     );
+                written = true;
             }
             if (force || logSetting?.EnableScriptBlockLogging == true)
             {
@@ -1436,7 +1444,6 @@ namespace System.Management.Automation
                     }
 
                     string scriptBlockText = scriptBlock.Ast.Extent.Text;
-                    bool written = false;
 
                     // Maximum size of ETW events is 64kb. Split a message if it is larger than 20k (Unicode) characters.
                     if (scriptBlockText.Length < 20000)
@@ -1462,12 +1469,11 @@ namespace System.Management.Automation
                             written = WriteScriptBlockToLog(scriptBlock, segment, segments, textToLog);
                         }
                     }
-
-                    if (written)
-                    {
-                        scriptBlock.HasLogged = true;
-                    }
                 }
+            }
+            if (written)
+            {
+                scriptBlock.HasLogged = true;
             }
         }
 
