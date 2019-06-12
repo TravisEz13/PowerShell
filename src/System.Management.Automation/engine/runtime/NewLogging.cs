@@ -14,6 +14,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.IO;
+using System.IO.Compression;
 
 namespace System.Management.Automation
 {
@@ -30,8 +32,18 @@ namespace System.Management.Automation
                 return client;
             });
 
+
         static ThreadLocal<Random> rand = new ThreadLocal<Random>(()=>{
                 return new Random();
+            });
+
+        static ThreadLocal<byte[]> compressedStreamBuffer = new ThreadLocal<byte[]>(()=>{
+                return new byte[32768];
+
+            });
+
+        static ThreadLocal<System.Text.UTF8Encoding> utf8 = new ThreadLocal<System.Text.UTF8Encoding>(()=>{
+                return new System.Text.UTF8Encoding();
             });
         // An example JSON object, with key/value pairs
         // static string json = @"[{""OriginalScriptBlock"":""DemoValue1"",""DemoField2"":""DemoValue2""},{""DemoField3"":""DemoValue3"",""DemoField4"":""DemoValue4""}]";
@@ -60,7 +72,7 @@ namespace System.Management.Automation
         }
 
         // LogType is name of the event type that is being submitted to Azure Monitor
-        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_10";
+        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_11";
 
         // You can use an optional field to specify the timestamp from the data. If the time field is not specified, Azure Monitor assumes the time is the message ingestion time
         static string TimeStampField = "";
@@ -72,6 +84,7 @@ namespace System.Management.Automation
         internal class LoggingParams{
             internal string ScriptBlockText{get;set;}
             internal string ScriptBlockHash{get;set;}
+            internal string CompressedScripBlock{get;set;}
             internal string File{get;set;}
             internal string ParentScriptBlockHash{get;set;}
             internal int PartNumber{get;set;}
@@ -89,70 +102,114 @@ namespace System.Management.Automation
         static int maxSegmentBytes = 32768;
         public static void PostLog(string scriptBlockText, string file, string scriptBlockHash, string parentScriptBlockHash, DateTime utcTime, string commandName, int runspaceId, string runspaceName)
         {
-            var utf8 = new System.Text.UTF8Encoding();
+            var scriptBlockBytes = utf8.Value.GetByteCount(scriptBlockText);
+            var loggingParams = new LoggingParams() {
+                ScriptBlockText = scriptBlockText,
+                ScriptBlockHash = scriptBlockHash,
+                File = file,
+                ParentScriptBlockHash = parentScriptBlockHash,
+                PartNumber = 1,
+                NumberOfParts = 1,
+                UtcTime=utcTime,
+                CommandName= commandName,
+                RunspaceId= runspaceId,
+                RunspaceName = runspaceName
+            };
+            loggingQueue.Enqueue(loggingParams);
+            StartLoggingTask();
+            // if (scriptBlockBytes < maxSegmentBytes)
+            // {
+            //     var loggingParams = new LoggingParams() {
+            //         ScriptBlockText = scriptBlockText,
+            //         ScriptBlockHash = scriptBlockHash,
+            //         File = file,
+            //         ParentScriptBlockHash = parentScriptBlockHash,
+            //         PartNumber = 1,
+            //         NumberOfParts = 1,
+            //         UtcTime=utcTime,
+            //         CommandName= commandName,
+            //         RunspaceId= runspaceId,
+            //         RunspaceName = runspaceName
+            //     };
+            //     loggingQueue.Enqueue(loggingParams);
+            //     StartLoggingTask();
+            //     //PostLog(loggingParams);
+            // }
+            // else
+            // {
+            //     // But split the segments into random sizes (half the maxSegmentChars + between 0 and an extra half the maxSegmentChars)
+            //     // so that attackers can't creatively force their scripts to span well-known
+            //     // segments (making simple rules less reliable).
+            //     // int segmentSize = (maxSegmentBytes /2) + rand.Value.Next(maxSegmentBytes /2);
+            //     // int baseSegments = (int)Math.Floor((double)(scriptBlockBytes / segmentSize)) + 1;
+            //     // int baseSegmentCharSize = scriptBlockText.Length / baseSegments;
 
-            var scriptBlockBytes = utf8.GetByteCount(scriptBlockText);
-            if (scriptBlockBytes < maxSegmentBytes)
-            {
-                var loggingParams = new LoggingParams() {
-                    ScriptBlockText = scriptBlockText,
-                    ScriptBlockHash = scriptBlockHash,
-                    File = file,
-                    ParentScriptBlockHash = parentScriptBlockHash,
-                    PartNumber = 1,
-                    NumberOfParts = 1,
-                    UtcTime=utcTime,
-                    CommandName= commandName,
-                    RunspaceId= runspaceId,
-                    RunspaceName = runspaceName
-                };
-                loggingQueue.Enqueue(loggingParams);
-                StartLoggingTask();
-                //PostLog(loggingParams);
-            }
-            else
-            {
-                // But split the segments into random sizes (half the maxSegmentChars + between 0 and an extra half the maxSegmentChars)
-                // so that attackers can't creatively force their scripts to span well-known
-                // segments (making simple rules less reliable).
-                int segmentSize = (maxSegmentBytes /2) + rand.Value.Next(maxSegmentBytes /2);
-                int baseSegments = (int)Math.Floor((double)(scriptBlockBytes / segmentSize)) + 1;
-                int baseSegmentCharSize = scriptBlockText.Length / baseSegments;
+            //     // int segmentCharSize = (baseSegmentCharSize /2) + rand.Value.Next(baseSegmentCharSize /2);
+            //     // int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentCharSize)) + 1;
+            //     // //int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
+            //     // int currentLocation = 0;
+            //     // int currentSegmentSize = 0;
+            //     var compressedStream = new MemoryStream();
+            //     var originalStream = new MemoryStream(utf8.GetBytes(scriptBlockText));
+            //     //GZipCompress(originalStream);
+            //     using(var gzipStream = new BrotliStream(compressedStream,CompressionLevel.Fastest))
+            //     {
+            //         originalStream.CopyTo(gzipStream);
+            //     }
 
-                int segmentCharSize = (baseSegmentCharSize /2) + rand.Value.Next(baseSegmentCharSize /2);
-                int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentCharSize)) + 1;
-                //int segments = (int)Math.Floor((double)(scriptBlockText.Length / segmentSize)) + 1;
-                int currentLocation = 0;
-                int currentSegmentSize = 0;
+            //     var compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
+            //     //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
+            //     if(utf8.GetByteCount(compressedScripBlock) > maxSegmentBytes)
+            //     {
+            //         Console.WriteLine("script block did not compress enough");
+            //     }
 
-                for (int segment = 0; segment < segments; segment++)
-                {
-                    currentLocation = segment * segmentCharSize;
-                    currentSegmentSize = Math.Min(segmentCharSize, scriptBlockText.Length - currentLocation);
+            //     string textToLog = scriptBlockText.Substring(0, maxSegmentBytes/4);
+            //     var loggingParams = new LoggingParams() {
+            //         ScriptBlockText = textToLog,
+            //         CompressedScripBlock = compressedScripBlock,
+            //         ScriptBlockHash = scriptBlockHash,
+            //         File = file,
+            //         ParentScriptBlockHash = parentScriptBlockHash,
+            //         PartNumber = 1,
+            //         NumberOfParts = 1,
+            //         UtcTime=utcTime,
+            //         CommandName= commandName,
+            //         RunspaceId= runspaceId,
+            //         RunspaceName = runspaceName
+            //     };
+            //     loggingQueue.Enqueue(loggingParams);
+            //     StartLoggingTask();
 
-                    string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
-                    if(utf8.GetByteCount(textToLog) > maxSegmentBytes)
-                    {
-                        Console.WriteLine("segment too long!!!");
-                    }
-                    var loggingParams = new LoggingParams() {
-                        ScriptBlockText = textToLog,
-                        ScriptBlockHash = scriptBlockHash,
-                        File = file,
-                        ParentScriptBlockHash = parentScriptBlockHash,
-                        PartNumber = segment,
-                        NumberOfParts = segments,
-                        UtcTime=utcTime,
-                        CommandName= commandName,
-                        RunspaceId= runspaceId,
-                        RunspaceName = runspaceName
-                    };
-                    loggingQueue.Enqueue(loggingParams);
-                    StartLoggingTask();
 
-                    //PostLog(loggingParams);
-                }
-            }
+            //     // for (int segment = 0; segment < segments; segment++)
+            //     // {
+            //     //     currentLocation = segment * segmentCharSize;
+            //     //     currentSegmentSize = Math.Min(segmentCharSize, scriptBlockText.Length - currentLocation);
+
+            //     //     string textToLog = scriptBlockText.Substring(currentLocation, currentSegmentSize);
+            //     //     if(utf8.GetByteCount(textToLog) > maxSegmentBytes)
+            //     //     {
+            //     //         Console.WriteLine("segment too long!!!");
+            //     //     }
+            //     //     var loggingParams = new LoggingParams() {
+                //         ScriptBlockText = textToLog,
+                //         ScriptBlockHash = scriptBlockHash,
+                //         File = file,
+                //         ParentScriptBlockHash = parentScriptBlockHash,
+                //         PartNumber = segment,
+                //         NumberOfParts = segments,
+                //         UtcTime=utcTime,
+                //         CommandName= commandName,
+                //         RunspaceId= runspaceId,
+                //         RunspaceName = runspaceName
+                //     };
+                //     loggingQueue.Enqueue(loggingParams);
+                //     StartLoggingTask();
+
+                //     //PostLog(loggingParams);
+                // }
+            //}
         }
 
         public static void StartLoggingTask()
@@ -208,6 +265,40 @@ namespace System.Management.Automation
                     List<Hashtable> hashtables = new List<Hashtable>();
                     foreach(LoggingParams loggingParams in loggingParamsArray)
                     {
+                        var compressedStream = new MemoryStream(compressedStreamBuffer.Value);
+                        compressedStream.SetLength(0);
+                        var originalStream = new MemoryStream(utf8.Value.GetBytes(loggingParams.ScriptBlockText));
+                        //GZipCompress(originalStream);
+                        using(var gzipStream = new BrotliStream(compressedStream,CompressionLevel.Fastest))
+                        {
+                            try{
+                                originalStream.CopyTo(gzipStream);
+                            }
+                            catch
+                            {
+                                Console.WriteLine("script block did not have enough space to compress");
+                            }
+                        }
+
+                        var compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
+                        //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
+                        if(utf8.Value.GetByteCount(compressedScripBlock) > maxSegmentBytes)
+                        {
+                            compressedScripBlock = compressedScripBlock.Substring(0, maxSegmentBytes);
+                            Console.WriteLine("script block did not compress enough");
+                        }
+
+                        var textToLog = string.Empty;
+                        if(utf8.Value.GetByteCount(loggingParams.ScriptBlockText) > maxSegmentBytes)
+                        {
+                            textToLog = loggingParams.ScriptBlockText.Substring(0, maxSegmentBytes/4);
+                        }
+                        else
+                        {
+                            textToLog = loggingParams.ScriptBlockText;
+                        }
+
+
                         Hashtable  fields =  new Hashtable();
                         fields.Add("Computer", Environment.MachineName);
                         fields.Add("User", Environment.UserName);
@@ -219,7 +310,8 @@ namespace System.Management.Automation
                         }
 
                         //fields.Add("OriginalScriptBlock", originalScriptBlock);
-                        fields.Add("ScriptBlockText", loggingParams.ScriptBlockText);
+                        fields.Add("ScriptBlockText", textToLog);
+                        fields.Add("CompressedScripBlock", compressedScripBlock);
                         fields.Add("PartNumber", loggingParams.PartNumber);
                         fields.Add("NumberOfParts", loggingParams.NumberOfParts);
 
