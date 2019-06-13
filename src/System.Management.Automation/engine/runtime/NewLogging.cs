@@ -22,6 +22,9 @@ namespace System.Management.Automation
     class NewLogging
     {
         static string hmacTemplate = "POST\n{0}\n{1}\nx-ms-date:{2}\n/api/logs";
+
+        // Why to use ThreadLocal instead of [ThreadStatic]
+        // https://stackoverflow.com/questions/18333885/threadstatic-v-s-threadlocalt-is-generic-better-than-attribute
         static ThreadLocal<System.Net.Http.HttpClient> tlsClient = new ThreadLocal<System.Net.Http.HttpClient>(()=>{
                 var client = new System.Net.Http.HttpClient();
                 client.DefaultRequestHeaders
@@ -265,37 +268,42 @@ namespace System.Management.Automation
                     List<Hashtable> hashtables = new List<Hashtable>();
                     foreach(LoggingParams loggingParams in loggingParamsArray)
                     {
-                        var compressedStream = new MemoryStream(compressedStreamBuffer.Value);
-                        compressedStream.SetLength(0);
-                        var originalStream = new MemoryStream(utf8.Value.GetBytes(loggingParams.ScriptBlockText));
-                        //GZipCompress(originalStream);
-                        using(var gzipStream = new BrotliStream(compressedStream,CompressionLevel.Fastest))
-                        {
-                            try{
-                                originalStream.CopyTo(gzipStream);
-                            }
-                            catch
-                            {
-                                Console.WriteLine("script block did not have enough space to compress");
-                            }
-                        }
-
-                        var compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
-                        //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
-                        if(utf8.Value.GetByteCount(compressedScripBlock) > maxSegmentBytes)
-                        {
-                            compressedScripBlock = compressedScripBlock.Substring(0, maxSegmentBytes);
-                            Console.WriteLine("script block did not compress enough");
-                        }
-
+                        var scriptBlockText = loggingParams.ScriptBlockText;
                         var textToLog = string.Empty;
-                        if(utf8.Value.GetByteCount(loggingParams.ScriptBlockText) > maxSegmentBytes)
+                        int scriptBlockBytes = utf8.Value.GetByteCount(scriptBlockText);
+                        var compressedScripBlock = String.Empty;
+
+                        if(scriptBlockBytes > maxSegmentBytes)
                         {
-                            textToLog = loggingParams.ScriptBlockText.Substring(0, maxSegmentBytes/4);
+                            int length = maxSegmentBytes/4;
+                            textToLog = scriptBlockText.Substring(0, length);
+                            Console.WriteLine("ttl: '"+textToLog+"'");
+                            var compressedStream = new MemoryStream(compressedStreamBuffer.Value);
+                            compressedStream.SetLength(0);
+                            var originalStream = new MemoryStream(utf8.Value.GetBytes(scriptBlockText));
+                            //GZipCompress(originalStream);
+                            using(var gzipStream = new BrotliStream(compressedStream,CompressionLevel.Fastest))
+                            {
+                                try{
+                                    originalStream.CopyTo(gzipStream);
+                                }
+                                catch
+                                {
+                                    Console.WriteLine("script block did not have enough space to compress");
+                                }
+                            }
+
+                            compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
+                            //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
+                            if(utf8.Value.GetByteCount(compressedScripBlock) > maxSegmentBytes)
+                            {
+                                compressedScripBlock = compressedScripBlock.Substring(0, maxSegmentBytes);
+                                Console.WriteLine("script block did not compress enough");
+                            }
                         }
                         else
                         {
-                            textToLog = loggingParams.ScriptBlockText;
+                            textToLog = scriptBlockText;
                         }
 
 
