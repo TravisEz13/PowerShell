@@ -73,6 +73,7 @@ if($LargScriptBlockTest.IsPresent)
     }
     $sbLine+='";'
     $blocks[0] = $sbLine
+    $null=$sb.AppendLine($sbLine);
     #Write-Host $sbLine
     $mbSize = (32768*$segments)/1mb
     Write-Verbose "Generating sb of $mbSize MB ..." -Verbose
@@ -84,6 +85,7 @@ if($LargScriptBlockTest.IsPresent)
         $size = $utf8.GetByteCount($string)
         #Write-Verbose "script of $($size / 1MB) MB ..." -Verbose
         $pow = [MATH]::Round([Math]::Log($size,$powerToUse))
+        Write-Verbose "updating $pow" -Verbose
         $blocks[$pow] = $string
         $remainingSize = (32768*($segments-1)) - $size
         $remainingPow = [Math]::Floor( [Math]::Log($remainingSize,$powerToUse))
@@ -91,7 +93,7 @@ if($LargScriptBlockTest.IsPresent)
         {
             #$remainingPow--
         }
-        #Write-Verbose "should add $remainingPow" -Verbose
+        Write-Verbose "should add $remainingPow" -Verbose
 
 
         if($blocks.ContainsKey($remainingPow))
@@ -100,12 +102,13 @@ if($LargScriptBlockTest.IsPresent)
             $null=$sb.AppendLine($blocks.$remainingPow)
         }
         else{
-            $maxPow = ($blocks.Keys | Where-Object { $_ -lt $remainingPow} | Measure-Object -Maximum).Maximum
-            #Write-Verbose "adding max- $maxPow" -Verbose
+            $maxPow = ($blocks.Keys | Where-Object { $_ -le $remainingPow} | Measure-Object -Maximum).Maximum
+            Write-Verbose "adding max- $maxPow" -Verbose
             $null=$sb.AppendLine($blocks.$maxPow)
         }
     }
     $sbString = $sb.ToString()
+    $Global:LargeSbString = $sbString
     Write-Verbose "Executing script of $([int] ($utf8.GetByteCount($sbString) / 1MB)) MB ..." -Verbose
     & ([scriptblock]::Create($sbString))
 }
