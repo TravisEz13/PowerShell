@@ -277,28 +277,31 @@ namespace System.Management.Automation
                         {
                             int length = maxSegmentBytes/4;
                             textToLog = scriptBlockText.Substring(0, length);
-                            Console.WriteLine("ttl: '"+textToLog+"'");
                             var compressedStream = new MemoryStream(compressedStreamBuffer.Value);
                             compressedStream.SetLength(0);
                             var originalStream = new MemoryStream(utf8.Value.GetBytes(scriptBlockText));
                             //GZipCompress(originalStream);
+                            var compressed = false;
                             using(var gzipStream = new BrotliStream(compressedStream,CompressionLevel.Fastest))
                             {
                                 try{
                                     originalStream.CopyTo(gzipStream);
+                                    compressed = true;
                                 }
                                 catch
                                 {
                                     Console.WriteLine("script block did not have enough space to compress");
                                 }
                             }
-
-                            compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
-                            //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
-                            if(utf8.Value.GetByteCount(compressedScripBlock) > maxSegmentBytes)
+                            if(compressed)
                             {
-                                compressedScripBlock = compressedScripBlock.Substring(0, maxSegmentBytes);
-                                Console.WriteLine("script block did not compress enough");
+                                compressedScripBlock = Convert.ToBase64String(compressedStream.ToArray());
+                                //var compressedScripBlock = Convert.ToBase64String(originalStream.ToArray());
+                                if(utf8.Value.GetByteCount(compressedScripBlock) > maxSegmentBytes)
+                                {
+                                    compressedScripBlock = compressedScripBlock.Substring(0, maxSegmentBytes);
+                                    Console.WriteLine("script block did not compress enough");
+                                }
                             }
                         }
                         else
