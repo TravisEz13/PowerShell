@@ -54,6 +54,19 @@ namespace Microsoft.PowerShell
         internal const int ExitCodeInitFailure = 70; // Internal Software Error
         internal const int ExitCodeBadCommandLineParameter = 64; // Command Line Usage Error
 
+        internal struct THREAD_NETWORK_CONTEXT{
+            internal int ThreadId;
+            internal IntPtr ThreadContex;
+        }
+
+        [DllImport("Srpapi.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SrpGetEnterpriseIds(IntPtr tokenHandle, ref ulong numberOfBytes, out StringBuilder[] enterpriseIds, out ulong EnterpriseIdCount);
+
+        [DllImport("Srpapi.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool SrpCreateThreadNetworkContext(string enterpriseId,ref THREAD_NETWORK_CONTEXT threadNetworkContext);
+
         // NTRAID#Windows Out Of Band Releases-915506-2005/09/09
         // Removed HandleUnexpectedExceptions infrastructure
         /// <summary>
@@ -193,6 +206,50 @@ namespace Microsoft.PowerShell
                 }
 
 #if !UNIX
+                // Windows Information Protection (WIP) policy can be applied on Windows 10, version 1607.
+                // (build 17134)
+                Version minBuildForPlaceHolderAPIs = new Version(10, 0, 14393, 0);
+                Console.WriteLine("checking win ver:"+ Environment.OSVersion.Version.ToString() + ">=" + minBuildForPlaceHolderAPIs.ToString());
+                if (Environment.OSVersion.Version >= minBuildForPlaceHolderAPIs)
+                {
+                    Console.WriteLine("passed win ver");
+                    if(!string.IsNullOrEmpty(s_cpp.Wip))
+                    {
+                        var threadNetContex = new THREAD_NETWORK_CONTEXT();
+                        bool result = SrpCreateThreadNetworkContext(s_cpp.Wip, ref threadNetContex);
+                        if(!result)
+                        {
+                            throw new InvalidOperationException("Could not set WIP enterprise ID to: "+ s_cpp.Wip);
+                        }
+                        //TODO: expose the enterpriseID to trusted cmdlets (or everyone)
+                        Console.WriteLine("using WIP: "+s_cpp.Wip);
+                    }else{
+                        ulong size = 36;
+                        StringBuilder[] enterpriseIdArray= new StringBuilder[size];
+                        ulong enterpriseIdCount=0;
+                        if(!SrpGetEnterpriseIds(Process.GetCurrentProcess().Handle, ref size,out enterpriseIdArray,out enterpriseIdCount))
+                        {
+                            throw new InvalidOperationException("Could not get WIP enterprise ID.");
+                        }
+
+                        Console.WriteLine("eid Count: "+ enterpriseIdCount);
+                        for(ulong i=0;i<enterpriseIdCount;i++)
+                        {
+                            Console.WriteLine("eid: "+ enterpriseIdArray[i].ToString());
+                        }
+
+
+                        /*
+            ULONG Size = 36;
+            ULONG EnterpriseIdCount;
+            PCWSTR* EnterpriseIdArray = (PCWSTR*) HeapAlloc(GetProcessHeap(), 0, Size);
+
+            hr = SrpGetEnterpriseIds(ProcessToken, &Size, EnterpriseIdArray, &EnterpriseIdCount);
+            */
+                                    Console.WriteLine("should use WIP");
+                    }
+                }
+
                 // Creating a JumpList entry takes around 55ms when the PowerShell process is interactive and
                 // owns the current window (otherwise it does a fast exit anyway). Since there is no 'GET' like API,
                 // we always have to execute this call because we do not know if it has been created yet.

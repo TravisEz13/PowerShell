@@ -193,8 +193,7 @@ namespace Microsoft.PowerShell
             "outputformat",
             "removeworkingdirectorytrailingcharacter",
             "settingsfile",
-            "version",
-            "windowstyle",
+            "wip",
             "workingdirectory"
         };
 
@@ -373,6 +372,12 @@ namespace Microsoft.PowerShell
 
                 return _outputFormatSpecified;
             }
+        }
+
+        internal string Wip
+        {
+            get;
+            private set;
         }
 
         internal Serialization.DataFormat InputFormat
@@ -1004,6 +1009,18 @@ namespace Microsoft.PowerShell
                 else if (MatchSwitch(switchKey, "removeworkingdirectorytrailingcharacter", "removeworkingdirectorytrailingcharacter"))
                 {
                     _removeWorkingDirectoryTrailingCharacter = true;
+                }
+                else if (MatchSwitch(switchKey, "wip", "wi"))
+                {
+                    ++i;
+                    if (i >= args.Length)
+                    {
+                        WriteCommandLineError(
+                            CommandLineParameterParserStrings.MissingWorkingDirectoryArgument);
+                        break;
+                    }
+
+                    Wip = args[i];
                 }
 #endif
                 else
