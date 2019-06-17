@@ -59,9 +59,26 @@ namespace Microsoft.PowerShell
             internal IntPtr ThreadContex;
         }
 
-        [DllImport("Srpapi.dll", SetLastError = true)]
+        internal const UInt32 TOKEN_QUERY = 0x0008;
+
+        [Flags]
+        internal enum ENTERPRISE_DATA_POLICIES {
+            ENTERPRISE_POLICY_NONE = 0x0,
+            ENTERPRISE_POLICY_ALLOWED = 0x1,
+            ENTERPRISE_POLICY_ENLIGHTENED = 0x2,
+            ENTERPRISE_POLICY_EXEMPT = 0x4
+        }
+
+        [DllImport("advapi32.dll", SetLastError=true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SrpGetEnterpriseIds(IntPtr tokenHandle, ref ulong numberOfBytes, out StringBuilder[] enterpriseIds, out ulong EnterpriseIdCount);
+        static extern bool OpenProcessToken(IntPtr ProcessHandle,
+            UInt32 DesiredAccess, out IntPtr TokenHandle);
+
+        [DllImport("Srpapi.dll", SetLastError = true)]
+        internal static extern int SrpGetEnterpriseIds(IntPtr tokenHandle, ref ulong numberOfBytes, out StringBuilder[] enterpriseIds, out ulong EnterpriseIdCount);
+
+        [DllImport("Srpapi.dll", SetLastError = true)]
+        internal static extern int SrpGetEnterprisePolicy(IntPtr tokenHandle, out ENTERPRISE_DATA_POLICIES policies);
 
         [DllImport("Srpapi.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -210,7 +227,7 @@ namespace Microsoft.PowerShell
                 // (build 17134)
                 Version minBuildForPlaceHolderAPIs = new Version(10, 0, 14393, 0);
                 Console.WriteLine("checking win ver:"+ Environment.OSVersion.Version.ToString() + ">=" + minBuildForPlaceHolderAPIs.ToString());
-                if (Environment.OSVersion.Version >= minBuildForPlaceHolderAPIs)
+                if (Environment.OSVersion.Version >= minBuildForPlaceHolderAPIs || true)
                 {
                     Console.WriteLine("passed win ver");
                     if(!string.IsNullOrEmpty(s_cpp.Wip))
@@ -226,17 +243,21 @@ namespace Microsoft.PowerShell
                     }else{
                         ulong size = 36;
                         StringBuilder[] enterpriseIdArray= new StringBuilder[size];
-                        ulong enterpriseIdCount=0;
-                        if(!SrpGetEnterpriseIds(Process.GetCurrentProcess().Handle, ref size,out enterpriseIdArray,out enterpriseIdCount))
+                        //ulong enterpriseIdCount=0;
+                        IntPtr processToken;
+                        OpenProcessToken(Process.GetCurrentProcess().Handle, TOKEN_QUERY, out processToken);
+                        int result = SrpGetEnterprisePolicy(processToken, out ENTERPRISE_DATA_POLICIES policies);
+                        //int result = SrpGetEnterpriseIds(processToken, ref size,out enterpriseIdArray,out enterpriseIdCount);
+                        if(result != 0)
                         {
-                            throw new InvalidOperationException("Could not get WIP enterprise ID.");
+                            throw new InvalidOperationException("Could not get WIP enterprise ID. "+ result);
                         }
 
-                        Console.WriteLine("eid Count: "+ enterpriseIdCount);
-                        for(ulong i=0;i<enterpriseIdCount;i++)
-                        {
-                            Console.WriteLine("eid: "+ enterpriseIdArray[i].ToString());
-                        }
+                        Console.WriteLine("eid Count: "+ policies.ToString());
+                        // for(int i=0;i<enterpriseIdArray.Length;i++)
+                        // {
+                        //     Console.WriteLine("eid: "+ enterpriseIdArray[i].ToString());
+                        // }
 
 
                         /*
