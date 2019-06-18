@@ -75,7 +75,7 @@ namespace System.Management.Automation
         }
 
         // LogType is name of the event type that is being submitted to Azure Monitor
-        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_11";
+        static string LogType = "PowerShell_ScriptBlock_Log_Prototype_1";
 
         // You can use an optional field to specify the timestamp from the data. If the time field is not specified, Azure Monitor assumes the time is the message ingestion time
         static string TimeStampField = "";
@@ -322,7 +322,7 @@ namespace System.Management.Automation
 
                         //fields.Add("OriginalScriptBlock", originalScriptBlock);
                         fields.Add("ScriptBlockText", textToLog);
-                        fields.Add("CompressedScripBlock", compressedScripBlock);
+                        fields.Add("CompressedScriptBlock", compressedScripBlock);
                         fields.Add("PartNumber", loggingParams.PartNumber);
                         fields.Add("NumberOfParts", loggingParams.NumberOfParts);
 
