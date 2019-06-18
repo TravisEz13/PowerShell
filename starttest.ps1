@@ -14,13 +14,12 @@ if($PerfTest.IsPresent)
 <#
 Query
 
-PowerShell_ScriptBlock_Log_Prototype_10_CL
+PowerShell_ScriptBlock_Log_Prototype_11_CL
 | where ScriptBlockText_s <> "prompt" and
     (ScriptBlockText_s startswith "function PSConsoleHostReadLine") == "False" and
     (ScriptBlockText_s startswith "{ Set-StrictMode -Version 1;") == "False"
 | sort by UtcTime_t, BatchOrder_d  desc
-| project ScriptBlockText_s, CommandName_s, ScriptBlockHash_s, ParentScriptBlockHash_s, File_s, PsProcessId_s, Computer, User_s, UtcTime_t, PartNumber_d, NumberOfParts_d, BatchOrder_d
-| limit 300
+| project ScriptBlockText_s, CommandName_s, ScriptBlockHash_s, ParentScriptBlockHash_s, File_s, PsProcessId_s, Computer, User_s, UtcTime_t, PartNumber_d, NumberOfParts_d, BatchOrder_d, RunspaceId_d, RunspaceName_s
 
 #>
 <#
