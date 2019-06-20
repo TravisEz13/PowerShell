@@ -5,6 +5,8 @@ param(
     [switch]$LargScriptBlockTest,
     [int]$Segments=2,
     [switch]$SkipEnable
+    [ValidateSet('azla','splunk')]
+    [string]$Provider="azla"
     )
 if($PerfTest.IsPresent)
 {
@@ -34,9 +36,9 @@ $env:sharedKey = 'put share key here'
 #>
 if(!$SkipEnable.IsPresent)
 {
-    ."$PSScriptRoot\setloggingenv.ps1"
+    ."$PSScriptRoot\setloggingenv-$provider.ps1"
 }
-$env:NewLogging = "True"
+$env:NewLogging = "$provider"
 if($PerfTest.IsPresent)
 {
     $times2 = 1..$Iterations | ForEach-Object{measure-command { $null = Get-Command}}

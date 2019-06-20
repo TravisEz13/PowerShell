@@ -27,11 +27,22 @@ namespace System.Management.Automation
         // https://stackoverflow.com/questions/18333885/threadstatic-v-s-threadlocalt-is-generic-better-than-attribute
         static ThreadLocal<System.Net.Http.HttpClient> tlsClient = new ThreadLocal<System.Net.Http.HttpClient>(()=>{
                 var client = new System.Net.Http.HttpClient();
-                client.DefaultRequestHeaders
-                    .Accept
-                    .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.DefaultRequestHeaders.Add("Log-Type", LogType);
+                switch(provider.Value)
+                {
+                    case Provider.AzureLogAnalytics:
+                        client.DefaultRequestHeaders
+                            .Accept
+                            .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        //client.DefaultRequestHeaders.Add("Accept", "application/json");
+                        client.DefaultRequestHeaders.Add("Log-Type", LogType);
+                        break;
+                    case Provider.Splunk:
+                        client.DefaultRequestHeaders
+                            .Accept
+                            .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        client.DefaultRequestHeaders.Add("Authorization", "Splunk "+sharedKey);
+                        break;
+                }
                 return client;
             });
 
@@ -57,6 +68,22 @@ namespace System.Management.Automation
                 return System.Environment.GetEnvironmentVariable("CustomerId");
             }
         }
+
+        enum Provider {
+            Splunk,
+            AzureLogAnalytics
+        }
+
+        static Lazy<Provider>  provider = new Lazy<Provider>(()=>{
+                switch (System.Environment.GetEnvironmentVariable("NewLogging").ToLower())
+                {
+                    case "splunk":
+                        return Provider.Splunk;
+                    case "azla":
+                        return Provider.AzureLogAnalytics;
+                }
+                return Provider.AzureLogAnalytics;
+            });
 
         static Process currentProcess = Process.GetCurrentProcess();
 
@@ -364,8 +391,16 @@ namespace System.Management.Automation
         {
             try
             {
-
-                string url = "https://" + customerId + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";
+                string url = null;
+                switch(provider.Value)
+                {
+                    case Provider.AzureLogAnalytics:
+                        url = "https://" + customerId + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";
+                        break;
+                    case Provider.Splunk:
+                        url = "https://" + customerId + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";
+                        break;
+                }
 
                 System.Net.Http.HttpClient client = tlsClient.Value;
 

@@ -1363,7 +1363,7 @@ namespace System.Management.Automation
         {
             bool written = false;
             ScriptBlockLogging logSetting = GetScriptBlockLoggingSetting();
-            if(!scriptBlock.HasLogged && System.Environment.GetEnvironmentVariable("NewLogging").EqualsOrdinalIgnoreCase("True"))
+            if(!scriptBlock.HasLogged && !String.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("NewLogging"))
             {
                 ExecutionContext executionContext = LocalPipeline.GetExecutionContextFromTLS();
 
