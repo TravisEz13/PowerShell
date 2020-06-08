@@ -3783,3 +3783,17 @@ function New-GlobalToolNupkg
         New-NugetPackage -NuSpecPath $_.RootFolder -PackageDestinationPath $DestinationPath
     }
 }
+
+function placeholder-exewrapper {
+    & 'C:\Program Files\7-Zip\7z' a pwshInst.7z .\PowerShell-7.1.0-preview.3-win-x64.msi
+    Copy-Item 'C:\Program Files\7-Zip\7zCon.sfx' ./
+    @'
+;!@Install@!UTF-8!
+Title="Powershell Installer"
+BeginPrompt="Do you want to install PowerShell?"
+ExecuteFile="msiexec.exe"
+ExecuteParameters="/i PowerShell-7.1.0-preview.3-win-x64.msi /qn /norestart"
+;!@InstallEnd@!
+'@ | Out-File -FilePath ./config.txt -Encoding utf8NoBOM -Force
+    cmd /c "copy /B .\7zCon.sfx + config.txt + pwshInst.7z pwshInst.exe"
+}
