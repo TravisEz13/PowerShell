@@ -6121,7 +6121,16 @@ namespace Microsoft.PowerShell.Commands
 
                 directory.MoveTo(destinationPath);
             }
-            catch (IOException)
+#if UNIX
+            // This is the errno returned by the rename() syscall
+            // when an item is attempted to be renamed across filesystem mount boundaries.
+            // 0x80131620 is returned if the source and destination do not have the same root path
+            catch (IOException e) when (e.HResult == 18 || e.HResult == -2146232800)
+#else
+            // 0x80070005 ACCESS_DENIED is returned when trying to move files across volumes like DFS
+            // 0x80131620 is returned if the source and destination do not have the same root path
+            catch (IOException e) when (e.HResult == -2147024891 || e.HResult == -2146232800)
+#endif
             {
                 // Rather than try to ascertain whether we can rename a directory ahead of time,
                 // it's both faster and more correct to try to rename it and fall back to copy/deleting it
@@ -7985,18 +7994,6 @@ namespace Microsoft.PowerShell.Commands
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct REPARSE_DATA_BUFFER_APPEXECLINK
-        {
-            public uint ReparseTag;
-            public ushort ReparseDataLength;
-            public ushort Reserved;
-            public uint StringCount;
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x3FF0)]
-            public byte[] StringList;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
         private struct BY_HANDLE_FILE_INFORMATION
         {
             public uint FileAttributes;
@@ -8222,10 +8219,6 @@ namespace Microsoft.PowerShell.Commands
 
                         case IO_REPARSE_TAG_MOUNT_POINT:
                             linkType = "Junction";
-                            break;
-
-                        case IO_REPARSE_TAG_APPEXECLINK:
-                            linkType = "AppExeCLink";
                             break;
 
                         default:
@@ -8504,16 +8497,6 @@ namespace Microsoft.PowerShell.Commands
                     case IO_REPARSE_TAG_MOUNT_POINT:
                         REPARSE_DATA_BUFFER_MOUNTPOINT reparseMountPointDataBuffer = Marshal.PtrToStructure<REPARSE_DATA_BUFFER_MOUNTPOINT>(outBuffer);
                         targetDir = Encoding.Unicode.GetString(reparseMountPointDataBuffer.PathBuffer, reparseMountPointDataBuffer.SubstituteNameOffset, reparseMountPointDataBuffer.SubstituteNameLength);
-                        break;
-
-                    case IO_REPARSE_TAG_APPEXECLINK:
-                        REPARSE_DATA_BUFFER_APPEXECLINK reparseAppExeDataBuffer = Marshal.PtrToStructure<REPARSE_DATA_BUFFER_APPEXECLINK>(outBuffer);
-                        // The target file is at index 2
-                        if (reparseAppExeDataBuffer.StringCount >= 3)
-                        {
-                            string temp = Encoding.Unicode.GetString(reparseAppExeDataBuffer.StringList);
-                            targetDir = temp.Split('\0')[2];
-                        }
                         break;
 
                     default:

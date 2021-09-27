@@ -79,6 +79,7 @@ function Update-PackageVersion {
         "$PSScriptRoot/packaging/projects/reference/Microsoft.PowerShell.ConsoleHost/Microsoft.PowerShell.ConsoleHost.csproj"
         "$PSScriptRoot/../src/"
         "$PSScriptRoot/../test/tools/"
+        "$PSScriptRoot/../test/perf/dotnet-tools/"
     )
 
     Get-ChildItem -Path $paths -Recurse -Filter "*.csproj" -Exclude 'PSGalleryModules.csproj', 'PSGalleryTestModules.csproj' | ForEach-Object {
@@ -187,17 +188,23 @@ function Get-DotnetUpdate {
 
     try {
 
-        $latestSDKVersionString = Invoke-RestMethod -Uri "http://aka.ms/dotnet/$channel/$quality/sdk-productVersion.txt" -ErrorAction Stop | ForEach-Object { $_.Trim() }
-        $selectedQuality = $quality
+        try {
+            $latestSDKVersionString = Invoke-RestMethod -Uri "http://aka.ms/dotnet/$channel/$quality/sdk-productVersion.txt" -ErrorAction Stop | ForEach-Object { $_.Trim() }
+            $selectedQuality = $quality
+        } catch {
+            if ($_.exception.Response.StatusCode -eq 'NotFound') {
+                Write-Verbose "Build not found for Channel: $Channel and Quality: $Quality" -Verbose
+            } else {
+                throw $_
+            }
+        }
 
-        if (-not $latestSDKVersionString.StartsWith($sdkImageVersion))
-        {
+        if (-not $latestSDKVersionString -or -not $latestSDKVersionString.StartsWith($sdkImageVersion)) {
             # we did not get a version number so fall back to daily
             $latestSDKVersionString = Invoke-RestMethod -Uri "http://aka.ms/dotnet/$channel/$qualityFallback/sdk-productVersion.txt" -ErrorAction Stop | ForEach-Object { $_.Trim() }
             $selectedQuality = $qualityFallback
 
-            if (-not $latestSDKVersionString.StartsWith($sdkImageVersion))
-            {
+            if (-not $latestSDKVersionString.StartsWith($sdkImageVersion)) {
                 throw "No build found!"
             }
         }
@@ -272,8 +279,15 @@ if ($dotnetUpdate.ShouldUpdate) {
         if ($feedname -eq 'dotnet-internal') {
             # This NuGet feed is for internal to Microsoft use only.
             $dotnetInternalFeed = $dotnetMetadataJson.internalfeed.url
-            $updatedNugetFile = $nugetFileContent -replace "</packageSources>", "  <add key=`"dotnet-internal`" value=`"$dotnetInternalFeed`" />`r`n  </packageSources>"
+
+            $updatedNugetFile = if ($nugetFileContent.Contains('dotnet-internal')) {
+                $nugetFileContent -replace ".<add key=`"dotnet-internal?.*', ' <add key=`"dotnet-internal`" value=`"$dotnetInternalFeed`" />`r`n  </packageSources>"
+            } else {
+                $nugetFileContent -replace "</packageSources>", "  <add key=`"dotnet-internal`" value=`"$dotnetInternalFeed`" />`r`n  </packageSources>"
+            }
+
             $updatedNugetFile | Out-File "$PSScriptRoot/../nuget.config" -Force
+
             Register-PackageSource -Name 'dotnet-internal' -Location $dotnetInternalFeed -ProviderName NuGet
             Write-Verbose -Message "Register new package source 'dotnet-internal'" -verbose
         }
