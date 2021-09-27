@@ -55,7 +55,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/test/common/markdown"
     schedule:
-      interval: "daily"
+      interval: "live"
     labels:
       - "CL-BuildPackaging"
     ignore:
