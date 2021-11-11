@@ -1,4 +1,4 @@
-name: Update master from upstreame
+name: Update master from upstream
 on:
   workflow_dispatch:
   schedule:
@@ -16,6 +16,5 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           branch: upstream-changes
           base: master-upstream
