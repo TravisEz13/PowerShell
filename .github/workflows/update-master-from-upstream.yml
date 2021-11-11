@@ -1,0 +1,20 @@
+name: Update master from upstreame
+on:
+  schedule:
+    - cron:  '0 0 * * 0'
+jobs:
+  updateFork:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Reset the default branch with upstream changes
+        run: |
+          git remote add upstream https://github.com/powershell/powershell.git
+          git fetch upstream master:master-upstream-local
+          git reset --hard master-upstream-local
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          branch: upstream-changes
+          base: master-upstream
