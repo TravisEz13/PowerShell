@@ -9,7 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: travisez13/master-upstream
+          repository: travisez13/powershell
+          ref: master-upstream
       - name: fetch origin
         run: |
           git fetch origin
