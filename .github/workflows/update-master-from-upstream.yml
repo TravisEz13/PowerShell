@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          repository: travisez13/master-upstream
       - name: fetch origin
         run: |
           git fetch origin
