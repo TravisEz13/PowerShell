@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: fetch origin
+        run: |
+          git fetch origin
       - name: Reset the default branch with upstream changes
         run: |
           git remote add upstream https://github.com/powershell/powershell.git
