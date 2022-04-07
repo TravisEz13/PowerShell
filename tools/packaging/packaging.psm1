@@ -7,7 +7,7 @@ $RepoRoot = (Resolve-Path -Path "$PSScriptRoot/../..").Path
 $packagingStrings = Import-PowerShellDataFile "$PSScriptRoot\packaging.strings.psd1"
 Import-Module "$PSScriptRoot\..\Xml" -ErrorAction Stop -Force
 $DebianDistributions = @("deb")
-$RedhatFullDistributions = @("rh")
+$RedhatFullDistributions = @("rh","cm1")
 $RedhatFddDistributions = @("cm1")
 $RedhatDistributions = @()
 $RedhatDistributions += $RedhatFullDistributions
