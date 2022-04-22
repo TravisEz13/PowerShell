@@ -49,34 +49,34 @@ RUN \
 
 FROM repo AS package-env
 
-# Bootstrap packaging
-RUN --mount=type=cache,target=/var/cache/apt \
-    import-module ./build.psm1; \
-    start-psbootstrap -package -ErrorAction Stop
+    # Bootstrap packaging
+    RUN --mount=type=cache,target=/var/cache/apt \
+        import-module ./build.psm1; \
+        start-psbootstrap -package -ErrorAction Stop
 
-# Update packaging module
-COPY tools/packaging /powershell/tools/packaging
+    # Update packaging module
+    COPY tools/packaging /powershell/tools/packaging
 
-ENV RELEASE_TAG=v7.3.0-rebuild.98
+    ENV RELEASE_TAG=v7.3.0-rebuild.98
 
-COPY --from=binary-build-env /psoutput /psoutput
-ARG packageType=rpm-fxdependent
-# Build package
-RUN \
-    if(-not(Test-Path /psoutput/*)) {throw "No files found in /psoutput"}; \
-    import-module ./build.psm1; \
-    import-module ./tools/packaging -ErrorAction Stop ; \
-    Restore-PSOptions -PSOptionsPath /psoutput/psoptions.json; \
-    start-pspackage -type $env:packageType -ErrorAction Stop -ReleaseTag $env:RELEASE_TAG; \
-    if($errors.count) {throw "Failed to package"}; \
-    new-item -type directory -path /psrpm -force; \
-    Copy-item *.rpm /psrpm/
+    COPY --from=binary-build-env /psoutput /psoutput
+    ARG packageType=rpm-fxdependent
+    # Build package
+    RUN \
+        if(-not(Test-Path /psoutput/*)) {throw "No files found in /psoutput"}; \
+        import-module ./build.psm1; \
+        import-module ./tools/packaging -ErrorAction Stop ; \
+        Restore-PSOptions -PSOptionsPath /psoutput/psoptions.json; \
+        start-pspackage -type $env:packageType -ErrorAction Stop -ReleaseTag $env:RELEASE_TAG; \
+        if($errors.count) {throw "Failed to package"}; \
+        new-item -type directory -path /psrpm -force; \
+        Copy-item *.rpm /psrpm/
 
-RUN if(-not(Test-Path -Path /psrpm/*.rpm -ErrorAction Stop)) { exit 1}
-RUN \
-    import-module ./build.psm1; \
-    find-dotnet; \
-    dotnet --list-sdks > /psoutput/dotnet-sdks.txt
+    RUN if(-not(Test-Path -Path /psrpm/*.rpm -ErrorAction Stop)) { exit 1}
+    RUN \
+        import-module ./build.psm1; \
+        find-dotnet; \
+        dotnet --list-sdks > /psoutput/dotnet-sdks.txt
 
 FROM cblmariner.azurecr.io/base/core:1.0 AS finalImage
 
