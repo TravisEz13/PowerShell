@@ -311,6 +311,8 @@ function Start-PSBuild {
                      "fxdependent",
                      "fxdependent-linux-x64",
                      "fxdependent-win-desktop",
+                     "fxdependent-linux",
+                     "fxdependent-win",
                      "linux-arm",
                      "linux-arm64",
                      "linux-x64",
@@ -454,7 +456,7 @@ Fix steps:
         $Arguments += "--self-contained"
     }
 
-    if ($Options.Runtime -like 'win*' -or ($Options.Runtime -like 'fxdependent*' -and $environment.IsWindows)) {
+    if ($Options.Runtime -like 'win*' -or ($Options.Runtime -eq 'fxdependent' -and $environment.IsWindows) -or $Options.Runtime -like 'fxdependent-win*') {
         $Arguments += "/property:IsWindows=true"
         if(!$environment.IsWindows) {
             $Arguments += "/property:EnableWindowsTargeting=true"
@@ -549,7 +551,7 @@ Fix steps:
             Write-Verbose "Building with shim" -Verbose
             $globalToolSrcFolder = Resolve-Path (Join-Path $Options.Top "../Microsoft.PowerShell.GlobalTool.Shim") | Select-Object -ExpandProperty Path
 
-            if ($Options.Runtime -eq 'fxdependent') {
+            if ($Options.Runtime -in 'fxdependent', 'fxdependent-win') {
                 $Arguments += "/property:SDKToUse=Microsoft.NET.Sdk"
             } elseif ($Options.Runtime -eq 'fxdependent-win-desktop') {
                 $Arguments += "/property:SDKToUse=Microsoft.NET.Sdk.WindowsDesktop"
@@ -883,6 +885,8 @@ function New-PSOptions {
                      "fxdependent",
                      "fxdependent-linux-x64",
                      "fxdependent-win-desktop",
+                     "fxdependent-win",
+                     "fxdependent-linux",
                      "linux-arm",
                      "linux-arm64",
                      "linux-x64",
@@ -947,7 +951,7 @@ function New-PSOptions {
         }
     }
 
-    $PowerShellDir = if ($Runtime -like 'win*' -or ($Runtime -like 'fxdependent*' -and $environment.IsWindows)) {
+    $PowerShellDir = if ($Runtime -like 'win*' -or ($Runtime -eq 'fxdependent' -and $environment.IsWindows) -or $Runtime -like 'fxdependent-win*') {
         "powershell-win-core"
     } else {
         "powershell-unix"

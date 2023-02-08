@@ -373,7 +373,7 @@ function Start-PSPackage {
                 }
             }
             { $_ -like "fxdependent*" } {
-                if ($Environment.IsWindows) {
+                if ($Environment.IsWindows -or $Script:Options.Runtime -like 'fxdependent-win*') {
                     $Arguments = @{
                         PackageNameSuffix = $NameSuffix
                         PackageSourcePath = $Source
@@ -396,6 +396,9 @@ function Start-PSPackage {
                     if ($PSCmdlet.ShouldProcess("Create tar.gz Package")) {
                         New-TarballPackage @Arguments
                     }
+                }
+                else {
+                    Write-Verbose "Skipping fxdependent package for $Runtime" -Verbose
                 }
             }
             "msi" {
