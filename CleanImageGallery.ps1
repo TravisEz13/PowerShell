@@ -1,7 +1,7 @@
 Param($ResourceGroup,$GalleryName)
 
-$throttleLimit = 5
-$maxToDelete = 50
+$throttleLimit = 7
+$maxToDelete = 100
 $versionsToKeep = 10
 $galleries = az sig list --resource-group $ResourceGroup | convertfrom-json | Select-Object -ExpandProperty Name
 $images = @()
@@ -46,7 +46,7 @@ foreach($image in $images){
 
             $ImageDefinition = $_.ImageDefinition
 
-            Write-Host -Message "deleting $imageDefinition - $version" -ForegroundColor DarkGreen
+            Write-Host -Message "deleting $imageDefinition - $version" -ForegroundColor DarkGray
             az sig image-version delete --resource-group $ResourceGroup --gallery-name $gallery --gallery-image-definition $imageDefinition --gallery-image-version $version
             if ($lastexitcode -eq 0) {
                 Write-Host -Message "deleted $imageDefinition - $version" -ForegroundColor Green
@@ -55,8 +55,6 @@ foreach($image in $images){
                 Write-Host -Message "failed to delete $imageDefinition - $version" -ForegroundColor Red
             }
         }
-
-        break
     } else {
         Write-Verbose "skipping $imageDef - $count" -Verbose
     }
