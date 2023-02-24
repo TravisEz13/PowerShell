@@ -1,6 +1,7 @@
 Param($ResourceGroup,$GalleryName)
 
-$maxToDelete = 20
+$throttleLimit = 5
+$maxToDelete = 50
 $versionsToKeep = 10
 $galleries = az sig list --resource-group $ResourceGroup | convertfrom-json | Select-Object -ExpandProperty Name
 $images = @()
@@ -30,10 +31,31 @@ foreach($image in $images){
         } | Where-Object {$_.created -lt $keepAfter} | Sort-Object -Property Created | Select-Object -First $toDelete
         write-verbose "found $($oldVersions.count) versions to delete" -verbose
         $oldVersions | ForEach-Object {
+
             $version = $_.name
-            Write-Verbose -Message "Deletinig image version: --gallery-name $gallery --gallery-image-definition $imageDef --gallery-image-version $version" -Verbose
-            az sig image-version delete --resource-group $ResourceGroup --gallery-name $gallery --gallery-image-definition $imageDef --gallery-image-version $version
+            [PSCustomObject]@{
+                Version=$version
+                Gallery=$Gallery
+                ResourceGroup=$ResourceGroup
+                ImageDefinition=$imageDef
+            }
+        } | ForEach-Object -ThrottleLimit $throttleLimit -Parallel {
+            $version = $_.Version
+            $Gallery = $_.Gallery
+            $ResourceGroup = $_.ResourceGroup
+
+            $ImageDefinition = $_.ImageDefinition
+
+            Write-Host -Message "deleting $imageDefinition - $version" -ForegroundColor DarkGreen
+            az sig image-version delete --resource-group $ResourceGroup --gallery-name $gallery --gallery-image-definition $imageDefinition --gallery-image-version $version
+            if ($lastexitcode -eq 0) {
+                Write-Host -Message "deleted $imageDefinition - $version" -ForegroundColor Green
+            }
+            else {
+                Write-Host -Message "failed to delete $imageDefinition - $version" -ForegroundColor Red
+            }
         }
+
         break
     } else {
         Write-Verbose "skipping $imageDef - $count" -Verbose
