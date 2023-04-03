@@ -222,4 +222,7 @@
   <data name="SettingChangeNoPrevious" xml:space="preserve">
     <value>Variable {0} changed to {1}.</value>
   </data>
+    <data name="WindowsVersionNotSupported" xml:space="preserve">
+    <value>PowerShell requires at least Windows 8.1 or Windows Server 2012 R2</value>
+  </data>
 </root>

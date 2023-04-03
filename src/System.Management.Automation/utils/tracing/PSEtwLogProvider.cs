@@ -18,12 +18,20 @@ namespace System.Management.Automation.Tracing
         private static readonly EventProvider etwProvider;
         internal static readonly Guid ProviderGuid = new Guid("F90714A8-5509-434A-BF6D-B1624C8A19A2");
         private static readonly EventDescriptor _xferEventDescriptor = new EventDescriptor(0x1f05, 0x1, 0x11, 0x5, 0x14, 0x0, (long)0x4000000000000000);
+        private static readonly Version Windows8_1 = new Version(6,3);
 
         /// <summary>
         /// Class constructor.
         /// </summary>
         static PSEtwLogProvider()
         {
+            // We don't have the APIs to log on Windows 7 anymore.
+            // It is not safe to start PowerShell on Windows without logging,
+            // so, we throw.
+            if ( Environment.OSVersion.Version >= Windows8_1 ) {
+                throw new NotSupportedException(EtwLoggingStrings.WindowsVersionNotSupported);
+            }
+
             etwProvider = new EventProvider(ProviderGuid);
         }
 
@@ -132,7 +140,7 @@ namespace System.Management.Automation.Tracing
                         }
                         else
                         {
-                            // When state is Start log the CommandLine which has arguments for completeness. 
+                            // When state is Start log the CommandLine which has arguments for completeness.
                             payload.AppendLine(StringUtil.Format(EtwLoggingStrings.CommandStateChange, logContext.CommandLine, newState.ToString()));
                         }
                     }
