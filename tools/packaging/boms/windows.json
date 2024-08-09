@@ -44,10 +44,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "cs/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "cs/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -73,22 +69,6 @@
   },
   {
     "Pattern": "cs/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "cs/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "cs/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "cs/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "cs/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -132,10 +112,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "de/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "de/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -161,22 +137,6 @@
   },
   {
     "Pattern": "de/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "de/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "de/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "de/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "de/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -224,10 +184,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "es/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "es/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -253,22 +209,6 @@
   },
   {
     "Pattern": "es/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "es/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "es/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "es/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "es/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -308,10 +248,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "fr/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "fr/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -337,22 +273,6 @@
   },
   {
     "Pattern": "fr/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "fr/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "fr/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "fr/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "fr/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -412,10 +332,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "it/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "it/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -441,22 +357,6 @@
   },
   {
     "Pattern": "it/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "it/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "it/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "it/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "it/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -496,10 +396,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "ja/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "ja/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -525,22 +421,6 @@
   },
   {
     "Pattern": "ja/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ja/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ja/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ja/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ja/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -592,10 +472,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "ko/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "ko/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -621,22 +497,6 @@
   },
   {
     "Pattern": "ko/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ko/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ko/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ko/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ko/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -757,10 +617,6 @@
   },
   {
     "Pattern": "Microsoft.VisualBasic.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "Microsoft.VisualBasic.Forms.dll",
     "FileType": "NonProduct"
   },
   {
@@ -948,10 +804,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "pl/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "pl/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -977,22 +829,6 @@
   },
   {
     "Pattern": "pl/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pl/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pl/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pl/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pl/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -1088,6 +924,10 @@
     "FileType": "NonProduct"
   },
   {
+    "Pattern": "PresentationFramework.Fluent.dll",
+    "FileType": "NonProduct"
+  },
+  {
     "Pattern": "PresentationFramework.Luna.dll",
     "FileType": "NonProduct"
   },
@@ -1120,10 +960,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "pt-BR/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "pt-BR/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -1149,22 +985,6 @@
   },
   {
     "Pattern": "pt-BR/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pt-BR/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pt-BR/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pt-BR/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "pt-BR/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -1868,15 +1688,15 @@
     "FileType": "NonProduct"
   },
   {
+    "Pattern": "ref\\System.IO.Pipelines.dll",
+    "FileType": "NonProduct"
+  },
+  {
     "Pattern": "ru/Microsoft.CodeAnalysis.CSharp.resources.dll",
     "FileType": "NonProduct"
   },
   {
     "Pattern": "ru/Microsoft.CodeAnalysis.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ru/Microsoft.VisualBasic.Forms.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -1905,22 +1725,6 @@
   },
   {
     "Pattern": "ru/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ru/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ru/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ru/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "ru/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -2272,10 +2076,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "System.Design.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "System.Diagnostics.Contracts.dll",
     "FileType": "NonProduct"
   },
@@ -2348,10 +2148,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "System.Drawing.Design.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "System.Drawing.dll",
     "FileType": "NonProduct"
   },
@@ -2365,6 +2161,10 @@
   },
   {
     "Pattern": "System.Formats.Asn1.dll",
+    "FileType": "NonProduct"
+  },
+  {
+    "Pattern": "System.Formats.Nrbf.dll",
     "FileType": "NonProduct"
   },
   {
@@ -2437,6 +2237,10 @@
   },
   {
     "Pattern": "System.IO.Packaging.dll",
+    "FileType": "NonProduct"
+  },
+  {
+    "Pattern": "System.IO.Pipelines.dll",
     "FileType": "NonProduct"
   },
   {
@@ -2952,22 +2756,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "System.Windows.Forms.Design.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "System.Windows.Forms.Design.Editors.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "System.Windows.Forms.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "System.Windows.Forms.Primitives.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "System.Windows.Input.Manipulations.dll",
     "FileType": "NonProduct"
   },
@@ -3028,10 +2816,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "tr/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "tr/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -3057,22 +2841,6 @@
   },
   {
     "Pattern": "tr/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "tr/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "tr/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "tr/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "tr/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -3144,10 +2912,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "zh-Hans/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "zh-Hans/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -3173,22 +2937,6 @@
   },
   {
     "Pattern": "zh-Hans/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hans/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hans/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hans/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hans/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
@@ -3228,10 +2976,6 @@
     "FileType": "NonProduct"
   },
   {
-    "Pattern": "zh-Hant/Microsoft.VisualBasic.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
     "Pattern": "zh-Hant/PresentationCore.resources.dll",
     "FileType": "NonProduct"
   },
@@ -3257,22 +3001,6 @@
   },
   {
     "Pattern": "zh-Hant/System.Windows.Controls.Ribbon.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hant/System.Windows.Forms.Design.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hant/System.Windows.Forms.Primitives.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hant/System.Windows.Forms.resources.dll",
-    "FileType": "NonProduct"
-  },
-  {
-    "Pattern": "zh-Hant/System.Windows.Input.Manipulations.resources.dll",
     "FileType": "NonProduct"
   },
   {
