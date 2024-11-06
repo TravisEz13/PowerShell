@@ -25,9 +25,6 @@ $dotnetAzureFeedSecret = $env:__DOTNET_RUNTIME_FEED_KEY
 $dotnetSDKVersionOveride = $dotnetMetadata.Sdk.sdkImageOverride
 $dotnetCLIRequiredVersion = $(Get-Content $PSScriptRoot/global.json | ConvertFrom-Json).Sdk.Version
 
-# Track if tags have been sync'ed
-$tagsUpToDate = $false
-
 # Sync Tags
 # When not using a branch in PowerShell/PowerShell, tags will not be fetched automatically
 # Since code that uses Get-PSCommitID and Get-PSLatestTag assume that tags are fetched,
@@ -40,39 +37,7 @@ function Sync-PSTags
         $AddRemoteIfMissing
     )
 
-    $powerShellRemoteUrls = @(
-        'https://github.com/PowerShell/PowerShell'
-        'git@github.com:PowerShell/PowerShell'
-    )
-    $defaultRemoteUrl = "$($powerShellRemoteUrls[0]).git"
-
-    $upstreamRemoteDefaultName = 'upstream'
-    $remotes = Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" remote}
-    $upstreamRemote = $null
-    foreach($remote in $remotes)
-    {
-        $url = Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" remote get-url $remote}
-        if ($url.EndsWith('.git')) { $url = $url.Substring(0, $url.Length - 4) }
-
-        if($url -in $powerShellRemoteUrls)
-        {
-            $upstreamRemote = $remote
-            break
-        }
-    }
-
-    if(!$upstreamRemote -and $AddRemoteIfMissing.IsPresent -and $remotes -notcontains $upstreamRemoteDefaultName)
-    {
-        $null = Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" remote add $upstreamRemoteDefaultName $defaultRemoteUrl}
-        $upstreamRemote = $upstreamRemoteDefaultName
-    }
-    elseif(!$upstreamRemote)
-    {
-        Write-Error "Please add a remote to PowerShell\PowerShell.  Example:  git remote add $upstreamRemoteDefaultName $defaultRemoteUrl" -ErrorAction Stop
-    }
-
-    $null = Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" fetch --tags --quiet $upstreamRemote}
-    $script:tagsUpToDate=$true
+    Write-Warning "Sync-PSTags is no longer used as we used metadata.json to get the tag information"
 }
 
 # Gets the latest tag for the current branch
@@ -80,14 +45,11 @@ function Get-PSLatestTag
 {
     [CmdletBinding()]
     param()
-    # This function won't always return the correct value unless tags have been sync'ed
-    # So, Write a warning to run Sync-PSTags
-    if(!$tagsUpToDate)
-    {
-        Write-Warning "Run Sync-PSTags to update tags"
-    }
 
-    return (Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" describe --abbrev=0})
+    Write-Warning "-ReleaseTag is not specified, using the latest tag from the current metadata.json file"
+    $lastTag = Get-Content -Path "$PSScriptRoot/tools/metadata.json" | ConvertFrom-Json | Select-Object -ExpandProperty PreviewReleaseTag
+
+    return $lastTag
 }
 
 function Get-PSVersion
@@ -111,14 +73,12 @@ function Get-PSCommitId
 {
     [CmdletBinding()]
     param()
-    # This function won't always return the correct value unless tags have been sync'ed
-    # So, Write a warning to run Sync-PSTags
-    if(!$tagsUpToDate)
-    {
-        Write-Warning "Run Sync-PSTags to update tags"
-    }
 
-    return (Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" describe --dirty --abbrev=60})
+    $commitId  = Start-NativeExecution {git --git-dir="$PSScriptRoot/.git" rev-parse HEAD}
+    $tag = Get-PSLatestTag
+    $result = "$tag-0-g$commitId"
+
+    return $result
 }
 
 function Get-EnvironmentInformation
@@ -632,7 +592,7 @@ Fix steps:
         $psVersion = $ReleaseTag
     }
     else {
-        $psVersion = git --git-dir="$PSScriptRoot/.git" describe
+        $psVersion = Get-PSLatestTag
     }
 
     if ($environment.IsLinux) {
