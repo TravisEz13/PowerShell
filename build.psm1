@@ -2320,15 +2320,16 @@ function Start-PSBootstrap {
                     $baseCommand = "$sudo port -q install"
                 }
 
-                # wget for downloading dotnet
-                $Deps += "wget"
+                if (!(precheck -command 'wget' $null) -or $Force) {
+                    # wget for downloading dotnet
+                    $Deps += "wget"
+                }
 
-                # .NET Core required runtime libraries
-                $Deps += "openssl"
-
-                # Install dependencies
-                # ignore exitcode, because they may be already installed
-                Start-NativeExecution ([ScriptBlock]::Create("$baseCommand $Deps")) -IgnoreExitcode
+                if ( $Deps.Count -gt 0) {
+                    # Install dependencies
+                    # ignore exitcode, because they may be already installed
+                    Start-NativeExecution ([ScriptBlock]::Create("$baseCommand $Deps")) -IgnoreExitcode
+                }
             } elseif ($environment.IsLinux -and $environment.IsAlpine) {
                 $Deps += 'libunwind', 'libcurl', 'bash', 'build-base', 'git', 'curl', 'wget'
 
