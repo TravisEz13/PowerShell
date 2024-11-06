@@ -18,6 +18,7 @@
     <CompilerVisibleProperty Include="PSCoreBuildVersion" />
     <CompilerVisibleProperty Include="PowerShellVersion" />
     <CompilerVisibleProperty Include="ReleaseTag" />
+    <CompilerVisibleProperty Include="PSGitDescribe"/>
 
     <ProjectReference Include="SourceGenerators\PSVersionInfoGenerator\PSVersionInfoGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

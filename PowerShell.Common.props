@@ -25,9 +25,13 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="PowerShellTag" />
     </Exec>
     <Message Text='PowerShellTag: $(PowerShellTag)' />
+    <PropertyGroup>
+      <PowerShellVersion>$(PowerShellTag)</PowerShellVersion>
+    </PropertyGroup>
+    <Message Text='PowerShellVersion: $(PowerShellVersion)' />
     <Exec Command='git rev-parse HEAD'
           WorkingDirectory="$(MSBuildProjectDirectory)"
-          ConsoleToMSBuild="false"
+          ConsoleToMSBuild="true"
           StandardOutputImportance="Low"
           StandardErrorImportance="Low"
           IgnoreExitCode="true"
@@ -39,11 +43,10 @@
     <Message Text='PowerShellCommitId: $(PowerShellCommitId)' />
     <PropertyGroup>
       <FakeCommitId >547a782e838b1902c5d81b4ad958f471ded58ea8</FakeCommitId>
-      <PowerShellVersion Condition = "'$(PowerShellCommitId)' != ''">$(PowerShellTag)-1-g$(PowerShellCommitId)</PowerShellVersion>
-      <PowerShellVersion Condition = "'$(PowerShellCommitId)' == ''">$(PowerShellTag)-1-g$(FakeCommitId)</PowerShellVersion>
+      <PSGitDescribe Condition = "'$(PowerShellCommitId)' != ''">$(PowerShellTag)-1-g$(PowerShellCommitId)</PSGitDescribe>
+      <PSGitDescribe Condition = "'$(PowerShellCommitId)' == ''" >$(PowerShellTag)-1-g$(FakeCommitId)</PSGitDescribe>
     </PropertyGroup>
-    <Message Text='PowerShellVersion: $(PowerShellVersion)' />
-
+    <Message Text='PSGitDescribe: $(PSGitDescribe)' />
     <PropertyGroup Condition = "'$(ReleaseTag)' != ''">
       <!--
          DO NOT UPDATE without reviewing with the Microsoft update plan.
@@ -83,7 +86,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-      <RegexGitVersion>^v(.+)-(\d+)-g(.+)</RegexGitVersion>
+      <RegexGitVersion>^v(.+)(-(\d+)-g(.+))?</RegexGitVersion>
       <PSCoreFileVersion Condition = "'$(PSCoreFileVersion)' == ''">$([System.Text.RegularExpressions.Regex]::Match($(PowerShellVersion), $(RegexGitVersion)).Groups[1].Value)</PSCoreFileVersion>
       <PSCoreBuildVersion Condition = "'$(PSCoreBuildVersion)' == ''">$([System.Text.RegularExpressions.Regex]::Match($(PowerShellVersion), $(RegexGitVersion)).Groups[1].Value)</PSCoreBuildVersion>
       <PSCoreAdditionalCommits>$([System.Text.RegularExpressions.Regex]::Match($(PowerShellVersion), $(RegexGitVersion)).Groups[2].Value)</PSCoreAdditionalCommits>
@@ -92,8 +95,8 @@
       <!--
             Caution! 'PSVersion' and 'GitCommitId' from 'PSVersionInfo.cs' depend on the format of this version string.
       -->
-      <PSCoreFormattedVersion Condition = "'$(ReleaseTag)' != '' or '$(PSCoreAdditionalCommits)' == '0'">$(PSCoreBuildVersion) SHA: $(PSCoreCommitSHA)</PSCoreFormattedVersion>
-      <PSCoreFormattedVersion Condition = "'$(PSCoreFormattedVersion)' == ''">$(PSCoreBuildVersion) Commits: $(PSCoreAdditionalCommits) SHA: $(PSCoreCommitSHA)</PSCoreFormattedVersion>
+      <PSCoreFormattedVersion Condition = "'$(ReleaseTag)' != '' or '$(PSCoreAdditionalCommits)' == '0'">$(PSCoreBuildVersion)</PSCoreFormattedVersion>
+      <PSCoreFormattedVersion Condition = "'$(PSCoreFormattedVersion)' == ''">$(PSCoreBuildVersion)</PSCoreFormattedVersion>
 
       <!-- Extract the major, minor and patch version numbers, as well as the preview label.
            They are currently not used anywhere, so we comment them out for now.
@@ -125,6 +128,9 @@
       <ApplicationIcon Condition="!$(ProductVersion.Contains('preview')) And !$(ProductVersion.Contains('daily'))">..\..\assets\Powershell_black.ico</ApplicationIcon>
 
     </PropertyGroup>
+    <Message Text='ProductVersion: $(ProductVersion)' />
+    <Message Text='InformationalVersion: $(InformationalVersion)' />
+    <Message Text='Version: $(Version)' />
 
     <!-- Remove existing generated files by source generators because new source code will soon be generated when the build starts -->
     <RemoveDir Directories="gen\SourceGenerated" Condition="Exists('gen\SourceGenerated')" />

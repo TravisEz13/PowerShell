@@ -24,7 +24,7 @@ namespace SMA
                 {
                     provider.GlobalOptions.TryGetValue("build_property.ProductVersion", out var productVersion);
                     provider.GlobalOptions.TryGetValue("build_property.PSCoreBuildVersion", out var mainVersion);
-                    provider.GlobalOptions.TryGetValue("build_property.PowerShellVersion", out var gitDescribe);
+                    provider.GlobalOptions.TryGetValue("build_property.PSGitDescribe", out var gitDescribe);
                     provider.GlobalOptions.TryGetValue("build_property.ReleaseTag", out var releaseTag);
 
                     BuildOptions options = new()
