@@ -130,7 +130,13 @@
     <value>The shell cannot be started. A failure occurred during initialization:</value>
   </data>
   <data name="ShellCannotBeStartedWithConfigConflict" xml:space="preserve">
-    <value>The shell cannot be started. An InitialSessionState object has been provided along with a -ConfigurationFile argument. Both configuration directives cannot be used at the same time.</value>
+    <value>The shell cannot be started. An InitialSessionState object has been provided along with a -ConfigurationFile argument. Both configuration directives cannot be used at the same time.  When using ConfigruationFile, InitialSessionState is used from the remoting session.</value>
+  </data>
+  <data name="ShellCannotBeStartedWithConfigNameAndFileConflict" xml:space="preserve">
+    <value>The shell cannot be started. -ConfigurationName argument has been provided along with a -ConfigurationFile argument. Both configuration argument cannot be used at the same time.</value>
+  </data>
+  <data name="ConfigruationNameInvalidOnNonWindows" xml:space="preserve">
+    <value>The shell cannot be started. -ConfigurationName argument has been provided on a non-Windows platform. ConfigurationName is only valid on Windows.</value>
   </data>
   <data name="UnhandledExceptionShutdownMessage" xml:space="preserve">
     <value>An error has occurred that was not properly handled. Additional information is shown below. The PowerShell process will exit.</value>

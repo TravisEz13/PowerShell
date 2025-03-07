@@ -215,43 +215,30 @@ namespace Microsoft.PowerShell
                     if (s_cpp.ConfigurationFile is not null && s_cpp.ConfigurationName is not null)
                     {
                         s_tracer.TraceError("Conflicting Configuration parameters, parameters must be used exclusively.");
-                        // TODO: Add a new error message for this case.
-                        s_theConsoleHost?.ui.WriteErrorLine(ConsoleHostStrings.ConflictingServerModeParameters);
+                        s_theConsoleHost?.ui.WriteErrorLine(ConsoleHostStrings.ShellCannotBeStartedWithConfigNameAndFileConflict);
 
                         return ExitCodeBadCommandLineParameter;
                     }
-                    else if (s_cpp.ConfigurationFile is not null)
+
+#if UNIX        
+                    if (s_cpp.ConfigurationName is not null)
                     {
-                        ApplicationInsightsTelemetry.SendPSCoreStartupTelemetry("ServerMode", s_cpp.ParametersUsedAsDouble);
-                        ProfileOptimization.StartProfile("StartupProfileData-ServerMode");
-                        StdIOProcessMediator.Run(
-                            initialCommand: s_cpp.InitialCommand,
-                            workingDirectory: s_cpp.WorkingDirectory,
-                            configurationName: null,
-                            configurationFile: s_cpp.ConfigurationFile,
-                            combineErrOutStream: false);
-                        exitCode = 0;
-                    }
-                    else if (s_cpp.ConfigurationName is not null)
-                    {
-#if !UNIX
-                        ApplicationInsightsTelemetry.SendPSCoreStartupTelemetry("ServerMode", s_cpp.ParametersUsedAsDouble);
-                        ProfileOptimization.StartProfile("StartupProfileData-ServerMode");
-                        StdIOProcessMediator.Run(
-                            initialCommand: s_cpp.InitialCommand,
-                            workingDirectory: s_cpp.WorkingDirectory,
-                            configurationName: s_cpp.ConfigurationName,
-                            configurationFile: null,
-                            combineErrOutStream: false);
-                        exitCode = 0;
-#else
-                        s_tracer.TraceError("ConfigurationName parameter is not supported on non-Windows platforms.  Use ConfigurationFile.");
-                        // TODO: Add a new error message for this case.
-                        s_theConsoleHost?.ui.WriteErrorLine(ConsoleHostStrings.ConflictingServerModeParameters);
+                        s_tracer.TraceError("ConfigurationName is not a valid parameter on non-Windows Platforms");
+                        s_theConsoleHost?.ui.WriteErrorLine(ConsoleHostStrings.ConfigruationNameInvalidOnNonWindows);
 
                         return ExitCodeBadCommandLineParameter;
+                    }
 #endif
-                    }
+
+                    ApplicationInsightsTelemetry.SendPSCoreStartupTelemetry("ServerMode", s_cpp.ParametersUsedAsDouble);
+                    ProfileOptimization.StartProfile("StartupProfileData-ServerMode");
+                    StdIOProcessMediator.Run(
+                        initialCommand: s_cpp.InitialCommand,
+                        workingDirectory: s_cpp.WorkingDirectory,
+                        configurationName: s_cpp.ConfigurationName,
+                        configurationFile: s_cpp.ConfigurationFile,
+                        combineErrOutStream: false);
+                    exitCode = 0;
                 }
                 else if (s_cpp.SSHServerMode)
                 {
