@@ -972,6 +972,26 @@ $powershell -c '[System.Management.Automation.Platform]::SelectProductNameForDir
     }
 }
 
+Describe "-ServerMode parameter handling" -Tag Feature {
+    BeforeAll {
+        $ExitCodeBadCommandLineParameter = 64
+    }
+
+    It "Should exit with BadCommandLineParameter(64) if -ServerMode is used with -ConfigurationFile and -ConfigurationName" {
+        & $powershell -ServerMode -ConfigurationName FakeConfigurtionName -ConfigurationFile FakeConfigurtionFile 2>&1 | Should -Throw
+        $LASTEXITCODE | Should -Be $ExitCodeBadCommandLineParameter
+    }
+
+    It "Should exit with BadCommandLineParameter(64) if -ServerMode is used with -ConfigurationName on non-Windows" {
+        if (!$IsWindows) {
+            Set-ItResult -Skipped -Because "This test is not applicable on Linux or MacOS"
+        }
+
+        & $powershell -ServerMode -ConfigurationName FakeConfigurtionName 2>&1 | Should -Throw
+        $LASTEXITCODE | Should -Be $ExitCodeBadCommandLineParameter
+    }
+}
+
 Describe "WindowStyle argument" -Tag Feature {
     BeforeAll {
         $defaultParamValues = $PSDefaultParameterValues.Clone()
