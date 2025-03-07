@@ -50,7 +50,8 @@ namespace System.Management.Automation.Runspaces
         /// <param name="initializationScript">Specifies a script that will be executed when the powershell process is initialized.</param>
         /// <param name="useWow64">Specifies if the powershell process will be 32-bit.</param>
         /// <param name="workingDirectory">Specifies the initial working directory for the new powershell process.</param>
-        public PowerShellProcessInstance(Version powerShellVersion, PSCredential credential, ScriptBlock initializationScript, bool useWow64, string workingDirectory)
+        /// <param name="argumentList">An array of additional arguments for the new powershell process.  Defaults to null</param>        
+        public PowerShellProcessInstance(Version powerShellVersion, PSCredential credential, ScriptBlock initializationScript, bool useWow64, string workingDirectory, string[] argumentList = null)
         {
             string exePath = PwshExePath;
             bool startingWindowsPowerShell51 = false;
@@ -111,6 +112,12 @@ namespace System.Management.Automation.Runspaces
             _startInfo.ArgumentList.Add("-s");
             _startInfo.ArgumentList.Add("-NoLogo");
             _startInfo.ArgumentList.Add("-NoProfile");
+
+            if (argumentList is not null) {
+                foreach (string argument in argumentList) {
+                    _startInfo.ArgumentList.Add(argument);
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(workingDirectory) && !startingWindowsPowerShell51)
             {
