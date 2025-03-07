@@ -1552,7 +1552,7 @@ All WinRM sessions connected to PowerShell session configurations, such as Micro
     <value>Groups associated with machine's (virtual) administrator account</value>
   </data>
   <data name="CannotCreateConfiguredRunspace" xml:space="preserve">
-    <value>Cannot create or open the configuration session {0}.</value>
+    <value>Cannot create or open the configuration session {0} {1}.</value>
   </data>
   <data name="DISCEnforceInputParameterValidation" xml:space="preserve">
     <value>Enforces script input parameter validation. This is automatically enabled when MountUserDrive is specified.</value>

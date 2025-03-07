@@ -659,7 +659,7 @@ namespace System.Management.Automation
             catch (Exception e)
             {
                 throw new PSInvalidOperationException(
-                    StringUtil.Format(RemotingErrorIdStrings.CannotCreateConfiguredRunspace, configurationName),
+                    StringUtil.Format(RemotingErrorIdStrings.CannotCreateConfiguredRunspace, configurationName, e.ToString()),
                     e);
             }
 
