@@ -29,8 +29,8 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const description = github.event.pull_request.body || '';
-          const branch = github.event.pull_request.base.ref;
+          const description = context.payload.pull_request.body || '';
+          const branch = context.payload.pull_request.base.ref;
           const match = description.match(/\$\$\$originalprnumber:(\d+)\$\$\$/);
           if (match) {
             const originalPrNumber = match[1];
@@ -65,9 +65,9 @@ jobs:
       with:
         script: |
           console.log("Event Payload Keys:");
-          console.log(Object.keys(github.event));
+          console.log(Object.keys(context.payload));
           console.log("Full Event Payload:");
-          console.log(JSON.stringify(github.event, null, 2));
+          console.log(JSON.stringify(context.payload, null, 2));
       continue-on-error: true
 
     - name: If Opened
