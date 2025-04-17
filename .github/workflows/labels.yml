@@ -70,7 +70,7 @@ jobs:
       
     - name: If title starts with
       continue-on-error: true
-      if: startsWith(github.event.pull_request.title, '[release/v') }}
+      if: startsWith(github.event.pull_request.title, '[release/v')
       run: echo "yes"      
       
   verify-labels:
