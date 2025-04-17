@@ -26,7 +26,6 @@ jobs:
     steps:
     - name: Label Original PRs if backport PR
       continue-on-error: true
-      if: ${{ github.event.action == 'opened' && startsWith(github.event.pull_request.base.ref, 'release/v') && startsWith(github.event.pull_request.title, '[release/v') }}
       uses: actions/github-script@v7
       with:
         script: |
@@ -49,7 +48,31 @@ jobs:
           } else {
             console.log("No original PR number found in the description.");
           }
+          
+  test-conditions:
+    permissions:
+      contents: read
 
+    name: test conditions
+    if: (github.repository_owner == 'PowerShell' || github.repository_owner == 'TravisEz13')  
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: If Opened
+      continue-on-error: true
+      if: github.event.action == 'opened'
+      run: echo "yes"
+      
+    - name: If ref starts with
+      continue-on-error: true
+      if: startsWith(github.event.pull_request.base.ref, 'release/v')
+      run: echo "yes"
+      
+    - name: If title starts with
+      continue-on-error: true
+      if: startsWith(github.event.pull_request.title, '[release/v') }}
+      run: echo "yes"      
+      
   verify-labels:
     name: Verify Change Log Labels
     if: github.repository_owner == 'PowerShell'
