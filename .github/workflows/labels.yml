@@ -52,6 +52,8 @@ jobs:
   test-conditions:
     permissions:
       contents: read
+      pull-requests: read
+      issues: read
 
     name: test conditions
     #if: (github.repository_owner == 'PowerShell' || github.repository_owner == 'TravisEz13')
