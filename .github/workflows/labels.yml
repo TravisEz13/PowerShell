@@ -64,7 +64,9 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          console.log("Event Payload:");
+          console.log("Event Payload Keys:");
+          console.log(Object.keys(github.event));
+          console.log("Full Event Payload:");
           console.log(JSON.stringify(github.event, null, 2));
       continue-on-error: true
 
