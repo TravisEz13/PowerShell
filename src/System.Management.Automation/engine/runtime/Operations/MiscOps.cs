@@ -3697,7 +3697,8 @@ namespace System.Management.Automation
             try
             {
                 var contentName = "PowerShellMemberInvocation";
-                var argsBuilder = System.Management.Automation.Utils.StringBuilderCache.Acquire();
+                var contentBuilder = new System.Management.Automation.Utils.StringBuilderCache.Acquire();
+                contentBuilder.Append('<').Append(targetName).Append(">.").Append(name).Append('(');
 
                 for (int i = 0; i < args.Length; i++)
                 {
@@ -3705,13 +3706,14 @@ namespace System.Management.Automation
 
                     if (i > 0)
                     {
-                        argsBuilder.Append(", ");
+                        contentBuilder.Append(", ");
                     }
 
-                    argsBuilder.Append($"<{value}>");
+                    contentBuilder.Append($"<{value}>");
                 }
 
-                string content = $"<{targetName}>.{name}({argsBuilder})";
+                contentBuilder.Append(')');
+                string content = System.Management.Automation.Utils.StringBuilderCache.GetStringAndRelease(contentBuilder);
 
                 if (DumpLogAMSIContent.Value)
                 {
