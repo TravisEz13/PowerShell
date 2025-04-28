@@ -3697,7 +3697,7 @@ namespace System.Management.Automation
             try
             {
                 var contentName = "PowerShellMemberInvocation";
-                var argsBuilder = new Text.StringBuilder();
+                var argsBuilder = System.Management.Automation.Utils.StringBuilderCache.Acquire();
 
                 for (int i = 0; i < args.Length; i++)
                 {
