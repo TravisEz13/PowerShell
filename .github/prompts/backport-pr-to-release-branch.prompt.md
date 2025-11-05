@@ -99,10 +99,10 @@ If the PR is not merged, stop and inform the user.
 
 3. Create a new branch from the target release branch:
    ```bash
-   git checkout -b backport-<pr-number> <remote-name>/<target-release-branch>
+   git checkout -b backport/release/<version>/pr/<pr-number> <remote-name>/<target-release-branch>
    ```
 
-   Example: `git checkout -b backport-26193 upstream/release/v7.4`
+   Example: `git checkout -b backport/release/v7.4/pr/26193 upstream/release/v7.4`
 
 ### Step 3: Cherry-pick the merge commit
 
@@ -137,10 +137,10 @@ If the PR is not merged, stop and inform the user.
 Push to your fork (typically the remote that you have write access to):
 
 ```bash
-git push <your-fork-remote> backport-<pr-number>
+git push <your-fork-remote> backport/release/<version>/pr/<pr-number>
 ```
 
-Example: `git push origin backport-26193`
+Example: `git push origin backport/release/v7.4/pr/26193`
 
 Note: If you're pushing to the official PowerShell repository and have permissions, you may push to `upstream` or the appropriate remote.
 
@@ -207,7 +207,14 @@ Choose either tooling or Customer impact.
 
 **Base branch:** `<target-release-branch>` (e.g., `release/v7.4`)
 
-**Head branch:** `backport-<pr-number>` (e.g., `backport-26193`)
+**Head branch:** `backport/release/<version>/pr/<pr-number>` (e.g., `backport/release/v7.4/pr/26193`)
+
+**Important**: To avoid encoding issues with the auto-generated comment containing `$$$originalprnumber:<pr-number>$$$`, save the PR body to a markdown file first and use `--body-file` when creating the PR.
+
+```powershell
+# Create the PR using the body file
+gh pr create --repo PowerShell/PowerShell --base <target-release-branch> --head <your-fork>:backport/release/<version>/pr/<pr-number> --title "[<target-release-branch>] <original-title>" --body-file pr-body-<pr-number>.md
+```
 
 #### Guidelines for Filling Out the PR Body
 
@@ -269,7 +276,7 @@ Notes:
 After successful PR creation and labeling, clean up any temporary files created during the process:
 
 ```powershell
-Remove-Item pr*.diff -ErrorAction SilentlyContinue
+Remove-Item pr*.diff,pr*.md -ErrorAction SilentlyContinue
 ```
 
 ## 5 — Definition of Done (self-check list)
@@ -280,11 +287,12 @@ Remove-Item pr*.diff -ErrorAction SilentlyContinue
 - [ ] Backport branch created from correct release branch
 - [ ] Merge commit cherry-picked successfully (or conflicts resolved)
 - [ ] If conflicts occurred, provided resolution summary to user
-- [ ] Branch pushed to origin
+- [ ] Branch pushed to origin using correct branch name format
+- [ ] PR body saved to markdown file to avoid encoding issues
 - [ ] PR created with correct title format: `[<release-branch>] <original-title>`
 - [ ] CL label added to backport PR (matching original PR's CL label)
 - [ ] Original PR labels updated (added Migrated, removed Consider/Approved)
-- [ ] Temporary files cleaned up (pr*.diff)
+- [ ] Temporary files cleaned up (pr*.diff, pr*.md)
 - [ ] PR body includes:
   - [ ] Backport reference: `Backport of (PR-number) to <release-branch>`
   - [ ] Auto-generated comment with original PR number
@@ -489,6 +497,12 @@ Format: `backport-<pr-number>[-<postfix>]`
 Examples:
 - `backport-26193`
 - `backport-26193-retry`
+
+**Recommended manual backport format** (see Section 6): `backport/release/<version>/pr/<pr-number>`
+
+Examples:
+- `backport/release/v7.4/pr/26193`
+- `backport/release/v7.5/pr/26193`
 
 ## PR Title and Description Format
 
