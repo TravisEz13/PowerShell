@@ -2407,9 +2407,9 @@ function Start-PSBootstrap {
                         Write-Warning "dpkg-deb not found. Installing dpkg package..."
                         if ($environment.IsMariner) {
                             # For Mariner (Azure Linux), install the extended repo first to access dpkg.
-                            Write-Verbose -verbose "BEGIN: /etc/os-release content:"
-                            Get-Content /etc/os-release | Write-Verbose -verbose
-                            Write-Verbose -verbose "END: /etc/os-release content"
+                            Write-Verbose -Verbose "BEGIN: /etc/os-release content:"
+                            Get-Content /etc/os-release | Write-Verbose -Verbose
+                            Write-Verbose -Verbose "END: /etc/os-release content"
 
                             Write-Verbose -Verbose "Installing azurelinux-repos-extended for Mariner..."
 
