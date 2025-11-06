@@ -81,14 +81,6 @@ jobs:
   - template: /.pipelines/templates/install-dotnet.yml@self
 
   - pwsh: |
-      $msixUrl = '$(makeappUrl)'
-      Invoke-RestMethod -Uri $msixUrl -OutFile '$(Pipeline.Workspace)\makeappx.zip'
-      Expand-Archive '$(Pipeline.Workspace)\makeappx.zip' -destination '\' -Force
-    displayName: Install packaging tools
-    env:
-      ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
-
-  - pwsh: |
       $runtime = '$(Runtime)'
       Write-Verbose -Verbose "runtime = '$(Runtime)'"
 
