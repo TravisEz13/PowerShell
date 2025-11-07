@@ -6,7 +6,7 @@ description: Guide for backporting changes to PowerShell release branches
 
 ## Required Reading
 
-**Read these instruction files before proceeding:**
+**Read and follow these instruction files before proceeding:**
 
 1. `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
 2. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
@@ -113,14 +113,11 @@ If the PR is not merged, stop and inform the user.
 
 **Important:** When you switch branches, backport instructions will be out of date or non-existent. Copy the the instructions and prompt folder to a temporary location before switching branches. In PowerShell 7 you can use `(resolve-path temp:).providerpath` to get the root to the temp folder path.
 
-3. Create a new branch from the target release branch using the standard naming format:
-   ```bash
-   git checkout -b backport/release/v<version>/<pr-number>-<short-hash> <remote-name>/<target-release-branch>
-   ```
+3. **Create the backport branch following the naming convention in `.github/instructions/backports/branch-naming.instructions.md`**
 
-   Example: `git checkout -b backport/release/v7.4/26398-e7bf5621b upstream/release/v7.4`
+   **⚠️ CRITICAL: Read and follow `.github/instructions/backports/branch-naming.instructions.md` for the exact branch naming format. Do NOT make up your own branch name.**
 
-   **Important**: Use the first 8-9 characters of the merge commit SHA as the short hash.
+
 
 ### Step 3: Cherry-pick the merge commit
 
@@ -210,7 +207,7 @@ Remove-Item pr*.diff -ErrorAction SilentlyContinue
 - [ ] Original PR is verified as merged
 - [ ] Checked for existing backport PRs
 - [ ] Reviewed backport labels to understand status
-- [ ] Backport branch created from correct release branch
+- [ ] Backport branch created from correct release branch following naming convention in `branch-naming.instructions.md`
 - [ ] Merge commit cherry-picked successfully (or conflicts resolved)
 - [ ] If conflicts occurred, provided resolution summary to user
 - [ ] Branch pushed to origin

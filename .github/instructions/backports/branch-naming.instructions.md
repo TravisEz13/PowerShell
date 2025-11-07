@@ -38,6 +38,38 @@ Branch naming conventions for backporting PRs in the PowerShell repository.
 3. **Use forward slashes**: Separate parts with forward slashes for hierarchical organization
 4. **Match bot format**: Manual backports should be indistinguishable from automated ones
 
+## ❌ Common Mistakes to Avoid
+
+**NEVER use these patterns:**
+- ❌ `backport-<pr-number>-to-v<version>` (e.g., `backport-26398-to-v7.4`)
+- ❌ `backport-<version>-<pr-number>` (e.g., `backport-7.4-26398`)
+- ❌ `<pr-number>-backport` (e.g., `26398-backport`)
+- ❌ `backport/<pr-number>` (missing version info)
+
+**Why these are wrong:**
+- Missing the hierarchical `release/v<version>` structure
+- Not following the repository's established convention
+- Won't match automated tooling expectations
+- Makes it harder to track which release branch the backport targets
+
+## Format Template
+
+```
+backport/release/v<version>/<pr-number>-<short-hash>
+└─────┘ └─────┘ └──────┘ └────────┘ └─────────┘
+  │       │        │          │           │
+  │       │        │          │           └─ First 8-9 chars of merge commit SHA
+  │       │        │          └───────────── Original PR number
+  │       │        └──────────────────────── Version (with 'v' prefix)
+  │       └───────────────────────────────── Literal "release"
+  └───────────────────────────────────────── Literal "backport"
+```
+
+**Real example breakdown for PR 26398:**
+- Merge commit: `e7bf5621b...`
+- Target version: `7.4`
+- **Correct branch**: `backport/release/v7.4/26398-e7bf5621b`
+
 ## Special Cases
 
 ### Agent-Assigned Branches
