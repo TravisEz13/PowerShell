@@ -13,6 +13,7 @@ description: Guide for backporting changes to PowerShell release branches
 3. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
 4. `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI commands
 5. `.github/instructions/backports/label-system.instructions.md` - Backport label lifecycle
+1. `.github/instructions/backports/branch-naming.instructions.md` - Branch naming conventions
 
 These files contain detailed information about the backport process, PR templates, conflict resolution strategies, and label management.
 
@@ -53,6 +54,7 @@ $prs = $prs | Sort-Object mergedAt
    - PR title
    - Merged date
    - URL
+   - Branch name
 
 4. Ask the user: "Which PR would you like to backport?" (provide the PR number)
 
@@ -113,7 +115,7 @@ If the PR is not merged, stop and inform the user.
 
 3. Create a new branch from the target release branch:
    ```bash
-   git checkout -b backport-<pr-number> <remote-name>/<target-release-branch>
+   git checkout -b <branch-name> <remote-name>/<target-release-branch>
    ```
 
    Example: `git checkout -b backport-26193 upstream/release/v7.4`
