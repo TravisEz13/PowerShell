@@ -7,6 +7,7 @@ description: Guide for backporting changes to PowerShell release branches
 ## Required Reading
 
 **Read and follow these instruction files before proceeding:**
+**Acknowledge you have read them before continuing.**
 
 1. `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
 2. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
