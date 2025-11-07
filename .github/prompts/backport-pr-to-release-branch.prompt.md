@@ -109,6 +109,8 @@ If the PR is not merged, stop and inform the user.
 
    Example: `git fetch upstream release/v7.4`
 
+**Important:** When you switch branches, backport instructions will be out of date or non-existent. Copy the the instructions and prompt folder to a temporary location before switching branches.
+
 3. Create a new branch from the target release branch:
    ```bash
    git checkout -b backport-<pr-number> <remote-name>/<target-release-branch>
@@ -124,9 +126,9 @@ If the PR is not merged, stop and inform the user.
    ```
 
 2. If conflicts occur:
-   
+
    **See `.github/instructions/backports/conflict-resolution.instructions.md` for detailed conflict resolution strategies.**
-   
+
    - Inform the user about the conflicts
    - List the conflicting files
    - Fetch the original PR diff: `gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt`
