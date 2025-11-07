@@ -62,11 +62,24 @@ https://code.visualstudio.com/docs/copilot/customization/custom-chat-modes
 
 ## Required Reading
 
+**IMPORTANT:** These instruction files must be read from the **default branch** (master/main), NOT from the release branch you're working on. Release branches may have outdated or missing instruction files.
+
 **Read these instruction files before proceeding:**
 
 1. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
 1. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
 1. `.github/instructions/backports/label-system.instructions.md` - Backport label system
+
+**How to access them:**
+
+Since you're on a release branch, use git to read from the default branch:
+
+```powershell
+# Read instruction files from default branch
+git show upstream/master:.github/instructions/backports/pr-template.instructions.md
+git show upstream/master:.github/instructions/backports/conflict-resolution.instructions.md
+git show upstream/master:.github/instructions/backports/label-system.instructions.md
+```
 
 These files contain critical information about:
 
@@ -167,7 +180,7 @@ git cherry-pick $pr.mergeCommit.oid
 
 1. **Analyze the original change** by viewing the commit on GitHub or using git commands
 
-1. **Resolve conflicts** following guidance in `conflict-resolution.instructions.md`
+1. **Resolve conflicts** following guidance in `conflict-resolution.instructions.md` (read from default branch: `git show upstream/master:.github/instructions/backports/conflict-resolution.instructions.md`)
 
 1. **Create conflict resolution summary**:
    - Which files had conflicts
@@ -187,6 +200,13 @@ git cherry-pick $pr.mergeCommit.oid
 ### Step 4: Prepare PR Description
 
 The report-progress action will create the PR automatically when you push. Prepare the PR description that will be used.
+
+**First, read the PR template instructions from the default branch:**
+
+```powershell
+# Read current instructions from default branch (not release branch)
+git show upstream/master:.github/instructions/backports/pr-template.instructions.md
+```
 
 ```powershell
 # Build PR body (see pr-template.instructions.md for details)
@@ -237,6 +257,30 @@ if ($hadConflicts) {
 [Add conflict resolution summary here]
 "@
 }
+
+# Add Copilot feedback prompt for continuous improvement
+# This helps identify gaps in documentation and environment-specific limitations
+$prBody += @"
+
+
+---
+
+## 🤖 Agent Feedback Request
+
+This backport was performed by the backport-agent running in a report-progress action environment.
+
+**@copilot** Please review the agent instruction files and suggest 1-2 improvements, focusing on:
+
+1. **Environment-specific limitations**: Are there constraints or limitations of the report-progress action environment that should be better documented in the agent instructions?
+2. **Workflow clarity**: Were there any steps that could have been clearer or more explicit about what the agent can/cannot do?
+
+Relevant instruction files:
+- `.github/agents/backport-agent.md` - Main agent workflow
+- `.github/instructions/backports/pr-template.instructions.md` - PR formatting
+- `.github/instructions/backports/conflict-resolution.instructions.md` - Conflict handling
+
+Focus on actionable improvements that would help future backport operations succeed on the first attempt.
+"@
 
 # Save PR body to file for report-progress action
 $prBody | Out-File -FilePath "pr-body.txt" -Encoding utf8
@@ -328,11 +372,15 @@ $currentUser = "TravisEz13"  # From request context
 git fetch upstream release/v$version
 git reset --hard upstream/release/v$version
 
-# 4. Cherry-pick
-git cherry-pick $mergeCommit
-# (Resolve conflicts if needed)
+# 4. Read instructions from default branch
+Write-Output "Reading instructions from default branch..."
+git show upstream/master:.github/instructions/backports/pr-template.instructions.md | Out-Null
 
-# 5. Prepare PR description
+# 5. Cherry-pick
+git cherry-pick $mergeCommit
+# (Resolve conflicts if needed - refer to conflict-resolution.instructions.md from default branch)
+
+# 6. Prepare PR description
 $prBody = @"
 Backport of #$prNumber to release/v$version
 
@@ -359,6 +407,25 @@ Original CL Label: $clLabel
 ## Risk
 - [ ] Medium
 [Justify]
+
+
+---
+
+## 🤖 Agent Feedback Request
+
+This backport was performed by the backport-agent running in a report-progress action environment.
+
+**@copilot** Please review the agent instruction files and suggest 1-2 improvements, focusing on:
+
+1. **Environment-specific limitations**: Are there constraints or limitations of the report-progress action environment that should be better documented in the agent instructions?
+2. **Workflow clarity**: Were there any steps that could have been clearer or more explicit about what the agent can/cannot do?
+
+Relevant instruction files:
+- \`.github/agents/backport-agent.md\` - Main agent workflow
+- \`.github/instructions/backports/pr-template.instructions.md\` - PR formatting
+- \`.github/instructions/backports/conflict-resolution.instructions.md\` - Conflict handling
+
+Focus on actionable improvements that would help future backport operations succeed on the first attempt.
 "@
 
 $prBody | Out-File -FilePath "pr-body.txt" -Encoding utf8
@@ -399,6 +466,7 @@ Before considering the backport complete, verify all these criteria:
 - [ ] Changes pushed to assigned branch using `--force-with-lease`
 - [ ] Report-progress action will auto-create PR (cannot use `gh pr create`)
 - [ ] PR will target correct base branch (determined by your branch name)
+- [ ] Copilot feedback request included in PR body (for continuous improvement)
 - [ ] Temporary files cleaned up
 
 **Post-Creation (Manual by Maintainers):**
