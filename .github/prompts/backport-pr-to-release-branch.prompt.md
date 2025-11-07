@@ -4,19 +4,34 @@ description: Guide for backporting changes to PowerShell release branches
 
 # Backport a Change to a PowerShell Release Branch
 
+## ⚠️ STOP: Required Reading First
+
+**Before doing ANYTHING else, you MUST:**
+
+1. **Read all instruction files listed below using `read_file` in parallel**
+2. **Confirm you have read them** 
+3. **Then proceed** with the backport workflow
+
+If a user reminds you about required reading, immediately read all files before continuing.
+
 ## Required Reading
 
-**Read and follow these instruction files before proceeding:**
-**Acknowledge you have read them before continuing.**
+**Load these instruction files using the `read_file` tool in a single parallel batch:**
 
 1. `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
 2. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
 3. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
 4. `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI commands
 5. `.github/instructions/backports/label-system.instructions.md` - Backport label lifecycle
-1. `.github/instructions/backports/branch-naming.instructions.md` - Branch naming conventions
+6. `.github/instructions/backports/branch-naming.instructions.md` - Branch naming conventions
 
-These files contain detailed information about the backport process, PR templates, conflict resolution strategies, and label management.
+**Do not skip this step.** These files contain critical details about:
+- Exact branch naming format (don't make up your own)
+- Complete PR template structure with all required sections
+- Label management rules (including which labels you can/cannot modify)
+- Conflict resolution strategies and documentation requirements
+
+After reading all files in parallel, briefly confirm you've loaded them before proceeding to implementation steps.
 
 ## 1 — Goal
 
@@ -68,6 +83,10 @@ Once the user selects a PR (or if they provided one initially), confirm:
 Example: "Backport PR 26193 to release/v7.4"
 
 ## 4 — Implementation steps (must be completed in order)
+
+**⚠️ PREREQUISITE CHECK: Have you read all instruction files from "Required Reading"?**
+- If NO: Stop immediately and read them using `read_file` tool before proceeding
+- If YES: Continue to Step 1
 
 ### Step 1: Verify the original PR exists and is merged
 
@@ -205,6 +224,7 @@ Remove-Item pr*.diff -ErrorAction SilentlyContinue
 
 ## 5 — Definition of Done (self-check list)
 
+- [ ] **Read all required instruction files from "Required Reading" section**
 - [ ] Original PR is verified as merged
 - [ ] Checked for existing backport PRs
 - [ ] Reviewed backport labels to understand status
