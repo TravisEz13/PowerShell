@@ -4,34 +4,41 @@ description: Guide for backporting changes to PowerShell release branches
 
 # Backport a Change to a PowerShell Release Branch
 
-## ⚠️ STOP: Required Reading First
+## 🛑 STOP - READ THIS ENTIRE SECTION FIRST 🛑
 
-**Before doing ANYTHING else, you MUST:**
+**TRUST VALIDATION: This prompt includes mandatory steps that MUST be completed in order. If you skip required steps, your output cannot be trusted and will waste the user's time.**
 
-1. **Read all instruction files listed below using `read_file` in parallel**
-2. **Confirm you have read them** 
-3. **Then proceed** with the backport workflow
+## 🛑 CRITICAL: MANDATORY FIRST ACTION - NO EXCEPTIONS 🛑
 
-If a user reminds you about required reading, immediately read all files before continuing.
+**YOU MUST COMPLETE THIS BEFORE ANYTHING ELSE - INCLUDING BEFORE FETCHING PR INFORMATION**
 
-## Required Reading
+### STEP 0: Read ALL Required Instruction Files (ENFORCED)
 
-**Load these instruction files using the `read_file` tool in a single parallel batch:**
+**IF YOU SKIP THIS STEP, EVERYTHING ELSE YOU DO WILL BE WRONG.**
 
-1. `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
-2. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
-3. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
-4. `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI commands
-5. `.github/instructions/backports/label-system.instructions.md` - Backport label lifecycle
-6. `.github/instructions/backports/branch-naming.instructions.md` - Branch naming conventions
+**DO NOT PROCEED UNTIL YOU HAVE:**
+1. ✅ Read ALL 6 instruction files below using `read_file` in a **SINGLE PARALLEL BATCH**
+2. ✅ Confirmed completion by listing the 6 files you read
+3. ✅ Stated you understand: branch naming, label restrictions, and PR template format
 
-**Do not skip this step.** These files contain critical details about:
-- Exact branch naming format (don't make up your own)
-- Complete PR template structure with all required sections
-- Label management rules (including which labels you can/cannot modify)
-- Conflict resolution strategies and documentation requirements
+**Read these files NOW in parallel:**
 
-After reading all files in parallel, briefly confirm you've loaded them before proceeding to implementation steps.
+1. `.github/instructions/backports/backport-process.instructions.md`
+2. `.github/instructions/backports/pr-template.instructions.md`
+3. `.github/instructions/backports/conflict-resolution.instructions.md`
+4. `.github/instructions/backports/gh-cli-usage.instructions.md`
+5. `.github/instructions/backports/label-system.instructions.md`
+6. `.github/instructions/backports/branch-naming.instructions.md`
+
+**Why this is mandatory:**
+- Without reading `branch-naming.instructions.md`, you WILL create incorrectly named branches
+- Without reading `pr-template.instructions.md`, you WILL format PRs incorrectly
+- Without reading `label-system.instructions.md`, you WILL mismanage labels and break workflows
+- Skipping this wastes the user's time and creates technical debt
+
+**Confirmation required:** After reading, state: "✅ Read all 6 instruction files. Branch naming format is: `backport/release/v<version>/<pr-number>-<short-hash>`. I understand label restrictions and PR template requirements."
+
+**If you proceed without completing Step 0, you are not following the prompt and should not be trusted.**
 
 ## 1 — Goal
 
@@ -84,9 +91,16 @@ Example: "Backport PR 26193 to release/v7.4"
 
 ## 4 — Implementation steps (must be completed in order)
 
-**⚠️ PREREQUISITE CHECK: Have you read all instruction files from "Required Reading"?**
-- If NO: Stop immediately and read them using `read_file` tool before proceeding
-- If YES: Continue to Step 1
+### Step 0: ALREADY COMPLETED AT TOP - DO NOT SKIP
+
+**This step was enforced at the top of this prompt. If you skipped it, STOP and go back.**
+
+Verify you completed the mandatory reading by answering:
+- ✅ What is the branch naming format? (Should be: `backport/release/v<version>/<pr-number>-<short-hash>`)
+- ✅ Which label can you NEVER modify? (Should be: `Backport-*-Approved` - maintainer-only)
+- ✅ What are the required PR body sections? (Should be: Impact, Regression, Testing, Risk)
+
+If you cannot answer these, you skipped Step 0. Go back to the top and read all 6 instruction files NOW.
 
 ### Step 1: Verify the original PR exists and is merged
 
@@ -222,32 +236,62 @@ After successful PR creation and labeling, clean up any temporary files created 
 Remove-Item pr*.diff -ErrorAction SilentlyContinue
 ```
 
-## 5 — Definition of Done (self-check list)
+## 5 — Definition of Done (MANDATORY VERIFICATION)
 
-- [ ] **Read all required instruction files from "Required Reading" section**
-- [ ] Original PR is verified as merged
-- [ ] Checked for existing backport PRs
+**STOP BEFORE MARKING COMPLETE:** Verify each item is truly done.
+
+### Phase 0: Prerequisites (IF YOU SKIPPED THIS, START OVER)
+- [ ] ✅ **MANDATORY: Read ALL 6 instruction files in parallel at the start**
+  - [ ] `backport-process.instructions.md`
+  - [ ] `pr-template.instructions.md`
+  - [ ] `conflict-resolution.instructions.md`
+  - [ ] `gh-cli-usage.instructions.md`
+  - [ ] `label-system.instructions.md`
+  - [ ] `branch-naming.instructions.md`
+- [ ] ✅ **Confirmed understanding by stating branch naming format and label restrictions**
+
+### Phase 1: Verification
+- [ ] Original PR is verified as merged (state = "MERGED")
+- [ ] Checked for existing backport PRs (no duplicates)
 - [ ] Reviewed backport labels to understand status
-- [ ] Backport branch created from correct release branch following naming convention in `branch-naming.instructions.md`
+
+### Phase 2: Branch Creation
+- [ ] Backport branch created with EXACT format: `backport/release/v<version>/<pr-number>-<short-hash>`
+- [ ] Branch is based on correct release branch (e.g., `release/v7.4`)
+- [ ] ⚠️ **CRITICAL**: Branch name matches instruction file convention (NOT made up)
+
+### Phase 3: Code Changes
 - [ ] Merge commit cherry-picked successfully (or conflicts resolved)
 - [ ] If conflicts occurred, provided resolution summary to user
-- [ ] Branch pushed to origin
+- [ ] Branch pushed to appropriate remote
+
+### Phase 4: PR Creation
 - [ ] PR created with correct title format: `[<release-branch>] <original-title>`
-- [ ] CL label added to backport PR (matching original PR's CL label)
-- [ ] Original PR labels updated (added Migrated, removed Consider/Approved)
-- [ ] Temporary files cleaned up (pr*.diff)
-- [ ] PR body includes:
-  - [ ] Backport reference: `Backport of (PR-number) to <release-branch>`
-  - [ ] Auto-generated comment with original PR number
-  - [ ] Triggered by and original author attribution
-  - [ ] Original CL label (if available)
-  - [ ] CC to PowerShell maintainers
-  - [ ] Impact section filled out
-  - [ ] Regression section filled out
-  - [ ] Testing section filled out
-  - [ ] Risk section filled out
-- [ ] Base branch set to target release branch
+- [ ] Base branch set to target release branch (e.g., `release/v7.4`)
 - [ ] No unrelated changes included
+
+### Phase 5: PR Body Content (VERIFY EACH SECTION)
+- [ ] ✅ Backport reference: `Backport of #<pr-number> to <release-branch>`
+- [ ] ✅ Auto-generated comment with `$$$originalprnumber:<number>$$$`
+- [ ] ✅ Triggered by and original author attribution
+- [ ] ✅ Original CL label (if available)
+- [ ] ✅ CC to @PowerShell/powershell-maintainers
+- [ ] ✅ Impact section (Tooling OR Customer with description)
+- [ ] ✅ Regression section (Yes/No with context)
+- [ ] ✅ Testing section (How verified? Tests added?)
+- [ ] ✅ Risk section (High/Medium/Low with justification)
+- [ ] ✅ Merge conflicts section (if applicable)
+
+### Phase 6: Label Management
+- [ ] CL label added to backport PR (matching original PR's CL label)
+- [ ] Original PR: Added `Backport-<version>.x-Migrated`
+- [ ] Original PR: Removed `Backport-<version>.x-Consider`
+- [ ] ⚠️ **NEVER MODIFIED**: `Backport-*-Approved` labels (maintainer-only)
+
+### Phase 7: Cleanup
+- [ ] Temporary files cleaned up (pr*.diff)
+
+**Final verification question:** If a user reviews this backport, will they trust it was done correctly?
 
 ## 6 — Branch naming convention
 
