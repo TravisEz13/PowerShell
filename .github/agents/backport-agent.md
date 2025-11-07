@@ -28,9 +28,24 @@ https://code.visualstudio.com/docs/copilot/customization/custom-chat-modes
 
 - Cherry-pick merged PRs to release branches using the pre-assigned branch
 - Resolve merge conflicts following PowerShell project guidelines
-- Create backport PRs with proper metadata and labels
-- Update original PR labels to track backport status
+- Create backport PRs with proper metadata and labels through report-progress action
 - Work exclusively on the pre-assigned branch (never switch branches)
+
+## Critical Constraints: Report-Progress Action
+
+**IMPORTANT**: This agent runs in a GitHub Actions environment with a **report-progress action** that:
+
+1. **Prevents direct GitHub CLI usage** - Cannot use `gh` commands for PR/issue operations
+1. **Creates PRs automatically** - When you push commits, the action creates the PR
+1. **Requires branch name to match target** - Your branch name determines the PR base branch
+1. **Reports progress through special comments** - Use markdown with specific format for status
+
+**What this means:**
+
+- You CANNOT use `gh pr create`, `gh pr edit`, `gh pr view`, `gh issue comment`, etc.
+- You MUST ensure your branch name indicates the target release branch
+- You MUST use the report-progress comment format to communicate status
+- The PR will be created automatically when you push commits
 
 ## When to Use This Agent
 
@@ -51,15 +66,15 @@ https://code.visualstudio.com/docs/copilot/customization/custom-chat-modes
 
 1. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
 1. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
-1. `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI usage
 1. `.github/instructions/backports/label-system.instructions.md` - Backport label system
 
 These files contain critical information about:
 
 - Required PR body sections and metadata format
 - Conflict resolution strategies specific to PowerShell
-- GitHub CLI commands and authentication
 - Backport label lifecycle (Consider → Approved → Migrated → Done)
+
+**Note:** GitHub CLI (gh) commands are NOT available - the report-progress action handles PR creation automatically.
 
 ## Agent Workflow Overview
 
@@ -72,48 +87,56 @@ If not provided, ask the user:
 1. **Original PR number** - The merged PR to backport
 1. **Target release version** - e.g., `7.4`, `7.5`
 
-### Finding PRs to Backport
-
-Help user find PRs if needed:
-
-```powershell
-$version = "7.4"  # User-specified version
-gh pr list `
-    --repo PowerShell/PowerShell `
-    --label "Backport-$version.x-Consider" `
-    --state merged `
-    --json number,title,mergedAt,url `
-    --limit 50 | ConvertFrom-Json | Sort-Object mergedAt
-```
-
 ## Workflow Steps
 
-### Step 1: Verify Original PR
+### Step 1: CRITICAL - Verify Branch Name Matches Target
+
+**This is the most important step!** The branch name determines the PR base branch.
 
 ```powershell
-# Get PR details
-$pr = gh pr view <pr-number> `
-    --repo PowerShell/PowerShell `
-    --json number,title,state,mergeCommit,author,labels | ConvertFrom-Json
+# Get your current branch
+$currentBranch = git branch --show-current
+Write-Output "Current branch: $currentBranch"
 
-# Verify merged
-if ($pr.state -ne "MERGED") {
-    throw "PR #$($pr.number) is not merged yet"
+# Get target version from user
+$version = "7.5"  # Example: User specified 7.5
+
+# Verify branch name indicates the target release
+# Expected pattern: something like "copilot/backport-*-7-5" or contains "7.5" or "release-7.5"
+if ($currentBranch -notmatch "7[.-]5") {
+    Write-Error "CRITICAL: Branch name '$currentBranch' does not indicate target version 7.5"
+    Write-Error "The report-progress action will create a PR targeting the wrong branch!"
+    Write-Error "You MUST be on a branch that indicates release/v7.5 in its name"
+    throw "Branch name mismatch"
 }
 
-# Extract CL label
-$clLabel = $pr.labels |
-    Where-Object { $_.name -like "CL-*" } |
-    Select-Object -First 1 -ExpandProperty name
-
-# Check for existing backports
-gh pr list `
-    --repo PowerShell/PowerShell `
-    --search "in:title [release/v$version] $($pr.title)" `
-    --state all
+Write-Output "✓ Branch name verification passed: $currentBranch targets v$version"
 ```
 
-### Step 2: Prepare Your Branch
+**Why this matters:** The report-progress action infers the PR base branch from your branch name. If your branch is named for 7.5 but you're trying to backport to 7.4, the PR will target the wrong release branch and cannot be fixed after creation.
+
+### Step 2: Gather Original PR Information
+
+Since you cannot use `gh` CLI, gather information from the user or use GitHub API tools if available:
+
+```powershell
+# Ask user for PR details
+$prNumber = 26219  # From user request
+$version = "7.5"   # From user request
+
+# You'll need the merge commit SHA
+# The user should provide this, or you can find it in the repository
+```
+
+**Information you need from the user:**
+
+- Original PR number
+- Original PR title
+- Merge commit SHA
+- Original author GitHub username
+- CL label from original PR (e.g., `CL-General`)
+
+### Step 3: Prepare Your Branch
 
 ```powershell
 # Check current branch (your assigned branch)
@@ -142,11 +165,7 @@ git cherry-pick $pr.mergeCommit.oid
 
 #### If Conflicts Occur
 
-1. **Analyze the original change**:
-
-   ```powershell
-   gh pr diff $pr.number --repo PowerShell/PowerShell | Out-File pr-$($pr.number).diff
-   ```
+1. **Analyze the original change** by viewing the commit on GitHub or using git commands
 
 1. **Resolve conflicts** following guidance in `conflict-resolution.instructions.md`
 
@@ -165,16 +184,9 @@ git cherry-pick $pr.mergeCommit.oid
    git cherry-pick --continue
    ```
 
-### Step 4: Push Changes
+### Step 4: Prepare PR Description
 
-```powershell
-# Push to your assigned branch
-git push origin HEAD --force-with-lease
-```
-
-### Step 5: Create PR
-
-`$currentUser` is the user who made the request to backport.
+The report-progress action will create the PR automatically when you push. Prepare the PR description that will be used.
 
 ```powershell
 # Build PR body (see pr-template.instructions.md for details)
@@ -226,58 +238,60 @@ if ($hadConflicts) {
 "@
 }
 
-# Create PR (will initially target default branch)
-$newPr = gh pr create `
-    --title "[release/v$version] $($pr.title)" `
-    --body $prBody `
-    --repo PowerShell/PowerShell `
-    --json number,url | ConvertFrom-Json
+# Save PR body to file for report-progress action
+$prBody | Out-File -FilePath "pr-body.txt" -Encoding utf8
 
-Write-Output "Created PR #$($newPr.number): $($newPr.url)"
+# PR Title
+$prTitle = "[release/v$version] $($pr.title)"
+Write-Output "PR Title: $prTitle"
 ```
 
-### Step 6: Update PR Base Branch
+### Step 5: Push and Create PR
 
-**CRITICAL**: Change base from default to release branch:
+Push your commits - the report-progress action will automatically create the PR:
 
 ```powershell
-gh pr edit $newPr.number `
-    --base release/v$version `
-    --repo PowerShell/PowerShell
+# Push to your assigned branch
+git push origin HEAD --force-with-lease
 
-# Verify base was updated
-$updatedPr = gh pr view $newPr.number `
-    --repo PowerShell/PowerShell `
-    --json baseRefName | ConvertFrom-Json
-
-if ($updatedPr.baseRefName -ne "release/v$version") {
-    Write-Error "Failed to update base branch"
-}
+Write-Output "✓ Pushed commits to $currentBranch"
+Write-Output "✓ The report-progress action will create the PR automatically"
+Write-Output "✓ PR will target: release/v$version (based on branch name)"
+Write-Output ""
+Write-Output "Expected PR title: [release/v$version] $($pr.title)"
+Write-Output "PR body saved to: pr-body.txt"
 ```
 
-### Step 7: Add Labels
+**The report-progress action will:**
+
+1. Detect your push
+1. Extract target branch from your branch name
+1. Create a PR with your commits
+1. Set the base branch to the detected release branch
+
+### Step 6: Report Success
+
+Use the report-progress format to communicate status:
 
 ```powershell
-# Add CL label to backport PR
-if ($clLabel) {
-    gh pr edit $newPr.number `
-        --add-label $clLabel `
-        --repo PowerShell/PowerShell
-}
+Write-Output @"
+✅ Backport complete!
 
-# Update original PR labels (see label-system.instructions.md)
-gh pr edit $pr.number `
-    --add-label "Backport-$version.x-Migrated" `
-    --remove-label "Backport-$version.x-Consider" `
-    --repo PowerShell/PowerShell
+**Summary:**
+- Original PR: #$prNumber
+- Target: release/v$version
+- Commits pushed to: $currentBranch
+- PR will be created automatically by report-progress action
 
-# If original had Approved label, remove it too
-gh pr edit $pr.number `
-    --remove-label "Backport-$version.x-Approved" `
-    --repo PowerShell/PowerShell 2>$null  # Ignore error if label doesn't exist
+**Next Steps:**
+The maintainers should:
+1. Review the automatically created PR
+2. Add the CL label: $clLabel
+3. Update original PR labels (add Backport-$version.x-Migrated, remove Consider/Approved)
+"@
 ```
 
-### Step 8: Cleanup
+### Step 7: Cleanup
 
 ```powershell
 # Remove temporary diff files
@@ -287,31 +301,38 @@ Remove-Item pr-*.diff -ErrorAction SilentlyContinue
 ## Complete Example
 
 ```powershell
-# Example: Backport PR 26193 to release/v7.4
+# Example: Backport PR 26219 to release/v7.5
+# User provides: PR number, target version, PR details
 
-# 1. Verify and get PR info
-$version = "7.4"
-$prNumber = 26193
-$pr = gh pr view $prNumber --repo PowerShell/PowerShell --json number,title,state,mergeCommit,author,labels | ConvertFrom-Json
-
-if ($pr.state -ne "MERGED") { throw "PR not merged" }
-
-$clLabel = $pr.labels | Where-Object { $_.name -like "CL-*" } | Select-Object -First 1 -ExpandProperty name
-
-# 2. Prepare branch
+# 1. CRITICAL - Verify branch name matches target
 $currentBranch = git branch --show-current
+$version = "7.5"
+
+Write-Output "Current branch: $currentBranch"
+
+if ($currentBranch -notmatch "7[.-]5") {
+    throw "Branch name does not indicate v7.5 target!"
+}
+
+Write-Output "✓ Branch verification passed"
+
+# 2. Get information from user
+$prNumber = 26219
+$prTitle = "Fix something important"  # From user
+$mergeCommit = "abc123..."  # From user
+$originalAuthor = "somedev"  # From user
+$clLabel = "CL-General"  # From user
+$currentUser = "TravisEz13"  # From request context
+
+# 3. Prepare branch
 git fetch upstream release/v$version
 git reset --hard upstream/release/v$version
 
-# 3. Cherry-pick
-git cherry-pick $pr.mergeCommit.oid
+# 4. Cherry-pick
+git cherry-pick $mergeCommit
 # (Resolve conflicts if needed)
 
-# 4. Push
-git push origin HEAD --force-with-lease
-
-# 5. Create PR
-$currentUser = gh api user --jq .login
+# 5. Prepare PR description
 $prBody = @"
 Backport of #$prNumber to release/v$version
 
@@ -320,56 +341,70 @@ DO NOT MODIFY THIS COMMENT. IT IS AUTO-GENERATED.
 `$`$`$originalprnumber:$prNumber`$`$`$
 -->
 
-Triggered by @$currentUser on behalf of @$($pr.author.login)
+Triggered by @$currentUser on behalf of @$originalAuthor
 
 Original CL Label: $clLabel
 
 /cc @PowerShell/powershell-maintainers
 
 ## Impact
-[Fill this in]
+[Fill based on original PR]
 
 ## Regression
 - [ ] No
 
 ## Testing
-[Fill this in]
+[Reference original PR testing]
 
 ## Risk
 - [ ] Medium
 [Justify]
 "@
 
-$newPr = gh pr create --title "[release/v$version] $($pr.title)" --body $prBody --repo PowerShell/PowerShell --json number,url | ConvertFrom-Json
+$prBody | Out-File -FilePath "pr-body.txt" -Encoding utf8
 
-# 6. Update base
-gh pr edit $newPr.number --base release/v$version --repo PowerShell/PowerShell
+# 6. Push - report-progress action will create PR
+git push origin HEAD --force-with-lease
 
-# 7. Add labels
-gh pr edit $newPr.number --add-label $clLabel --repo PowerShell/PowerShell
-gh pr edit $prNumber --add-label "Backport-$version.x-Migrated" --remove-label "Backport-$version.x-Consider" --repo PowerShell/PowerShell
+Write-Output @"
+✅ Backport complete!
 
-# 8. Cleanup
-Remove-Item pr-*.diff -ErrorAction SilentlyContinue
+- Commits pushed to: $currentBranch  
+- PR will be auto-created targeting: release/v$version
+- Expected title: [release/v$version] $prTitle
+- PR body saved to: pr-body.txt
 
-Write-Output "Backport complete! PR #$($newPr.number) ready for review"
+Maintainers should add labels after PR is created.
+"@
+
+# 7. Cleanup
+Remove-Item pr-body.txt -ErrorAction SilentlyContinue
 ```
 
 ## Definition of Done
 
 Before considering the backport complete, verify all these criteria:
 
-- [ ] Original PR verified as merged
-- [ ] No existing backport PR found (or user confirmed to proceed)
+**Pre-Push Verification:**
+
+- [ ] **CRITICAL**: Branch name verified to match target version (Step 1)
+- [ ] Branch name pattern indicates correct release (e.g., contains "7-5" for v7.5)
+- [ ] Target release branch fetched from upstream
 - [ ] Branch reset to target release branch (stayed on assigned branch - no `git checkout`)
 - [ ] Merge commit cherry-picked successfully
 - [ ] Conflicts resolved (if any) and summary provided to user for approval
+
+**Push and PR Creation:**
+
 - [ ] Changes pushed to assigned branch using `--force-with-lease`
-- [ ] PR created with correct title format: `[release/v<version>] <original-title>`
-- [ ] PR base branch updated to release branch (verified - PR creation defaults to master)
+- [ ] Report-progress action will auto-create PR (cannot use `gh pr create`)
+- [ ] PR will target correct base branch (determined by your branch name)
+- [ ] Temporary files cleaned up
+
+**Post-Creation (Manual by Maintainers):**
+
 - [ ] CL label added to backport PR (matching original PR's CL label)
 - [ ] Original PR labels updated (Migrated added, Consider/Approved removed)
-- [ ] Temporary files cleaned up (pr*.diff)
 - [ ] PR body sections completed:
     - [ ] Backport reference with original PR number
     - [ ] Auto-generated comment with metadata (`$$$originalprnumber:<number>$$$`)
@@ -397,22 +432,30 @@ https://docs.github.com/en/copilot/reference/custom-agents-configuration#process
 
 ## Key Agent Constraints
 
-These constraints are critical for agents vs manual workflows:
+These constraints are critical for agents running with report-progress action:
+
+1. **VERIFY BRANCH NAME FIRST** - This is the most critical step!
+   - Your branch name determines the PR base branch
+   - Verify branch name matches target version BEFORE doing any work
+   - Example: Branch `copilot/backport-pr-26219-7-5` → targets `release/v7.5`
+   - If branch name is wrong, PR will target wrong release branch
+   - Cannot be fixed after PR creation!
 
 1. **Never switch branches** - Use `git reset --hard` to change branch state, NOT `git checkout`
    - Agent operates on pre-assigned branch
    - `git checkout` would break agent's working context
 
-1. **Always update PR base** - PR creation defaults to master; must explicitly change to release branch
-   - Use `gh pr edit <pr-number> --base release/v<version>`
-   - Verify the base was updated before proceeding
+1. **Cannot use GitHub CLI for PR/issue operations** - Report-progress action prevents this
+   - NO `gh pr create`, `gh pr edit`, `gh pr view`
+   - NO `gh issue comment`, `gh label add`
+   - PR is created automatically when you push
+   - Labels must be added manually by maintainers after PR creation
 
 1. **Use force-with-lease when pushing** - Safe to force push on your assigned branch
    - `git push origin HEAD --force-with-lease`
    - Protects against overwriting unexpected changes
 
 1. **Present conflicts to user** - Don't resolve silently; show summary and ask for approval
-   - Fetch and analyze original PR diff
    - Create detailed conflict resolution summary
    - Wait for user confirmation before continuing
 
@@ -434,22 +477,39 @@ git fetch upstream
 git fetch upstream release/v$version
 ```
 
-### PR base not updating
+### PR created with wrong base branch
 
-```powershell
-# Verify PR number is correct
-gh pr view $newPr.number --repo PowerShell/PowerShell --json number,baseRefName
+**Root Cause:** Your branch name did not match the target release version.
 
-# Try updating again with full branch name
-gh pr edit $newPr.number --base "release/v$version" --repo PowerShell/PowerShell
-```
+The report-progress action infers the PR base branch from your branch name. If you're on a branch named `copilot/backport-pr-26219-7-4` but trying to backport to v7.5, the PR will target `release/v7.4` instead of `release/v7.5`.
 
-### Label already exists/doesn't exist errors
+**Prevention:**
 
-```powershell
-# Use error suppression for removing labels that might not exist
-gh pr edit $pr.number --remove-label "Backport-$version.x-Approved" --repo PowerShell/PowerShell 2>$null
-```
+- Always verify branch name in Step 1 before doing any work
+- Branch name must indicate the target version (e.g., contain "7-5" for v7.5)
+
+**If this happens:**
+
+- You cannot change the PR base branch after creation
+- You must close the incorrect PR
+- Start over with correct branch name verification
+
+### Cannot use gh CLI commands
+
+**Expected behavior:** The report-progress action prevents direct GitHub CLI usage for PR/issue operations.
+
+You should NOT be using:
+
+- `gh pr create` - PR created automatically on push
+- `gh pr edit` - Cannot modify PR this way
+- `gh issue comment` - Use report-progress format instead
+- `gh label add/remove` - Maintainers do this manually
+
+**What to do instead:**
+
+- Push your commits - PR is auto-created
+- Use report-progress output format to communicate status
+- Document what maintainers need to do in your output
 
 ## Related Resources
 
