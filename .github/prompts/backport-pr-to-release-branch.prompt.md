@@ -4,6 +4,18 @@ description: Guide for backporting changes to PowerShell release branches
 
 # Backport a Change to a PowerShell Release Branch
 
+## Required Reading
+
+**Read these instruction files before proceeding:**
+
+1. `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
+2. `.github/instructions/backports/pr-template.instructions.md` - PR title and body format
+3. `.github/instructions/backports/conflict-resolution.instructions.md` - Merge conflict resolution
+4. `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI commands
+5. `.github/instructions/backports/label-system.instructions.md` - Backport label lifecycle
+
+These files contain detailed information about the backport process, PR templates, conflict resolution strategies, and label management.
+
 ## 1 — Goal
 
 Create a backport PR that applies changes from a merged PR to a release branch (e.g., `release/v7.4`, `release/v7.5`). The backport must follow the repository's established format and include proper references to the original PR.
@@ -112,25 +124,16 @@ If the PR is not merged, stop and inform the user.
    ```
 
 2. If conflicts occur:
+   
+   **See `.github/instructions/backports/conflict-resolution.instructions.md` for detailed conflict resolution strategies.**
+   
    - Inform the user about the conflicts
    - List the conflicting files
-   - Fetch the original PR diff to understand the changes:
-     ```bash
-     gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
-     ```
-   - Review the diff to understand what the PR changed
-   - Figure out why there is a conflict and resolve it
-   - Create a summary of the conflict resolution:
-     * Which files had conflicts
-     * Nature of each conflict (parameter changes, code removal, etc.)
-     * How you resolved it
-     * Whether any manual adjustments were needed beyond accepting one side
+   - Fetch the original PR diff: `gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt`
+   - Follow the conflict resolution guidance in `conflict-resolution.instructions.md`
+   - Create a summary of the conflict resolution
    - Ask the user to review your conflict resolution summary before continuing
-   - After conflicts are resolved, continue with:
-     ```bash
-     git add <resolved-files>
-     git cherry-pick --continue
-     ```
+   - After conflicts are resolved: `git add <resolved-files>` then `git cherry-pick --continue`
 
 ### Step 4: Push the backport branch
 
@@ -146,123 +149,47 @@ Note: If you're pushing to the official PowerShell repository and have permissio
 
 ### Step 5: Create the backport PR
 
-Create a new PR with the following format:
+**See `.github/instructions/backports/pr-template.instructions.md` for the complete PR template format and guidelines.**
 
-**Title:**
-```
-[<target-release-branch>] <original-pr-title>
-```
+Create a new PR with:
 
-Example: `[release/v7.4] GitHub Workflow cleanup`
+**Title:** `[<target-release-branch>] <original-pr-title>`
 
-**Body:**
-```
-Backport of #<original-pr-number> to <target-release-branch>
-
-<!--
-DO NOT MODIFY THIS COMMENT. IT IS AUTO-GENERATED.
-$$$originalprnumber:<original-pr-number>$$$
--->
-
-Triggered by @<current-user> on behalf of @<original-author>
-
-Original CL Label: <original-cl-label>
-
-/cc @PowerShell/powershell-maintainers
-
-## Impact
-
-Choose either tooling or Customer impact.
-### Tooling Impact
-
-- [ ] Required tooling change
-- [ ] Optional tooling change (include reasoning)
-
-### Customer Impact
-
-- [ ] Customer reported
-- [ ] Found internally
-
-[Select one or both of the boxes. Describe how this issue impacts customers, citing the expected and actual behaviors and scope of the issue. If customer-reported, provide the issue number.]
-
-## Regression
-
-- [ ] Yes
-- [ ] No
-
-[If yes, specify when the regression was introduced. Provide the PR or commit if known.]
-
-## Testing
-
-[How was the fix verified? How was the issue missed previously? What tests were added?]
-
-## Risk
-
-- [ ] High
-- [ ] Medium
-- [ ] Low
-
-[High/Medium/Low. Justify the indication by mentioning how risks were measured and addressed.]
-```
+**Body:** Use the template from `pr-template.instructions.md`, which includes:
+- Backport reference with original PR number
+- Auto-generated metadata comment
+- Attribution (triggered by / on behalf of)
+- Original CL label
+- CC to maintainers
+- Impact section (Tooling vs Customer)
+- Regression section
+- Testing section
+- Risk section (High/Medium/Low with justification)
+- Merge conflicts section (if applicable)
 
 **Base branch:** `<target-release-branch>` (e.g., `release/v7.4`)
 
 **Head branch:** `backport-<pr-number>` (e.g., `backport-26193`)
 
-#### Guidelines for Filling Out the PR Body
-
-**For Impact Section**:
-- If the original PR changed build/tooling/packaging, select "Tooling Impact"
-- If it fixes a user-facing bug or changes user-visible behavior, select "Customer Impact"
-- Copy relevant context from the original PR description
-- Be specific about what changed and why
-
-**For Regression Section**:
-- Mark "Yes" only if the original PR fixed a regression
-- Include when the regression was introduced if known
-
-**For Testing Section**:
-- Reference the original PR's testing approach
-- Note any additional backport-specific testing needed
-- Mention if manual testing was done to verify the backport
-
-**For Risk Assessment**:
-- **High**: Changes core functionality, packaging, build systems, or security-related code
-- **Medium**: Changes non-critical features, adds new functionality, or modifies existing behavior
-- **Low**: Documentation, test-only changes, minor refactoring, or fixes with narrow scope
-- Justify your assessment based on the scope of changes and potential impact
-- **For CI/CD changes**: When backporting CI/CD infrastructure changes (workflows, build scripts, packaging), note in your justification that not taking these changes may create technical debt and make it difficult to apply future CI/CD changes that build on top of them. This doesn't change the risk level itself, but provides important context for why the change should be taken despite potentially higher risk
-
-**If there were merge conflicts**:
-Add a note in the PR description after the Risk section describing what conflicts occurred and how they were resolved.
-
 ### Step 6: Add the CL label to the backport PR
 
-After creating the backport PR, add the same changelog label (CL-*) from the original PR to the backport PR:
+**See `.github/instructions/backports/label-system.instructions.md` for complete label management details.**
+
+Add the same changelog label (CL-*) from the original PR to the backport PR:
 
 ```bash
 gh pr edit <backport-pr-number> --repo PowerShell/PowerShell --add-label "<original-cl-label>"
 ```
 
-Example: `gh pr edit 26389 --repo PowerShell/PowerShell --add-label "CL-BuildPackaging"`
-
-This ensures the backport is properly categorized in the changelog for the release branch.
-
 ### Step 7: Update the original PR's backport labels
 
-After successfully creating the backport PR, update the original PR to reflect that it has been backported:
+Update the original PR to reflect that it has been backported:
 
 ```bash
 gh pr edit <original-pr-number> --repo PowerShell/PowerShell --add-label "Backport-<version>.x-Migrated" --remove-label "Backport-<version>.x-Consider"
 ```
 
-Example: `gh pr edit 26193 --repo PowerShell/PowerShell --add-label "Backport-7.5.x-Migrated" --remove-label "Backport-7.5.x-Consider"`
-
-Notes:
-- If the original PR had `Backport-<version>.x-Approved` instead of `Consider`, remove that label
-- This step helps track which PRs have been successfully backported
-- The `Migrated` label indicates the backport PR has been created (not necessarily merged)
-- The `Done` label should only be added once the backport PR is merged
+**Important**: If the original PR had `Backport-<version>.x-Approved`, remove that label as well. See `label-system.instructions.md` for the complete label lifecycle.
 
 ### Step 8: Clean up temporary files
 
@@ -300,13 +227,13 @@ Remove-Item pr*.diff -ErrorAction SilentlyContinue
 
 ## 6 — Branch naming convention
 
-**Format:** `backport/release/<version>/pr/<pr-number>`
+**See `.github/instructions/backports/branch-naming.instructions.md` for complete branch naming details.**
 
-Examples:
-- `backport/release/v7.5/pr/26193`
-- `backport/release/v7.4.1/pr/26334`
+**Manual backport format:** `backport-<pr-number>[-<postfix>]`
 
-Note: Automated bot uses format `backport/release/v<version>/<pr-number>-<commit-hash>`, but manual backports should use the format `backport/release/<version>/pr/<pr-number>` as shown above.
+Examples: `backport-26193`, `backport-26193-retry`
+
+Note: Automated bot uses a different format with commit hashes.
 
 ## 7 — Example backport PR
 
@@ -323,16 +250,13 @@ Reference PR 26334 as the canonical example of a correct backport:
 
 ## 8 — Backport label system (for context)
 
+**See `.github/instructions/backports/label-system.instructions.md` for complete label system details.**
+
 Backport labels follow pattern: `Backport-<version>.x-<state>`
 
-**Triage states:**
-- `Consider` - Under review for backporting
-- `Approved` - Approved and ready to be backported
-- `Done` - Backport completed
+**Key states:** Consider → Approved → Migrated → Done
 
-**Examples:** `Backport-7.4.x-Approved`, `Backport-7.5.x-Consider`, `Backport-7.3.x-Done`
-
-Note: The PowerShell repository has an automated bot (pwshBot) that creates backport PRs automatically when a merged PR has a backport approval label. Manual backports follow the same format.
+Note: The PowerShell repository has an automated bot (pwshBot) that creates backport PRs automatically. Manual backports follow the same format.
 
 ## Manual Backport Using PowerShell Tools
 
@@ -384,64 +308,15 @@ Invoke-PRBackport -PrNumber 26193 -Target release/v7.4.1 -Overwrite
 
 ## Handling Merge Conflicts
 
+**See `.github/instructions/backports/conflict-resolution.instructions.md` for detailed conflict resolution strategies and patterns.**
+
 When cherry-picking fails due to conflicts:
 
 1. The script will pause and prompt you to fix conflicts
-2. Resolve conflicts in your editor:
-   ```powershell
-   # Check which files have conflicts
-   git status
-
-   # Edit files to resolve conflicts
-   # After resolving, stage the changes
-   git add <resolved-files>
-
-   # Continue the cherry-pick
-   git cherry-pick --continue
-   ```
-3. Type 'Yes<enter>' when prompted to continue the script
-4. The script will create the PR
-
-### Understanding Conflict Patterns
-
-When resolving conflicts during backports, follow this approach:
-
-1. **Analyze the diff first**: Before resolving conflicts, fetch and review the original PR's diff to understand what changed:
-   ```powershell
-   gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
-   ```
-
-2. **Identify conflict types**:
-   - **Parameter additions**: New parameters added to functions (e.g., ValidateSet values)
-   - **Code removal**: Features removed in main but still exist in release branch
-   - **Code additions**: New code blocks that don't exist in release branch
-   - **Refactoring conflicts**: Code structure changes between branches
-
-3. **Resolution priorities**:
-   - Preserve the intent of the backported change
-   - Keep release branch-specific code that doesn't conflict with the fix
-   - When in doubt, favor the incoming change from the backport
-   - Document significant manual changes in the PR description
-
-4. **Verification**:
-   - After resolving conflicts, verify the file compiles/runs
-   - Check that the resolved code matches the original PR's intent
-   - Look for orphaned code that references removed functions
-
-5. **Create a conflict resolution summary**:
-   - List which files had conflicts
-   - Briefly explain the nature of each conflict
-   - Describe how you resolved it
-   - Ask user to review the resolution before continuing
-
-### Context-Aware Conflict Resolution
-
-**Key Principle**: The release branch may have different code than main. Your goal is to apply the *change* from the PR, not necessarily make the code identical to main.
-
-**Common Scenarios**:
-1. **Function parameters differ**: If the release branch has fewer parameters than main, and the backport adds functionality unrelated to new parameters, keep the release branch parameters unless the new parameters are part of the fix
-2. **Dependencies removed in main**: If main removed a dependency but the release branch still has it, and the backport is unrelated to that dependency, keep the release branch code
-3. **New features in main**: If main has new features not in the release, focus on backporting only the specific fix, not the new features
+2. Resolve conflicts following the guidance in `conflict-resolution.instructions.md`
+3. Stage resolved files: `git add <resolved-files>`
+4. Continue the cherry-pick: `git cherry-pick --continue`
+5. Type 'Yes<enter>' when prompted to continue the script
 
 ## Bulk Backporting Approved PRs
 
@@ -476,51 +351,7 @@ Get-PRBackportReport -Version 7.4 -TriageState Approved -Web
 Get-PRBackportReport -Version 7.4 -TriageState Done
 ```
 
-## Branch Naming Conventions
 
-### Automated Bot Branches
-Format: `backport/release/v<version>/<pr-number>-<short-commit-hash>`
-
-Example: `backport/release/v7.4/26193-4aff02475`
-
-### Manual Backport Branches
-Format: `backport-<pr-number>[-<postfix>]`
-
-Examples:
-- `backport-26193`
-- `backport-26193-retry`
-
-## PR Title and Description Format
-
-### Title
-Format: `[release/v<version>] <original-title>`
-
-Example: `[release/v7.4] GitHub Workflow cleanup`
-
-### Description
-The backport PR description includes:
-- Reference to original PR number
-- Target release branch
-- Auto-generated comment with original PR metadata
-- Maintainer information
-- Original CL label
-- CC to PowerShell maintainers team
-
-Example description structure:
-```text
-Backport of (original-pr-number) to release/v<version>
-
-<!--
-DO NOT MODIFY THIS COMMENT. IT IS AUTO-GENERATED.
-$$$originalprnumber:<original-pr-number>$$$
--->
-
-Triggered by @<maintainer> on behalf of @<original-author>
-
-Original CL Label: <original-label>
-
-/cc @PowerShell/powershell-maintainers
-```
 
 ## Best Practices
 
@@ -562,6 +393,15 @@ git fetch upstream
 
 ## Related Resources
 
-- **Release Process**: See `docs/maintainers/releasing.md`
-- **Release Tools**: See `tools/releaseTools.psm1`
-- **Issue Management**: See `docs/maintainers/issue-management.md`
+**Instruction Files:**
+- `.github/instructions/backports/backport-process.instructions.md` - Complete backport workflow
+- `.github/instructions/backports/pr-template.instructions.md` - PR format and templates
+- `.github/instructions/backports/conflict-resolution.instructions.md` - Conflict resolution strategies
+- `.github/instructions/backports/gh-cli-usage.instructions.md` - GitHub CLI commands
+- `.github/instructions/backports/label-system.instructions.md` - Label management
+- `.github/instructions/backports/branch-naming.instructions.md` - Branch naming conventions
+
+**Other Resources:**
+- **Release Process**: `docs/maintainers/releasing.md`
+- **Release Tools**: `tools/releaseTools.psm1`
+- **Issue Management**: `docs/maintainers/issue-management.md`
