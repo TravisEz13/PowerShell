@@ -111,7 +111,7 @@ If the PR is not merged, stop and inform the user.
 
    Example: `git fetch upstream release/v7.4`
 
-**Important:** When you switch branches, backport instructions will be out of date or non-existent. Copy the the instructions and prompt folder to a temporary location before switching branches.
+**Important:** When you switch branches, backport instructions will be out of date or non-existent. Copy the the instructions and prompt folder to a temporary location before switching branches. In PowerShell 7 you can use `(resolve-path temp:).providerpath` to get the root to the temp folder path.
 
 3. Create a new branch from the target release branch:
    ```bash
@@ -233,12 +233,6 @@ Remove-Item pr*.diff -ErrorAction SilentlyContinue
 
 **See `.github/instructions/backports/branch-naming.instructions.md` for complete branch naming details.**
 
-**Manual backport format:** `backport-<pr-number>[-<postfix>]`
-
-Examples: `backport-26193`, `backport-26193-retry`
-
-Note: Automated bot uses a different format with commit hashes.
-
 ## 7 — Example backport PR
 
 Reference PR 26334 as the canonical example of a correct backport:
@@ -248,7 +242,7 @@ Reference PR 26334 as the canonical example of a correct backport:
 **Backport PR**: PR 26334 "[release/v7.4] GitHub Workflow cleanup"
 - **Title**: `[release/v7.4] GitHub Workflow cleanup`
 - **Body**: Started with backport reference to original PR and release branch
-- **Branch**: `backport/release/v7.4/26193-4aff02475` (bot-created)
+- **Branch**: `backport/release/v7.4/26193-4aff02475`
 - **Base**: `release/v7.4`
 - **Includes**: Auto-generated metadata, impact assessment, regression info, testing details, and risk level
 
