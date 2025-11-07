@@ -99,6 +99,84 @@ If this verification fails, the PR will target the wrong release branch.
 }
 ```
 
+## 4. Clarify How to Find Default Branch for Reading Instructions
+
+**Issue**: The agent instructions assume the default branch is "master" when reading instruction files, but this may not always be correct. The agent should determine the default branch dynamically.
+
+**Current state** (in "Required Reading" section):
+```powershell
+# Read instruction files from default branch
+git show upstream/master:.github/instructions/backports/pr-template.instructions.md
+```
+
+**Problem**: 
+- Assumes default branch is named "master" 
+- Assumes upstream remote exists and is named "upstream"
+- Instructions may not exist on master if they're in a different branch
+
+**Suggested improvement**: Add a section that explains how to find the correct branch for reading instructions:
+
+```markdown
+## Reading Instruction Files
+
+**IMPORTANT**: Instruction files must be read from the branch where they exist, which may not be the default branch (master/main).
+
+### Step 1: Determine where instruction files exist
+
+First, check if the instruction files exist in various branches:
+
+```bash
+# Check if instructions exist in upstream master
+git ls-tree -r --name-only upstream/master .github/instructions/backports/ 2>/dev/null
+
+# Check if instructions exist in upstream main
+git ls-tree -r --name-only upstream/main .github/instructions/backports/ 2>/dev/null
+
+# Check in origin branches if upstream doesn't have them
+git ls-tree -r --name-only origin/travisez13-main .github/instructions/backports/ 2>/dev/null
+git ls-tree -r --name-only origin/master .github/instructions/backports/ 2>/dev/null
+git ls-tree -r --name-only origin/main .github/instructions/backports/ 2>/dev/null
+```
+
+### Step 2: Read from the branch that has them
+
+Once you've identified which branch contains the instruction files, use that branch:
+
+```bash
+# Example: If instructions are in origin/travisez13-main
+git show origin/travisez13-main:.github/instructions/backports/pr-template.instructions.md
+
+# Example: If instructions are in upstream/main
+git show upstream/main:.github/instructions/backports/pr-template.instructions.md
+```
+
+### Step 3: Similarly for agent instructions
+
+```bash
+# Check where agent file exists
+git ls-tree -r --name-only origin/travisez13-main .github/agents/ 2>/dev/null
+git ls-tree -r --name-only upstream/master .github/agents/ 2>/dev/null
+
+# Read from the correct location
+git show origin/travisez13-main:.github/agents/backport-agent.md
+```
+
+### Why this matters
+
+Instruction files and agent prompts may be:
+- In a feature/development branch before being merged to default branch
+- In a fork's main branch (like `origin/travisez13-main`)
+- Have different content between default branch and development branches
+- Not exist at all in older release branches
+
+**Don't assume**:
+- Default branch is named "master" (could be "main")
+- Instructions exist in the default branch
+- Remote is named "upstream" (might be "origin")
+
+**Always verify** where the files exist before trying to read them.
+```
+
 ## Summary
 
 These improvements focus on:
@@ -106,5 +184,6 @@ These improvements focus on:
 1. **Explicit PR description handling**: Making it clear that the PR body must be passed to `report_progress`, not just saved to a file
 2. **Template validation**: Adding a checklist to ensure all required sections are included
 3. **Better error messages**: Providing clearer guidance when branch name verification fails
+4. **Dynamic branch discovery**: Teaching the agent to find instruction files rather than assuming they're in "upstream/master"
 
-These changes would help ensure backport PRs follow the correct template on the first attempt and reduce confusion about how to properly format and submit the PR description.
+These changes would help ensure backport PRs follow the correct template on the first attempt and reduce confusion about how to properly format and submit the PR description, while also making the agent more robust when instruction files are in non-standard locations.
