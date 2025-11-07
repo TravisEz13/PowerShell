@@ -25,17 +25,12 @@ Labels follow the pattern: `Backport-<version>.x-<state>`
 
 ## Branch Naming Conventions
 
-### Automated Bot Branches
-Format: `backport/release/v<version>/<pr-number>-<short-commit-hash>`
-
-Example: `backport/release/v7.4/26193-4aff02475`
-
-### Manual Backport Branches
-Format: `backport-<pr-number>[-<postfix>]`
+### Standard Branch Format (Both Manual and Automated)
+Format: `backport/release/v<version>/<pr-number>-<short-commit-hash>[-<postfix>]`
 
 Examples:
-- `backport-26193`
-- `backport-26193-retry`
+- `backport/release/v7.4/26193-4aff02475`
+- `backport/release/v7.5/26398-e7bf5621b`
 
 ## PR Format Requirements
 

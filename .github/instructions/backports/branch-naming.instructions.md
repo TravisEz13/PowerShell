@@ -21,16 +21,22 @@ Branch naming conventions for backporting PRs in the PowerShell repository.
 
 **When used**: Created automatically by the PowerShell repository's backport bot (pwshBot).
 
+## Manual Backport Branches
+
+**Format**: `backport/release/v<version>/<pr-number>-<short-commit-hash>`
+
+**Examples**:
+- `backport/release/v7.4/26398-e7bf5621b`
+- `backport/release/v7.5/23456-abc123def`
+
+**When used**: Manual backports should follow the same format as automated bot branches for consistency.
+
 ## Branch Naming Guidelines
 
-1. **Use descriptive postfixes** when needed:
-   - `retry` - Second or third attempt
-   - `conflict-resolution` - Manual conflict resolution required
-   - `manual` - Manual backport due to bot failure
-
-2. **Keep it concise**: Branch names should be clear but not overly long
-
-3. **Use hyphens**: Separate parts with hyphens (kebab-case)
+1. **Always include the commit hash**: Use the first 8-9 characters of the merge commit SHA
+2. **Use the full release version**: Include `v` prefix (e.g., `v7.4`, not `7.4`)
+3. **Use forward slashes**: Separate parts with forward slashes for hierarchical organization
+4. **Match bot format**: Manual backports should be indistinguishable from automated ones
 
 ## Special Cases
 
@@ -44,7 +50,6 @@ When using GitHub Copilot agents or similar automation:
 
 ### Multiple Backport Attempts
 
-If a backport needs to be retried:
-- Add a postfix: `backport-26193-retry`
+If a backport needs to be retried, the hash should be different.
 - Document reason for retry in PR description
 - Close the previous backport PR if it exists

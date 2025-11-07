@@ -9,6 +9,8 @@ applyTo:
 
 ## Overview
 
+**Note**: For branch naming conventions, see `.github/instructions/backports/branch-naming.instructions.md`. Examples in this document use `<backport-branch-name>` as a generic placeholder.
+
 Guidelines for using GitHub CLI (`gh`) to create and manage backport PRs.
 
 ## Prerequisites
@@ -143,11 +145,12 @@ Original CL Label: CL-BuildPackaging
 "@
 
 # Create PR
+# Note: Use the branch name from branch-naming.instructions.md
 gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
     --repo PowerShell/PowerShell `
-    --head myusername:backport-26193
+    --head myusername:<backport-branch-name>
 ```
 
 ### Create PR and Capture Response
@@ -158,7 +161,7 @@ $prUrl = gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
     --repo PowerShell/PowerShell `
-    --head myusername:backport-26193
+    --head myusername:<backport-branch-name>
 
 # Extract PR number from URL
 $prNumber = $prUrl -replace '.*/', ''
@@ -168,7 +171,7 @@ $newPr = gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
     --repo PowerShell/PowerShell `
-    --head myusername:backport-26193 `
+    --head myusername:<backport-branch-name> `
     --json number,url | ConvertFrom-Json
 
 $newPr.number  # New PR number

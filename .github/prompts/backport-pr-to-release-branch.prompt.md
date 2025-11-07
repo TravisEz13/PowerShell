@@ -113,12 +113,14 @@ If the PR is not merged, stop and inform the user.
 
 **Important:** When you switch branches, backport instructions will be out of date or non-existent. Copy the the instructions and prompt folder to a temporary location before switching branches. In PowerShell 7 you can use `(resolve-path temp:).providerpath` to get the root to the temp folder path.
 
-3. Create a new branch from the target release branch:
+3. Create a new branch from the target release branch using the standard naming format:
    ```bash
-   git checkout -b <branch-name> <remote-name>/<target-release-branch>
+   git checkout -b backport/release/v<version>/<pr-number>-<short-hash> <remote-name>/<target-release-branch>
    ```
 
-   Example: `git checkout -b backport-26193 upstream/release/v7.4`
+   Example: `git checkout -b backport/release/v7.4/26398-e7bf5621b upstream/release/v7.4`
+
+   **Important**: Use the first 8-9 characters of the merge commit SHA as the short hash.
 
 ### Step 3: Cherry-pick the merge commit
 
@@ -144,10 +146,10 @@ If the PR is not merged, stop and inform the user.
 Push to your fork (typically the remote that you have write access to):
 
 ```bash
-git push <your-fork-remote> backport-<pr-number>
+git push <your-fork-remote> backport/release/v<version>/<pr-number>-<short-hash>
 ```
 
-Example: `git push origin backport-26193`
+Example: `git push origin backport/release/v7.4/26398-e7bf5621b`
 
 Note: If you're pushing to the official PowerShell repository and have permissions, you may push to `upstream` or the appropriate remote.
 
@@ -173,7 +175,7 @@ Create a new PR with:
 
 **Base branch:** `<target-release-branch>` (e.g., `release/v7.4`)
 
-**Head branch:** `backport-<pr-number>` (e.g., `backport-26193`)
+**Head branch:** `backport/release/v<version>/<pr-number>-<short-hash>` (e.g., `backport/release/v7.4/26398-e7bf5621b`)
 
 ### Step 6: Add the CL label to the backport PR
 
@@ -299,7 +301,7 @@ Invoke-PRBackport -PrNumber 26193 -Target release/v7.4.1 -Overwrite
 
 1. Verifies the PR is merged
 2. Fetches the target release branch from upstream
-3. Creates a new branch: `backport-<pr-number>[-<postfix>]`
+3. Creates a new branch.  See `branch-naming.instructions.md` for naming conventions.
 4. Cherry-picks the merge commit
 5. If conflicts occur, prompts you to resolve them
 6. Creates the backport PR using GitHub CLI
