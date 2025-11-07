@@ -149,7 +149,7 @@ $version = "7.5"   # From user request
 - Original author GitHub username
 - CL label from original PR (e.g., `CL-General`)
 
-### Step 3: Prepare Your Branch
+### Step 3: Verify Starting Commit
 
 ```powershell
 # Check current branch (your assigned branch)
@@ -163,11 +163,24 @@ git remote -v
 # Fetch target release branch
 git fetch upstream release/v$version
 
-# Reset your branch to the release branch
-git reset --hard upstream/release/v$version
+# Verify we're at the correct starting commit
+$currentCommit = git rev-parse HEAD
+$targetCommit = git rev-parse upstream/release/v$version
+Write-Output "Current commit: $currentCommit"
+Write-Output "Target release commit: $targetCommit"
+
+if ($currentCommit -ne $targetCommit) {
+    Write-Error "CRITICAL: Branch is not at the expected starting commit!"
+    Write-Error "Current: $currentCommit"
+    Write-Error "Expected: $targetCommit (upstream/release/v$version)"
+    Write-Error "The branch should already be at the correct commit for backporting."
+    throw "Starting commit mismatch"
+}
+
+Write-Output "✓ Verified: Branch is at correct starting commit for release/v$version"
 ```
 
-**CRITICAL**: Use `git reset --hard`, NOT `git checkout`. Stay on your assigned branch.
+**CRITICAL**: The agent should already be at the correct starting commit. This step verifies that assumption. Do NOT reset the branch.
 
 ### Step 3: Cherry-pick Changes
 
@@ -368,9 +381,16 @@ $originalAuthor = "somedev"  # From user
 $clLabel = "CL-General"  # From user
 $currentUser = "TravisEz13"  # From request context
 
-# 3. Prepare branch
+# 3. Verify starting commit
 git fetch upstream release/v$version
-git reset --hard upstream/release/v$version
+$currentCommit = git rev-parse HEAD
+$targetCommit = git rev-parse upstream/release/v$version
+
+if ($currentCommit -ne $targetCommit) {
+    throw "Not at expected starting commit! Current: $currentCommit, Expected: $targetCommit"
+}
+
+Write-Output "✓ Verified at correct starting commit"
 
 # 4. Read instructions from default branch
 Write-Output "Reading instructions from default branch..."
@@ -457,7 +477,7 @@ Before considering the backport complete, verify all these criteria:
 - [ ] **CRITICAL**: Branch name verified to match target version (Step 1)
 - [ ] Branch name pattern indicates correct release (e.g., contains "7-5" for v7.5)
 - [ ] Target release branch fetched from upstream
-- [ ] Branch reset to target release branch (stayed on assigned branch - no `git checkout`)
+- [ ] Starting commit verified to match target release branch (Step 3)
 - [ ] Merge commit cherry-picked successfully
 - [ ] Conflicts resolved (if any) and summary provided to user for approval
 
@@ -509,9 +529,10 @@ These constraints are critical for agents running with report-progress action:
    - If branch name is wrong, PR will target wrong release branch
    - Cannot be fixed after PR creation!
 
-1. **Never switch branches** - Use `git reset --hard` to change branch state, NOT `git checkout`
-   - Agent operates on pre-assigned branch
-   - `git checkout` would break agent's working context
+1. **Never switch branches or reset** - Agent will already be at the correct starting commit
+   - Agent operates on pre-assigned branch at the correct commit
+   - Verify the starting commit matches the target release branch
+   - Do NOT use `git checkout` or `git reset --hard`
 
 1. **Cannot use GitHub CLI for PR/issue operations** - Report-progress action prevents this
    - NO `gh pr create`, `gh pr edit`, `gh pr view`
@@ -529,7 +550,7 @@ These constraints are critical for agents running with report-progress action:
 
 1. **Stay on assigned branch** - All operations done without `git checkout`
    - Verify current branch at start: `git branch --show-current`
-   - Use `git reset --hard <remote>/<branch>` to reset branch pointer
+   - Verify starting commit matches target: Compare `git rev-parse HEAD` with `git rev-parse upstream/release/v$version`
 
 1. **Tool limitations** - Only `shell`, `read`, `edit`, and `search` tools available
    - Cannot use tools outside the defined set
@@ -537,13 +558,27 @@ These constraints are critical for agents running with report-progress action:
 
 ## Troubleshooting
 
-### "fatal: invalid reference" on git reset
+### Starting commit verification fails
+
+**Root Cause:** The branch is not at the expected starting commit for the target release.
 
 ```powershell
-# Fetch the remote first
-git fetch upstream
-git fetch upstream release/v$version
+# This error means the branch was not properly initialized
+# Current commit: abc123...
+# Expected commit: def456... (upstream/release/v7.5)
 ```
+
+**What this means:**
+
+- The branch should already be at the correct commit when the agent starts
+- This is set up by the workflow that invokes the agent
+- If verification fails, the workflow setup is incorrect
+
+**Resolution:**
+
+- Contact the workflow maintainer
+- The branch initialization logic needs to be fixed
+- Do NOT attempt to fix this with `git reset` - that's not the agent's responsibility
 
 ### PR created with wrong base branch
 
