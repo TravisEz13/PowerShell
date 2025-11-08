@@ -36,7 +36,7 @@ Original CL Label: <original-cl-label>
 
 ## Impact
 
-Choose either tooling or Customer impact.
+**REQUIRED**: Choose either Tooling Impact or Customer Impact (or both). At least one checkbox must be selected.
 
 ### Tooling Impact
 
@@ -52,6 +52,8 @@ Choose either tooling or Customer impact.
 
 ## Regression
 
+**REQUIRED**: Check exactly one box.
+
 - [ ] Yes
 - [ ] No
 
@@ -63,6 +65,8 @@ Choose either tooling or Customer impact.
 
 ## Risk
 
+**REQUIRED**: Check exactly one box.
+
 - [ ] High
 - [ ] Medium
 - [ ] Low
@@ -73,6 +77,8 @@ Choose either tooling or Customer impact.
 ## Filling Out Each Section
 
 ### Impact Section
+
+**CRITICAL**: You MUST check at least one checkbox in either Tooling Impact or Customer Impact (or both). Do not leave this section without any boxes checked.
 
 **Tooling Impact**:
 - Select when PR changes: build systems, CI/CD pipelines, packaging, developer tooling

@@ -131,6 +131,8 @@ gh pr diff 26193 --repo PowerShell/PowerShell | more
 
 ### Basic PR Creation
 
+**CRITICAL**: Always specify `--base` when creating a backport PR to ensure it targets the correct release branch.
+
 ```powershell
 # Prepare PR body (use here-string for multi-line)
 # See pr-template.instructions.md for full template
@@ -144,11 +146,12 @@ Original CL Label: CL-BuildPackaging
 [Add Impact, Regression, Testing, and Risk sections - see pr-template.instructions.md]
 "@
 
-# Create PR
+# Create PR with --base to target the release branch directly
 # Note: Use the branch name from branch-naming.instructions.md
 gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
+    --base release/v7.4 `
     --repo PowerShell/PowerShell `
     --head myusername:<backport-branch-name>
 ```
@@ -157,9 +160,11 @@ gh pr create `
 
 ```powershell
 # Capture PR number/URL from creation
+# ALWAYS include --base to target the correct release branch
 $prUrl = gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
+    --base release/v7.4 `
     --repo PowerShell/PowerShell `
     --head myusername:<backport-branch-name>
 
@@ -170,6 +175,7 @@ $prNumber = $prUrl -replace '.*/', ''
 $newPr = gh pr create `
     --title "[release/v7.4] GitHub Workflow cleanup" `
     --body $prBody `
+    --base release/v7.4 `
     --repo PowerShell/PowerShell `
     --head myusername:<backport-branch-name> `
     --json number,url | ConvertFrom-Json
@@ -180,12 +186,26 @@ $newPr.url     # New PR URL
 
 ## Updating PR Base Branch
 
-### Critical: Change Base to Release Branch
+### Setting Base Branch During Creation (Preferred Method)
 
-When creating a PR from a branch, it defaults to the repository's default branch (`master`). You must update it to target the release branch:
+**BEST PRACTICE**: Always use `--base` parameter when creating a backport PR to directly target the release branch. This avoids the need for a separate edit step.
 
 ```powershell
-# Update base branch after creation
+# Preferred: Set base during creation
+gh pr create `
+    --title "[release/v7.4] GitHub Workflow cleanup" `
+    --body $prBody `
+    --base release/v7.4 `
+    --repo PowerShell/PowerShell `
+    --head myusername:<backport-branch-name>
+```
+
+### Fallback: Update Base After Creation
+
+If you forgot to set `--base` during creation, you can update it afterwards:
+
+```powershell
+# Update base branch after creation (only if you forgot --base)
 gh pr edit 26389 `
     --base release/v7.4 `
     --repo PowerShell/PowerShell
@@ -281,28 +301,24 @@ Original CL Label: $clLabel
 [Add Impact, Regression, Testing, and Risk sections - see pr-template.instructions.md]
 "@
 
-# 6. Create PR (assumes you're on backport branch and pushed)
+# 6. Create PR with --base to target release branch (assumes you're on backport branch and pushed)
 $newPr = gh pr create `
     --title "[release/v$version] $($pr.title)" `
     --body $prBody `
+    --base "release/v$version" `
     --repo PowerShell/PowerShell `
     --json number,url | ConvertFrom-Json
 
 Write-Output "Created PR #$($newPr.number): $($newPr.url)"
 
-# 7. Update base to release branch
-gh pr edit $newPr.number `
-    --base "release/v$version" `
-    --repo PowerShell/PowerShell
-
-# 8. Add CL label to new PR
+# 7. Add CL label to new PR
 if ($clLabel) {
     gh pr edit $newPr.number `
         --add-label $clLabel `
         --repo PowerShell/PowerShell
 }
 
-# 9. Update original PR labels
+# 8. Update original PR labels
 gh pr edit $pr.number `
     --add-label "Backport-$version.x-Migrated" `
     --remove-label "Backport-$version.x-Consider" `
@@ -330,11 +346,8 @@ Original CL Label: $clLabel
 [Add Impact, Regression, Testing, and Risk sections]
 "@
 
-# Create PR (will initially target default branch)
-$newPr = gh pr create --title "[release/v7.4] $($pr.title)" --body $prBody --repo PowerShell/PowerShell --json number | ConvertFrom-Json
-
-# CRITICAL: Update base immediately
-gh pr edit $newPr.number --base release/v7.4 --repo PowerShell/PowerShell
+# Create PR with --base to target release/v7.4 directly
+$newPr = gh pr create --title "[release/v7.4] $($pr.title)" --body $prBody --base release/v7.4 --repo PowerShell/PowerShell --json number | ConvertFrom-Json
 
 # Add labels
 gh pr edit $newPr.number --add-label $clLabel --repo PowerShell/PowerShell
@@ -362,9 +375,9 @@ Verify you have necessary permissions for the repository
 
 ## Best Practices
 
-1. **Always convert to PowerShell objects**: Use `| ConvertFrom-Json` for easier manipulation
-2. **Use `--repo` explicitly**: Don't rely on default repository detection
-3. **Capture PR creation output**: Store new PR number for subsequent operations
-4. **Update base branch immediately**: Don't forget to change from default to release branch
+1. **Always specify `--base` when creating PRs**: Set the target release branch during creation, not as a separate edit step
+2. **Always convert to PowerShell objects**: Use `| ConvertFrom-Json` for easier manipulation
+3. **Use `--repo` explicitly**: Don't rely on default repository detection
+4. **Capture PR creation output**: Store new PR number for subsequent operations
 5. **Use here-strings for PR body**: Makes multi-line content easier to manage
 6. **Verify operations**: Check PR state after edits with `gh pr view`
