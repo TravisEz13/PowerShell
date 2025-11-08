@@ -55,6 +55,42 @@ For the complete backport PR template and detailed guidance on filling out each 
 - Original CL label
 - CC to @PowerShell/powershell-maintainers
 
+## Checking for Prerequisite PRs
+
+**CRITICAL**: Before starting a backport, check if the PR has dependencies on other PRs that must be backported first.
+
+### When to Check for Prerequisites
+
+Check for prerequisite PRs if:
+- The PR modifies code that was recently added or refactored
+- The PR description mentions "depends on" or "builds on" another PR
+- The PR is part of a series or multi-part change
+- The merge date is close to other related PRs from the same author
+
+### How to Identify Prerequisites
+
+1. **Check PR description and comments** for mentions of related PRs
+2. **Review the PR's base commit** to see what code existed when it was created
+3. **If conflicts occur during cherry-pick**, check if missing code sections indicate a prerequisite:
+   ```powershell
+   # Find when the missing code was added
+   git log --all --oneline -S "MissingCodeSection" -- FilePath.ext
+
+   # Example: Finding when FxDependentDeployment was added
+   git log --all --oneline -S "FxDependentDeployment" -- PowerShell.Common.props
+   ```
+
+### Example: PR Dependency Chain
+
+If PR #26290 modifies code added by PR #25837:
+1. Identify that PR #25837 is the prerequisite
+2. **Notify maintainer** to add backport label to PR #25837:
+   - Comment on PR #26290: "This backport depends on #25837 being backported first. Can a maintainer please add the Backport-7.5.x-Consider label to #25837?"
+3. Wait for PR #25837 to be labeled and backported
+4. Then backport PR #26290
+
+**Warning**: Attempting to backport dependent PRs out of order will result in conflicts that cannot be properly resolved.
+
 ## Handling Merge Conflicts
 
 ### Conflict Resolution Approach
@@ -64,13 +100,20 @@ For the complete backport PR template and detailed guidance on filling out each 
    gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
    ```
 
-2. **Identify conflict types**:
+2. **Check for missing prerequisite PRs FIRST**:
+   - If the conflict involves entire missing code sections, STOP
+   - Search for the prerequisite PR that added that code
+   - Backport prerequisites first, then retry
+   - See "Checking for Prerequisite PRs" section above
+
+3. **Identify conflict types**:
+   - **Missing prerequisite PR**: Code sections don't exist (STOP and backport prerequisite first)
    - **Parameter additions**: New parameters added to functions
    - **Code removal**: Features removed in main but still in release
    - **Code additions**: New code blocks not in release
    - **Refactoring conflicts**: Code structure changes between branches
 
-3. **Resolution priorities**:
+4. **Resolution priorities**:
    - Preserve the intent of the backported change
    - Keep release branch-specific code that doesn't conflict
    - When in doubt, favor the incoming change from the backport

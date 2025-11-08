@@ -19,6 +19,25 @@ The release branch may have different code than main. Your goal is to backport t
 
 ## Conflict Resolution Process
 
+### Step 0: Check for Missing Prerequisites FIRST
+
+**BEFORE attempting to resolve any conflicts**, determine if the conflict is due to a missing prerequisite PR.
+
+**Red flags that indicate a missing prerequisite**:
+- Conflict involves entire code blocks/sections that don't exist in release branch
+- The PR is modifying code structures (classes, methods, property groups) not present in the target
+- The conflict spans many lines with completely different context
+
+If you suspect a missing prerequisite:
+1. **STOP** - Do not attempt manual resolution
+2. Follow the "Checking for Prerequisite PRs" section in `backport-process.instructions.md`
+3. Identify the prerequisite PR number
+4. **Notify maintainer** - Comment on the current PR requesting the prerequisite be marked for backport
+5. Abort this backport attempt: `git cherry-pick --abort`
+6. Delete the backport branch: `git branch -D backport/release/v7.X/XXXXX`
+7. Wait for the prerequisite PR to be labeled and backported first
+8. Start over after the prerequisite is backported
+
 ### Step 1: Analyze the Original Change
 
 Before resolving conflicts, understand what the original PR changed:
@@ -39,6 +58,58 @@ Get-Content pr-<pr-number>.diff | more
 ### Step 2: Identify Conflict Type
 
 Common conflict types:
+
+#### 0. Missing Prerequisite PR (Critical)
+
+**Scenario**: The PR being backported modifies code sections that don't exist in the release branch because a prerequisite PR was never backported.
+
+**Signs of this issue**:
+- Conflict involves entire code blocks that are completely missing from the release branch
+- The PR diff shows modifications to code structures (property groups, classes, methods) that don't exist
+- Git conflict shows the incoming change trying to modify non-existent context
+
+**Example**:
+```xml
+<!-- PR tries to modify this section -->
+<PropertyGroup Condition=" '$(AppDeployment)' == 'FxDependentDeployment' ">
+    <PublishReadyToRun>true</PublishReadyToRun>  <!-- PR wants to move this -->
+</PropertyGroup>
+
+<!-- But release branch doesn't have 'FxDependentDeployment' at all -->
+```
+
+**Resolution**:
+1. **STOP the backport immediately** - do not try to manually resolve
+2. Search for the prerequisite PR that added the missing code:
+   ```powershell
+   # Search git history for when the code was added
+   git log --all --oneline -S "MissingCodeSection" -- FilePath.ext
+   ```
+3. Find the PR number from the commit message
+4. Verify the prerequisite PR is merged but not backported to this release
+5. **Notify the maintainer** to add the backport label to the prerequisite PR:
+   - Comment on the original PR being backported explaining the dependency
+   - Ask maintainer to add `Backport-X.X.x-Consider` label to the prerequisite PR
+   - Example comment: "This PR depends on #XXXXX which needs to be backported first. Can a maintainer please add the Backport-7.5.x-Consider label to #XXXXX?"
+6. **Abort the current backport attempt**:
+   ```powershell
+   git cherry-pick --abort
+   git switch <original-branch>
+   git branch -D backport/release/vX.X/<pr-number>-<hash>
+   ```
+7. Wait for the prerequisite PR to be backported first
+8. Then retry backporting the original PR
+
+**How to identify the prerequisite PR**:
+```powershell
+# Find commits that introduced the missing code
+git log --all --oneline -S "FxDependentDeployment" -- PowerShell.Common.props
+
+# Check which PR introduced it
+gh pr view <commit-pr-number> --repo PowerShell/PowerShell
+```
+
+**Important**: Always backport PRs in dependency order. If PR B depends on PR A, backport A first.
 
 #### 1. Parameter Additions
 
