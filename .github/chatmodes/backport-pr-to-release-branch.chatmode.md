@@ -42,10 +42,11 @@ Your conversation MUST follow this exact sequence. Do not deviate or skip steps.
    ```
    ✅ Initialization complete. Read all 6 instruction files.
 
-   Key requirements loaded:
-   • Branch naming: backport/release/v<version>/<pr-number>-<short-hash>
-   • Labels: NEVER modify Backport-*-Approved (maintainer-only)
-   • PR template: Must include Impact, Regression, Testing, Risk sections
+   Key requirements loaded from instruction files:
+   • Branch naming conventions (see branch-naming.instructions.md)
+   • Label management rules (see label-system.instructions.md)
+   • PR template requirements (see pr-template.instructions.md)
+   • Conflict resolution strategies (see conflict-resolution.instructions.md)
 
    Ready to begin backport process.
    ```
@@ -100,11 +101,9 @@ Wait for user response.
    gh pr list --repo PowerShell/PowerShell --search "in:title [release/v{version}] {title}" --state all
    ```
 
-4. Check backport labels on original PR:
-   - `Backport-{version}.x-Done` → Already complete
-   - `Backport-{version}.x-Migrated` → In progress
-   - `Backport-{version}.x-Approved` → Ready to backport
-   - `Backport-{version}.x-Consider` → Needs consideration
+4. Check backport labels on original PR (see label-system.instructions.md for complete workflow):
+   - Interpret label state and existing backport status
+   - Check for discrepancies (e.g., Migrated label but no PR found)
 
 5. Present findings:
    ```
@@ -122,6 +121,12 @@ Wait for user response.
 
    {If Done: "⚠️ This PR appears to already be backported to v{version}. Are you sure you want to create another backport?"}
    {If Migrated: "⚠️ A backport PR already exists for v{version}. Do you want to create a new attempt?"}
+   {If Migrated but NO backport PR found: "⚠️ **Important**: The label `Backport-{version}.x-Migrated` indicates a backport PR has already been created for v{version}. However, I cannot find an existing backport PR with that title. This could mean:
+   1. The backport PR was created but has a different title format
+   2. The label was applied in error
+   3. The backport PR was closed/deleted
+
+   I searched for PRs with this title in the PowerShell/PowerShell repository but found none. Do you want to proceed creating a new backport anyway?"}
    {If no issues: "✅ Ready to proceed with backport"}
    ```
 
@@ -135,16 +140,43 @@ Wait for user confirmation.
 
 Only proceed after user confirms "yes" or equivalent.
 
-1. Inform user:
-   ```
-   Creating backport branch: backport/release/v{version}/{pr-number}-{short-hash}
+1. **Pre-flight check for local changes:**
+   ```bash
+   git status --porcelain
    ```
 
-2. Execute git commands:
+   If there are uncommitted changes:
+   ```
+   ⚠️ You have uncommitted local changes that would be overwritten:
+
+   {list changed files}
+
+   What would you like to do?
+   1. Stash changes (will be saved for later)
+   2. Commit changes first
+   3. Cancel backport
+
+   Enter your choice (1, 2, or 3):
+   ```
+
+   Wait for user response. If choice is 1:
+   ```bash
+   git stash push -m "Stashing changes before backport of PR {pr-number}"
+   ```
+
+2. Inform user:
+   ```
+   Creating backport branch using format from branch-naming.instructions.md:
+   backport/release/v{version}/{pr-number}-{short-hash}
+   ```
+
+3. Execute git commands:
    ```bash
    git fetch origin release/v{version}
    git checkout -b backport/release/v{version}/{pr-number}-{short-hash} origin/release/v{version}
    ```
+
+   **Note**: Branch naming format is defined in `branch-naming.instructions.md`. Do not deviate from the standard format.
 
 3. Cherry-pick the merge commit:
    ```bash
@@ -175,13 +207,14 @@ Only proceed after user confirms "yes" or equivalent.
    I need to resolve these conflicts. Let me analyze the original PR diff...
    ```
 
-   Then:
-   - Fetch original PR diff: `gh pr diff {pr-number} --repo PowerShell/PowerShell`
-   - Analyze conflicts using guidance from `conflict-resolution.instructions.md`
-   - For each conflicting file:
-     - Identify conflict type (parameter mismatch, refactoring, etc.)
-     - Determine resolution strategy
-     - Apply the fix (preserving release branch patterns)
+   **Conflict resolution workflow:**
+   1. Fetch original PR diff: `gh pr diff {pr-number} --repo PowerShell/PowerShell`
+   2. Apply resolution strategies from `conflict-resolution.instructions.md`:
+      - **Key principle**: Apply the *change* from the PR, not make code identical to main
+      - Preserve release branch patterns and code structure
+      - Identify conflict type and choose appropriate resolution
+   3. For each conflicting file, document the resolution
+   4. Present detailed summary to user for approval
 
    Present resolution summary:
    ```
@@ -195,8 +228,8 @@ Only proceed after user confirms "yes" or equivalent.
 
    [Repeat for each file]
 
-   I've resolved the conflicts by applying the backport's intent while preserving
-   release branch code patterns. Review the resolution above.
+   All conflicts resolved following strategies from conflict-resolution.instructions.md.
+   Review the resolution above.
 
    Proceed with these resolutions? (yes/no)
    ```
@@ -240,62 +273,32 @@ Wait for confirmation.
 
 After user confirms:
 
-1. Build PR body using template from `pr-template.instructions.md`:
+1. Build PR body using the complete template from `pr-template.instructions.md`.
 
-   ```markdown
-   Backport of #{pr-number} to release/v{version}
+   **Chatmode-specific filling guidance:**
 
-   <!--
-   DO NOT MODIFY THIS COMMENT. IT IS AUTO-GENERATED.
-   $$$originalprnumber:{pr-number}$$$
-   -->
+   - **Title format**: `[release/v{version}] {original-title}`
+   - **Auto-generated comment**: Include with `$$$originalprnumber:{pr-number}$$$` (never modify)
+   - **Attribution**: `Triggered by @{current-user} on behalf of @{original-author}`
+   - **CL Label**: Include if original PR had one
+   - **Maintainer CC**: Always include `/cc @PowerShell/powershell-maintainers`
 
-   Triggered by @{current-user} on behalf of @{original-author}
+   **Pre-filled defaults (adjust based on analysis):**
+   - **Regression**: Pre-check `[x] No` unless original explicitly fixes a regression
+   - **Risk**: Pre-check `[x] Medium` by default
+     - Adjust to `[x] High` for: core engine, security, breaking changes, build infrastructure
+     - Adjust to `[x] Low` for: documentation only, test-only changes
 
-   {If CL label exists:}Original CL Label: {cl-label}
+   **Required content to analyze and include:**
+   - **Impact**: Determine Tooling vs Customer impact from original PR
+   - **Testing**: Both original PR testing AND backport verification steps
+   - **Risk justification**: Explain why you selected the risk level
 
-   /cc @PowerShell/powershell-maintainers
+   **If conflicts occurred in Step 2:**
+   - Add "## Merge Conflicts" section after Risk section
+   - Include the detailed resolution summary from Step 2
 
-   ## Impact
-
-   {Analyze the original PR and fill out - ask user if needed:}
-
-   ### Tooling Impact
-   - [ ] Required tooling change
-   - [ ] Optional tooling change
-
-   {or}
-
-   ### Customer Impact
-   - [ ] Customer reported
-   - [ ] Found internally
-
-   {Provide description based on original PR}
-
-   ## Regression
-
-   - [ ] Yes
-   - [ ] No
-
-   {Determine based on original PR description}
-
-   ## Testing
-
-   {Describe how original PR was tested and how backport was verified}
-
-   ## Risk
-
-   - [ ] High
-   - [ ] Medium
-   - [ ] Low
-
-   {Justify based on change scope and impact}
-
-   {If conflicts were resolved:}
-   ## Merge Conflicts
-
-   {Include the conflict resolution summary from Step 2}
-   ```
+   See `pr-template.instructions.md` for complete template structure and examples.
 
 2. Show PR body to user:
    ```
@@ -318,10 +321,36 @@ After user confirms:
      --head {remote}:backport/release/v{version}/{pr-number}-{short-hash}
    ```
 
-5. Capture new PR number and confirm:
+   **Note:** `gh pr create` defaults to the repository's default branch. Base branch will be updated in Step 4.5.
+
+   See `gh-cli-usage.instructions.md` for detailed command options and troubleshooting.
+
+5. Capture new PR number from the URL output.
+
+---
+
+## STEP 4.5: Update Base Branch (CRITICAL)
+
+**This step is mandatory because `gh pr create` defaults to the main branch, not the release branch.**
+
+1. Update the PR's base branch to the target release branch:
+   ```bash
+   gh pr edit {backport-pr-number} --base release/v{version} --repo PowerShell/PowerShell
    ```
-   ✅ Created backport PR #{new-pr-number}
-   URL: {pr-url}
+
+2. Verify the base branch is correct:
+   ```bash
+   gh pr view {backport-pr-number} --repo PowerShell/PowerShell --json baseRefName,headRefName
+   ```
+
+3. Confirm:
+   ```
+   ✅ Base branch updated successfully
+
+   PR #{backport-pr-number}:
+   • Base: release/v{version} ✓
+   • Head: {remote}:backport/release/v{version}/{pr-number}-{short-hash}
+   • URL: {pr-url}
 
    Ready to add labels. Continue? (yes/no)
    ```
@@ -337,18 +366,16 @@ After user confirms:
    gh pr edit {backport-pr-number} --repo PowerShell/PowerShell --add-label "{cl-label}"
    ```
 
-2. Update original PR labels:
+2. Update original PR labels per `label-system.instructions.md`:
    ```bash
    gh pr edit {original-pr-number} --repo PowerShell/PowerShell \
      --add-label "Backport-{version}.x-Migrated" \
      --remove-label "Backport-{version}.x-Consider"
    ```
 
-   **Note:** If original had `Backport-{version}.x-Approved`, also remove it:
-   ```bash
-   gh pr edit {original-pr-number} --repo PowerShell/PowerShell \
-     --remove-label "Backport-{version}.x-Approved"
-   ```
+   **Important**: If original had `Backport-{version}.x-Approved`, also remove it (maintainer-only label).
+
+   See `label-system.instructions.md` for complete label workflow and `gh-cli-usage.instructions.md` for command details.
 
 3. Confirm:
    ```
@@ -401,6 +428,22 @@ If no, end conversation.
 ---
 
 ## Error Handling
+
+### If user cancels a tool call:
+```
+⚠️ Operation cancelled by user.
+
+Would you like to:
+1. Retry the same operation
+2. Skip and continue to next step (may cause issues)
+3. Exit and start over later
+
+Enter your choice (1, 2, or 3):
+```
+
+If user chooses 1, retry the same command.
+If user chooses 2, proceed but warn about potential issues.
+If user chooses 3, end gracefully with state summary.
 
 ### If PR is not merged:
 ```
