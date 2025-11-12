@@ -104,22 +104,23 @@ If you cannot answer these, you skipped Step 0. Go back to the top and read all 
 
 ### Step 1: Verify the original PR exists and is merged
 
-**PREFERRED**: Use the PowerShell Backport MCP server for comprehensive validation:
+**CRITICAL: Use the PowerShell Backport MCP server as the PRIMARY method** (as specified in `backport-process.instructions.md`):
 
-1. **Get comprehensive PR information using MCP server**:
+1. **ALWAYS start by using the MCP server for comprehensive PR information**:
    ```powershell
    mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
    ```
 
-   This single call provides:
+   This single call provides ALL required information:
    - PR number, title, state, author, URL
+   - Merge commit SHA (full hash)
    - All backport labels for all versions
    - Changelog labels (CL-*)
    - LinkedPRs (dependency information)
 
-2. **Validate the response**:
+2. **Validate the MCP server response**:
    - Confirm `State` is `"MERGED"`
-   - Extract merge commit SHA (will need separate `gh pr view` call if needed)
+   - Extract `MergeCommit` SHA (both full and short version)
    - Note all `BackportLabels` for the target version
    - Note any `LinkedPRs` indicating dependencies
    - Extract `ChangelogLabels` for PR labeling
@@ -131,17 +132,19 @@ If you cannot answer these, you skipped Step 0. Go back to the top and read all 
 
 4. **Interpret backport status from labels**:
    - `BackPort-<version>.x-Migrated`: Previous backport attempt (may have failed)
-   - `BackPort-<version>.x-Done`: Already backported successfully  
+   - `BackPort-<version>.x-Done`: Already backported successfully
    - `BackPort-<version>.x-Approved`: Ready for backporting
    - `BackPort-<version>.x-Consider`: Under consideration for backporting
 
    **If status is "Done"**: Inform user that backport may already be complete.
    **If LinkedPRs exist**: Check if prerequisite PRs need backporting first.
 
-**FALLBACK**: If MCP server unavailable, use manual GitHub CLI:
+**FALLBACK ONLY**: If MCP server is unavailable or throws an error, fall back to manual GitHub CLI:
    ```powershell
    gh pr view <pr-number> --repo PowerShell/PowerShell --json number,title,state,mergeCommit,author,labels,url
    ```
+
+   **Note**: The manual method requires multiple calls and doesn't provide LinkedPRs information. Always attempt the MCP server first.
 
 ### Step 2: Create the backport branch
 
