@@ -173,7 +173,7 @@ Only proceed after user confirms "yes" or equivalent.
 3. Execute git commands:
    ```bash
    git fetch origin release/v{version}
-   git checkout -b backport/release/v{version}/{pr-number}-{short-hash} origin/release/v{version}
+   git checkout -b backport/release/v{version}/{pr-number}-{short-hash} upstream/release/v{version}
    ```
 
    **Note**: Branch naming format is defined in `branch-naming.instructions.md`. Do not deviate from the standard format.
