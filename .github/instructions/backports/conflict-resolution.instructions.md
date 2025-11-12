@@ -21,6 +21,21 @@ The release branch may have different code than main. Your goal is to backport t
 
 ### Step 0: Check for Missing Prerequisites FIRST
 
+**CRITICAL**: Always fetch upstream before creating backport branches to avoid prerequisite-related conflicts:
+
+```powershell
+# ALWAYS do this before creating any backport branch
+git fetch upstream
+git fetch upstream release/v7.4  # Replace with your target version
+```
+
+**Why this prevents conflicts**:
+- Gets recently backported prerequisite PRs that your local branch might be missing
+- Prevents conflicts caused by missing template references, code sections, or dependencies
+- Avoids the need to abort and restart backports due to outdated local branches
+
+**If you're already in a conflict situation**, this may be the cause. See "Step 0b: Handle Missing Prerequisites Due to Outdated Local Branch" below.
+
 **BEFORE attempting to resolve any conflicts**, determine if the conflict is due to a missing prerequisite PR.
 
 **Red flags that indicate a missing prerequisite**:
@@ -37,6 +52,43 @@ If you suspect a missing prerequisite:
 6. Delete the backport branch: `git branch -D backport/release/v7.X/XXXXX`
 7. Wait for the prerequisite PR to be labeled and backported first
 8. Start over after the prerequisite is backported
+
+### Step 0b: Handle Missing Prerequisites Due to Outdated Local Branch
+
+**Common Scenario**: Your local release branch is missing recently backported prerequisite PRs.
+
+**Symptoms**:
+- Conflicts involving template references that "should exist" but don't
+- Missing entire code sections that were recently added
+- Cherry-pick fails on changes to code that seems like it should be there
+
+**Solution**:
+1. **Abort the current cherry-pick**:
+   ```powershell
+   git cherry-pick --abort
+   ```
+
+2. **Fetch latest upstream changes**:
+   ```powershell
+   git fetch upstream release/v7.4  # Replace with your target version
+   ```
+
+3. **Check if upstream has recent backports you're missing**:
+   ```powershell
+   git log --oneline HEAD..upstream/release/v7.4
+   ```
+
+4. **Reset your branch to latest upstream**:
+   ```powershell
+   git reset --hard upstream/release/v7.4
+   ```
+
+5. **Retry the cherry-pick**:
+   ```powershell
+   git cherry-pick MERGE-COMMIT-SHA
+   ```
+
+This often resolves "missing prerequisite" conflicts that are actually just due to outdated local branches.
 
 ### Step 1: Analyze the Original Change
 

@@ -222,12 +222,25 @@ git fetch upstream
 ### "GitHub CLI is not installed" Error
 Install from https://cli.github.com/ and restart terminal.
 
-### Cherry-pick Conflicts
+
+
+### Cherry-pick Conflicts (General)
 Manually resolve conflicts, stage files, and continue cherry-pick.
 
 ### "Commit does not exist" Error
 ```bash
 git fetch upstream
+```
+
+### Local Branch Behind Upstream
+If your local release branch is behind upstream and missing recent backports:
+```bash
+# Check if upstream has newer commits
+git log --oneline release/v7.4..upstream/release/v7.4
+
+# If yes, update your local branch
+git fetch upstream release/v7.4
+git reset --hard upstream/release/v7.4
 ```
 
 ## Related Resources
