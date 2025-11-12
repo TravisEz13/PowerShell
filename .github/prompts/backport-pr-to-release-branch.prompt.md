@@ -104,30 +104,44 @@ If you cannot answer these, you skipped Step 0. Go back to the top and read all 
 
 ### Step 1: Verify the original PR exists and is merged
 
-1. Fetch the original PR information using the PR number
-2. Confirm the PR state is `MERGED`
-3. Extract the following information:
-   - Merge commit SHA
-   - Original PR title
-   - Original PR author
-   - Original CL label (if present, typically starts with `CL-`)
+**PREFERRED**: Use the PowerShell Backport MCP server for comprehensive validation:
 
-If the PR is not merged, stop and inform the user.
-
-4. Check if backport already exists or has been attempted:
+1. **Get comprehensive PR information using MCP server**:
    ```powershell
-   gh pr list --repo PowerShell/PowerShell --search "in:title [release/v7.4] <original-title>" --state all
+   mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
    ```
 
-   If a backport PR already exists, inform the user and ask if they want to continue.
+   This single call provides:
+   - PR number, title, state, author, URL
+   - All backport labels for all versions
+   - Changelog labels (CL-*)
+   - LinkedPRs (dependency information)
 
-5. Check backport labels to understand status:
-   - `Backport-7.4.x-Migrated`: Indicates previous backport attempt (may have failed or had issues)
-   - `Backport-7.4.x-Done`: Already backported successfully
-   - `Backport-7.4.x-Approved`: Ready for backporting
-   - `Backport-7.4.x-Consider`: Under consideration for backporting
+2. **Validate the response**:
+   - Confirm `State` is `"MERGED"`
+   - Extract merge commit SHA (will need separate `gh pr view` call if needed)
+   - Note all `BackportLabels` for the target version
+   - Note any `LinkedPRs` indicating dependencies
+   - Extract `ChangelogLabels` for PR labeling
 
-   If status is "Done", inform the user that backport may already be complete.
+3. **Check for existing backport PRs**:
+   ```powershell
+   gh pr list --repo PowerShell/PowerShell --search "in:title [release/v<version>] <original-title>" --state all
+   ```
+
+4. **Interpret backport status from labels**:
+   - `BackPort-<version>.x-Migrated`: Previous backport attempt (may have failed)
+   - `BackPort-<version>.x-Done`: Already backported successfully  
+   - `BackPort-<version>.x-Approved`: Ready for backporting
+   - `BackPort-<version>.x-Consider`: Under consideration for backporting
+
+   **If status is "Done"**: Inform user that backport may already be complete.
+   **If LinkedPRs exist**: Check if prerequisite PRs need backporting first.
+
+**FALLBACK**: If MCP server unavailable, use manual GitHub CLI:
+   ```powershell
+   gh pr view <pr-number> --repo PowerShell/PowerShell --json number,title,state,mergeCommit,author,labels,url
+   ```
 
 ### Step 2: Create the backport branch
 

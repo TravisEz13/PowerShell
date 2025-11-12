@@ -11,6 +11,49 @@ applyTo:
 
 Backporting in the PowerShell repository involves applying changes from a merged PR on the main branch to a release branch (e.g., `release/v7.4`, `release/v7.5`). This ensures critical fixes and approved features reach released versions.
 
+## PowerShell Backport MCP Server
+
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server for comprehensive PR information and backport status validation.
+
+### Get PR Backport Information
+
+```powershell
+# Get comprehensive backport information for a PR
+mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
+```
+
+**Returns**:
+- PR number, title, state, author, URL
+- All backport labels (e.g., `BackPort-7.6.x-Consider`)
+- Changelog labels (e.g., `CL-BuildPackaging`)
+- Linked/dependent PRs
+
+**Example**:
+```json
+{
+  "PRNumber": 26404,
+  "Title": "Update PSResourceGet package version to preview4",
+  "State": "MERGED", 
+  "Author": "adityapatwardhan",
+  "Url": "https://github.com/PowerShell/PowerShell/pull/26404",
+  "BackportLabels": ["BackPort-7.6.x-Consider"],
+  "ChangelogLabels": ["CL-BuildPackaging"],
+  "LinkedPRs": []
+}
+```
+
+### Advantages of MCP Server
+
+- **Single call** gets all required backport information
+- **Comprehensive status** including all backport labels across versions
+- **Dependency detection** via LinkedPRs field
+- **Authoritative source** from PowerShell repository data
+- **Consistent format** for automation and validation
+
+### Fallback Methods
+
+If MCP server is unavailable, use manual GitHub CLI commands as documented in the rest of this guide.
+
 ## Backport Label System
 
 Labels follow the pattern: `Backport-<version>.x-<state>`

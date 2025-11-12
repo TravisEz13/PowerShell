@@ -82,7 +82,24 @@ gh pr list `
 
 ## Getting PR Information
 
-### Fetch PR Details
+### Using PowerShell Backport MCP Server (PREFERRED)
+
+```powershell
+# Get comprehensive backport information (single call)
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
+
+# Access fields
+$prInfo.PRNumber        # PR number
+$prInfo.Title           # PR title  
+$prInfo.State           # MERGED, OPEN, CLOSED
+$prInfo.Author          # Author username
+$prInfo.Url             # PR URL
+$prInfo.BackportLabels  # All backport labels (e.g., ["BackPort-7.6.x-Consider"])
+$prInfo.ChangelogLabels # CL labels (e.g., ["CL-BuildPackaging"])
+$prInfo.LinkedPRs       # Dependent PR numbers (e.g., [25837])
+```
+
+### Using GitHub CLI (FALLBACK)
 
 ```powershell
 # Get comprehensive PR information
