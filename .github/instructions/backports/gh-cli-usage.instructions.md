@@ -82,66 +82,19 @@ gh pr list `
 
 ## Getting PR Information
 
-### Using PowerShell Backport MCP Server (PREFERRED)
+For detailed examples of using `gh pr view` to retrieve PR information, see: `.github/instructions/backports/gh-pr-view-examples.instructions.md`
 
-```powershell
-# Get comprehensive backport information (single call)
-$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
-
-# Access fields
-$prInfo.PRNumber        # PR number
-$prInfo.Title           # PR title  
-$prInfo.State           # MERGED, OPEN, CLOSED
-$prInfo.Author          # Author username
-$prInfo.Url             # PR URL
-$prInfo.BackportLabels  # All backport labels (e.g., ["BackPort-7.6.x-Consider"])
-$prInfo.ChangelogLabels # CL labels (e.g., ["CL-BuildPackaging"])
-$prInfo.LinkedPRs       # Dependent PR numbers (e.g., [25837])
-```
-
-### Using GitHub CLI (FALLBACK)
+### Quick Reference
 
 ```powershell
 # Get comprehensive PR information
-$pr = gh pr view 26193 `
+$pr = gh pr view <pr-number> `
     --repo PowerShell/PowerShell `
-    --json number,title,state,mergeCommit,author,labels,body,url `
+    --json number,title,state,mergeCommit,author,labels,url `
     | ConvertFrom-Json
 
-# Access specific fields
-$pr.number          # PR number
-$pr.title           # PR title
-$pr.state           # OPEN, CLOSED, MERGED
-$pr.mergeCommit.oid # Merge commit SHA
-$pr.author.login    # Author username
-$pr.labels          # Array of labels
-$pr.body            # PR description
-$pr.url             # PR URL
-```
-
-### Extract CL Label
-
-```powershell
-# Get changelog label from PR
-$clLabel = $pr.labels |
-    Where-Object { $_.name -like "CL-*" } |
-    Select-Object -First 1 -ExpandProperty name
-
-# Common CL labels:
-# - CL-BuildPackaging
-# - CL-Engine
-# - CL-General
-# - CL-Cmdlets-Utility
-```
-
-### Get PR Diff
-
-```powershell
-# Save PR diff to file for analysis
-gh pr diff 26193 --repo PowerShell/PowerShell | Out-File pr-26193.diff
-
-# View diff directly
-gh pr diff 26193 --repo PowerShell/PowerShell | more
+# Get PR diff
+gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
 ```
 
 ## Creating Backport PRs

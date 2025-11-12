@@ -85,27 +85,23 @@ Wait for user response.
 
 ### Once you have PR number and version:
 
-1. Fetch PR details:
-   ```powershell
-   gh pr view {pr-number} --repo PowerShell/PowerShell --json number,title,state,mergeCommit,author,labels,url
-   ```
+1. **Fetch PR details** using the PowerShell Backport MCP Server (see `backport-process.instructions.md` for details):
+   - Use `mcp_powershell_ba_Get_PRBackportInfo` to get comprehensive PR information
+   - This returns: PR state, merge commit, author, backport labels, CL labels, and **linked PRs** (existing backports)
 
 2. Validate:
    - ✅ PR state is "MERGED" (if not, STOP and inform user)
    - ✅ Extract merge commit SHA (full and short hash)
    - ✅ Extract CL label (if present)
    - ✅ Extract author
+   - ✅ Check LinkedPRs field for existing backport PRs
 
-3. Check for existing backport:
-   ```powershell
-   gh pr list --repo PowerShell/PowerShell --search "in:title [release/v{version}] {title}" --state all
-   ```
-
-4. Check backport labels on original PR (see label-system.instructions.md for complete workflow):
+3. Check backport labels on original PR (see label-system.instructions.md for complete workflow):
    - Interpret label state and existing backport status
-   - Check for discrepancies (e.g., Migrated label but no PR found)
+   - Use LinkedPRs to identify existing backport PRs
+   - Check for discrepancies (e.g., Migrated label but no linked PR found)
 
-5. Present findings:
+4. Present findings:
    ```
    📋 PR Validation Results:
 
@@ -126,11 +122,11 @@ Wait for user response.
    2. The label was applied in error
    3. The backport PR was closed/deleted
 
-   I searched for PRs with this title in the PowerShell/PowerShell repository but found none. Do you want to proceed creating a new backport anyway?"}
+   Do you want to proceed creating a new backport anyway?"}
    {If no issues: "✅ Ready to proceed with backport"}
    ```
 
-6. Ask: **"Proceed with creating backport branch? (yes/no)"**
+5. Ask: **"Proceed with creating backport branch? (yes/no)"**
 
 Wait for user confirmation.
 
@@ -325,23 +321,20 @@ After user confirms:
 
    See `gh-cli-usage.instructions.md` for detailed command options and troubleshooting.
 
-5. Capture new PR number from the URL output.
+5. Capture new PR number from the creation output.
 
 ---
 
 ## STEP 4.5: Update Base Branch (CRITICAL)
 
-**This step is mandatory because `gh pr create` defaults to the main branch, not the release branch.**
+**This step is only needed if the base branch was not set correctly during PR creation.**
 
 1. Update the PR's base branch to the target release branch:
    ```bash
    gh pr edit {backport-pr-number} --base release/v{version} --repo PowerShell/PowerShell
    ```
 
-2. Verify the base branch is correct:
-   ```bash
-   gh pr view {backport-pr-number} --repo PowerShell/PowerShell --json baseRefName,headRefName
-   ```
+2. Verify the base branch is correct by checking the PR details
 
 3. Confirm:
    ```
@@ -530,3 +523,14 @@ A successful backport includes:
 - ✅ Labels updated correctly (added Migrated, removed Consider)
 - ✅ CL label copied to backport PR
 - ✅ User informed of completion with clear next steps
+
+---
+
+## Alternative Methods
+
+This chatmode uses the PowerShell Backport MCP Server and instruction file references as the primary method for backporting PRs. If the MCP server is unavailable or you need to use alternative approaches:
+
+- **GitHub CLI fallback commands**: See `.github/instructions/backports/gh-pr-view-examples.instructions.md` for comprehensive `gh pr view` and `gh pr` command examples
+- **Manual PowerShell tools**: See `.github/instructions/backports/backport-process.instructions.md` for using `Invoke-PRBackport` from `tools/releaseTools.psm1`
+
+These alternative methods are documented separately to keep this chatmode focused on the preferred MCP-based workflow.
