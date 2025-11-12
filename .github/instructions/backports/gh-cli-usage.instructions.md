@@ -64,6 +64,10 @@ $prs | Sort-Object mergedAt | Select-Object number, title, mergedAt
 
 ### Check for Existing Backports
 
+**Note**: The PowerShell Backport MCP Server provides existing backport information via the LinkedPRs field in `mcp_powershell_ba_Get_PRBackportInfo`. Use that as the primary method.
+
+If MCP server is unavailable, you can search manually:
+
 ```powershell
 # Search for existing backport PRs
 gh pr list `
@@ -82,20 +86,9 @@ gh pr list `
 
 ## Getting PR Information
 
-For detailed examples of using `gh pr view` to retrieve PR information, see: `.github/instructions/backports/gh-pr-view-examples.instructions.md`
+**Note**: The PowerShell Backport MCP Server (`mcp_powershell_ba_Get_PRBackportInfo`) is the preferred method for getting PR information as it provides comprehensive backport status in a single call.
 
-### Quick Reference
-
-```powershell
-# Get comprehensive PR information
-$pr = gh pr view <pr-number> `
-    --repo PowerShell/PowerShell `
-    --json number,title,state,mergeCommit,author,labels,url `
-    | ConvertFrom-Json
-
-# Get PR diff
-gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
-```
+For detailed examples of using `gh pr view` as a fallback method, see: `.github/instructions/backports/gh-pr-view-examples.instructions.md`
 
 ## Creating Backport PRs
 
