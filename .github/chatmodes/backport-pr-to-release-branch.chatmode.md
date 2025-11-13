@@ -179,17 +179,25 @@ Only proceed after user confirms "yes" or equivalent.
    ```
    Creating backport branch using format from branch-naming.instructions.md:
    backport/release/v{version}/{pr-number}-{short-hash}
+   
+   Fetching latest upstream changes and creating branch with upstream tracking...
    ```
 
-3. Execute git commands:
+3. **Execute git commands with upstream tracking:**
    ```bash
-   git fetch origin release/v{version}
+   git fetch upstream release/v{version}
    git checkout -b backport/release/v{version}/{pr-number}-{short-hash} upstream/release/v{version}
    ```
 
+   **CRITICAL**: This command:
+   - Fetches the latest release branch from upstream
+   - Creates the backport branch from upstream/release/v{version}
+   - **Automatically sets upstream tracking** (required by MCP server for PR creation)
+   - Ensures branch is based on the correct parent commit
+
    **Note**: Branch naming format is defined in `branch-naming.instructions.md`. Do not deviate from the standard format.
 
-3. Cherry-pick the merge commit:
+4. Cherry-pick the merge commit:
    ```bash
    git cherry-pick {merge-commit-sha}
    ```

@@ -1,7 +1,6 @@
 ---
 applyTo:
   - "tools/releaseTools.psm1"
-  - ".github/prompts/backport-pr-to-release-branch.prompt.md"
   - ".github/agents/backport-agent.md"
 ---
 
