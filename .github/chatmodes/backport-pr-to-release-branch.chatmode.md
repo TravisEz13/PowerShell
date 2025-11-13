@@ -91,12 +91,12 @@ Wait for user response.
 
 1. **Fetch PR details** using the PowerShell Backport MCP Server (preferred method):
    ```powershell
-   mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
+   $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
    ```
 
    This returns comprehensive PR information:
    - PR state, title, author, URL
-   - Merge commit SHA (use for cherry-pick)
+   - **Merge commit SHA** (stored in `MergeCommit` field - use for cherry-pick)
    - All backport labels (e.g., `BackPort-7.6.x-Consider`)
    - Changelog labels (e.g., `CL-BuildPackaging`)
    - **LinkedPRs**: Existing backport PRs for this change
@@ -151,77 +151,87 @@ Wait for user confirmation.
 
 Only proceed after user confirms "yes" or equivalent.
 
-1. **Pre-flight check for local changes:**
-   ```bash
-   git status --porcelain
+**PREFERRED METHOD**: Use the PowerShell Backport MCP Server to automate branch creation and cherry-pick.
+
+1. Inform user:
    ```
-
-   If there are uncommitted changes:
-   ```
-   ⚠️ You have uncommitted local changes that would be overwritten:
-
-   {list changed files}
-
-   What would you like to do?
-   1. Stash changes (will be saved for later)
-   2. Commit changes first
-   3. Cancel backport
-
-   Enter your choice (1, 2, or 3):
-   ```
-
-   Wait for user response. If choice is 1:
-   ```bash
-   git stash push -m "Stashing changes before backport of PR {pr-number}"
-   ```
-
-2. Inform user:
-   ```
-   Creating backport branch using format from branch-naming.instructions.md:
-   backport/release/v{version}/{pr-number}-{short-hash}
+   Creating backport branch using MCP server...
    
-   Fetching latest upstream changes and creating branch with upstream tracking...
+   Branch format: backport/release/v{version}/{pr-number}-{short-hash}
+   This will automatically:
+   • Fetch latest upstream changes
+   • Create properly named branch
+   • Set up upstream tracking
+   • Cherry-pick the merge commit
+   • Detect any merge conflicts
    ```
 
-3. **Execute git commands with upstream tracking:**
-   ```bash
-   git fetch upstream release/v{version}
-   git checkout -b backport/release/v{version}/{pr-number}-{short-hash} upstream/release/v{version}
+2. **Execute MCP server call:**
+   ```powershell
+   $result = mcp_powershell_ba_New_BackportBranch `
+       -RepoFullPath $PWD `
+       -PRNumber {pr-number} `
+       -MergeCommitSHA $prInfo.MergeCommit `
+       -TargetBranch "release/v{version}"
    ```
 
-   **CRITICAL**: This command:
-   - Fetches the latest release branch from upstream
-   - Creates the backport branch from upstream/release/v{version}
-   - **Automatically sets upstream tracking** (required by MCP server for PR creation)
-   - Ensures branch is based on the correct parent commit
+   **What this tool does automatically**:
+   - ✅ Checks for uncommitted changes (fails if working directory is dirty)
+   - ✅ Fetches `upstream/release/v{version}`
+   - ✅ Creates branch: `backport/release/v{version}/{pr-number}-{short-hash}`
+   - ✅ Sets upstream tracking to the release branch
+   - ✅ Cherry-picks the merge commit
+   - ✅ Detects and reports conflicts with file list
 
-   **Note**: Branch naming format is defined in `branch-naming.instructions.md`. Do not deviate from the standard format.
+   See `mcp-integration.instructions.md` for complete tool documentation.
 
-4. Cherry-pick the merge commit:
-   ```bash
-   git cherry-pick {merge-commit-sha}
-   ```
-
-4. **Handle outcomes:**
+3. **Handle outcomes:**
 
    **A) Success (no conflicts):**
+   
+   The MCP server will return:
+   ```powershell
+   @{
+       BranchName = "backport/release/v{version}/{pr-number}-{short-hash}"
+       Success = $true
+       ConflictFiles = @()
+       Message = "Successfully created backport branch and cherry-picked commit"
+   }
    ```
-   ✅ Cherry-pick successful!
+
+   Present to user:
+   ```
+   ✅ Branch created successfully!
+
+   Branch: {result.BranchName}
+   Status: Cherry-pick completed without conflicts
 
    Changes applied:
-   {list changed files}
+   {list changed files from git diff}
 
-   Ready to push branch. Proceed? (yes/no)
+   Ready to create PR. Proceed? (yes/no)
    ```
 
    Wait for confirmation, then go to Step 3.
 
    **B) Conflicts occurred:**
+   
+   The MCP server will return:
+   ```powershell
+   @{
+       BranchName = "backport/release/v{version}/{pr-number}-{short-hash}"
+       Success = $false
+       ConflictFiles = @("file1.cs", "file2.ps1", ...)
+       Message = "Cherry-pick resulted in conflicts..."
+   }
+   ```
+
+   Present to user:
    ```
    ⚠️ Merge conflicts detected!
 
-   Conflicting files:
-   {list files from git status}
+   Branch created: {result.BranchName}
+   Conflicting files: {result.ConflictFiles -join ', '}
 
    I need to resolve these conflicts. Let me analyze the original PR diff...
    ```
@@ -261,6 +271,13 @@ Only proceed after user confirms "yes" or equivalent.
    git cherry-pick --continue
    ```
 
+**FALLBACK**: If MCP server unavailable, use manual git commands:
+```bash
+git fetch upstream release/v{version}
+git checkout -b backport/release/v{version}/{pr-number}-{short-hash} upstream/release/v{version}
+git cherry-pick {merge-commit-sha}
+```
+
 ---
 
 ## STEP 3: Create Backport PR
@@ -271,6 +288,8 @@ Only proceed after user confirms "yes" or equivalent.
 - Creates the PR with properly formatted title and body
 
 No manual push or label addition is needed.
+
+**Prerequisites**: Branch must be created (either via `New_BackportBranch` MCP tool or manual git commands).
 
 After cherry-pick succeeds (or conflicts are resolved):
 
@@ -316,20 +335,21 @@ After cherry-pick succeeds (or conflicts are resolved):
    ```powershell
    # Use MCP server to create backport PR (preferred method)
    $backportUrl = mcp_powershell_ba_New_BackportPR `
+       -RepoFullPath $PWD `
        -OriginalPRNumber {pr-number} `
        -TargetBranch "release/v{version}" `
-       -HeadBranch "backport/release/v{version}/{pr-number}-{short-hash}" `
-       -OriginalTitle "{original-title}" `
-       -OriginalAuthor "{original-author}" `
+       -HeadBranch $result.BranchName `
+       -OriginalTitle $prInfo.Title `
+       -OriginalAuthor $prInfo.Author `
        -CurrentUser "{current-user}" `
-       -OriginalCLLabel "{cl-label}" `
+       -OriginalCLLabel ($prInfo.ChangelogLabels | Select-Object -First 1) `
        -TestingDescription "{testing-description}" `
        -Risk "{High/Medium/Low}" `
        -RiskJustification "{risk-justification}" `
        -ToolingImpact "{Required/Optional}" `
        -ToolingDescription "{tooling-description}" `
        {If customer impact: -CustomerImpact "{CustomerReported/FoundInternally}" -CustomerDescription "{customer-description}"} `
-       {If regression: -IsRegression $true -RegressionDetails "{regression-details}"} `
+       {If regression: -IsRegression -RegressionDetails "{regression-details}"} `
        {If conflicts: -MergeConflicts "{conflict-summary}"}
    ```
 
@@ -527,8 +547,10 @@ If any validation fails, STOP and address the issue before proceeding.
 
 A successful backport includes:
 - ✅ All instruction files read before starting
-- ✅ PR validated as merged
-- ✅ Correct branch name format used
+- ✅ PR validated as merged with merge commit SHA extracted
+- ✅ Backport branch created using MCP server (or manual git if unavailable)
+- ✅ Correct branch name format used (automatic via MCP server)
+- ✅ Upstream tracking set correctly (automatic via MCP server)
 - ✅ Changes cherry-picked (with conflicts resolved if needed)
 - ✅ Branch pushed to `origin` remote (automatic via MCP server)
 - ✅ PR created with complete body following template
@@ -543,6 +565,7 @@ A successful backport includes:
 
 This chatmode uses the **PowerShell Backport MCP Server** as the primary method for:
 - Getting PR information (`mcp_powershell_ba_Get_PRBackportInfo`)
+- Creating backport branch and cherry-picking (`mcp_powershell_ba_New_BackportBranch`)
 - Creating backport PRs (`mcp_powershell_ba_New_BackportPR`)
 - Managing labels (`mcp_powershell_ba_Add_PRLabel`, `mcp_powershell_ba_Remove_PRLabel`, `mcp_powershell_ba_Set_PRBackportMigrated`)
 

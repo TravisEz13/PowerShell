@@ -53,11 +53,75 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
   "State": "MERGED",
   "Author": "adityapatwardhan",
   "Url": "https://github.com/PowerShell/PowerShell/pull/26404",
+  "MergeCommit": "e5d40dc06de24cf3fe6d6316414673af8aba5d2e",
   "BackportLabels": ["BackPort-7.6.x-Consider"],
   "ChangelogLabels": ["CL-BuildPackaging"],
   "LinkedPRs": []
 }
 ```
+
+### Create Backport Branch
+
+**Tool**: `mcp_powershell_ba_New_BackportBranch`
+
+**Purpose**: Automates the git operations needed to create a backport branch and cherry-pick the commit. This tool:
+- Fetches the latest upstream changes for the target release branch
+- Creates a properly named backport branch following PowerShell conventions
+- Sets up upstream tracking to the release branch
+- Cherry-picks the merge commit from the original PR
+- Detects and reports any merge conflicts
+
+**Prerequisites**:
+- Git repository must have an `upstream` remote pointing to PowerShell/PowerShell
+- Working directory must be clean (no uncommitted changes)
+- User must have necessary git permissions
+
+**Parameters**:
+- `RepoFullPath` (string, required): The full path to the root of the local git repository
+- `PRNumber` (integer, required): The original PR number being backported
+- `MergeCommitSHA` (string, required): The full merge commit SHA from the original PR
+- `TargetBranch` (string, required): Target release branch (e.g., "release/v7.4", "release/v7.6")
+- `UpstreamRemote` (string, optional): Name of the upstream remote (default: "upstream")
+
+**Returns**: Hashtable with backport branch creation results:
+
+```powershell
+@{
+    BranchName = "backport/release/v7.6/26282-e5d40dc06"
+    Success = $true  # or $false if conflicts occurred
+    ConflictFiles = @()  # Array of file paths with conflicts (if any)
+    Message = "Successfully created backport branch and cherry-picked commit"
+}
+```
+
+**Example Usage**:
+
+```powershell
+# Get PR information first
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26282
+
+# Create backport branch and cherry-pick
+$result = mcp_powershell_ba_New_BackportBranch `
+    -RepoFullPath "Q:\src\git\powershell" `
+    -PRNumber 26282 `
+    -MergeCommitSHA $prInfo.MergeCommit `
+    -TargetBranch "release/v7.6"
+
+# Check result
+if ($result.Success) {
+    Write-Output "Branch created successfully: $($result.BranchName)"
+} else {
+    Write-Warning "Conflicts detected in: $($result.ConflictFiles -join ', ')"
+    # Resolve conflicts manually, stage files, then git cherry-pick --continue
+}
+```
+
+**Notes**:
+- Branch naming follows convention: `backport/release/v<version>/<pr-number>-<short-hash>`
+- Automatically extracts short hash (first 9 characters) from merge commit
+- If conflicts occur, the branch is created and cherry-pick is started, but left in conflict state
+- User must resolve conflicts, stage files, and continue cherry-pick manually
+- See "Handling Merge Conflicts" section in `backport-process.instructions.md` for conflict resolution guidance
 
 ### Create Backport PR
 
@@ -163,7 +227,40 @@ Write-Output "Backport PR created: $backportUrl"
 **FALLBACK**: If MCP server unavailable, use manual GitHub CLI
 ```
 
-### 2. Custom Instructions Updates
+### 2. Branch Creation and Cherry-Pick (STEP 2)
+
+**PREFERRED METHOD**: Use MCP server for automated branch creation and cherry-pick:
+
+```markdown
+### Step 2: Create Backport Branch
+
+**PREFERRED**: Use the PowerShell Backport MCP server to automate git operations:
+
+1. **Get PR information** (if not already done):
+   ```powershell
+   $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
+   ```
+
+2. **Create branch and cherry-pick commit**:
+   ```powershell
+   $result = mcp_powershell_ba_New_BackportBranch `
+       -RepoFullPath $PWD `
+       -PRNumber <pr-number> `
+       -MergeCommitSHA $prInfo.MergeCommit `
+       -TargetBranch "release/v<version>"
+   ```
+
+3. **Check for conflicts**:
+   ```powershell
+   if ($result.Success) {
+       Write-Output "✅ Branch created: $($result.BranchName)"
+   } else {
+       Write-Warning "⚠️ Conflicts detected in: $($result.ConflictFiles -join ', ')"
+       # Proceed to conflict resolution
+   }
+   ```
+
+### 3. Custom Instructions Updates
 
 The interactive backport custom instructions should be updated to include:
 
@@ -172,21 +269,41 @@ The interactive backport custom instructions should be updated to include:
    - Use MCP response for all PR validation
    - Fallback to GitHub CLI if MCP unavailable
 
-2. **Update the workflow flow**:
+2. **Add MCP server usage to STEP 2**:
+   - Replace manual git commands with `New_BackportBranch` call
+   - Use MCP response to detect conflicts early
+
+3. **Update the workflow flow**:
    ```markdown
    ## STEP 1: PR Discovery and Validation
 
    ### Use MCP server for comprehensive PR information:
 
    ```powershell
-   mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
+   $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
    ```
 
    ### Validate the MCP response:
    - ✅ State must be "MERGED"
    - ✅ Extract BackportLabels for target version status
    - ✅ Check LinkedPRs for dependencies
-   - ✅ Note ChangelogLabels for later use
+   - ✅ Note ChangelogLabels and MergeCommit for later use
+
+   ## STEP 2: Create Backport Branch
+
+   ### Use MCP server for automated branch creation:
+
+   ```powershell
+   $result = mcp_powershell_ba_New_BackportBranch `
+       -RepoFullPath $PWD `
+       -PRNumber {pr-number} `
+       -MergeCommitSHA $prInfo.MergeCommit `
+       -TargetBranch "release/v{version}"
+   ```
+
+   ### Check result and handle conflicts if needed:
+   - ✅ If Success = true, proceed to create PR
+   - ⚠️ If Success = false, resolve conflicts in ConflictFiles
    ```
 
 ### 3. Prerequisite Detection Enhancement
@@ -229,28 +346,33 @@ $backportUrl = mcp_powershell_ba_New_BackportPR `
 ## Advantages of MCP Integration
 
 1. **Single Source of Truth**: One call gets all required information
-2. **Comprehensive Status**: All backport labels across all versions
-3. **Dependency Detection**: LinkedPRs field shows PR dependencies
-4. **Consistency**: Reduces variation in manual GitHub CLI usage
-5. **Reliability**: Authoritative data from PowerShell repository systems
-6. **Performance**: Single MCP call vs multiple GitHub CLI calls
+2. **Automated Git Operations**: Branch creation and cherry-pick handled automatically
+3. **Conflict Detection**: Early detection of merge conflicts with file-level detail
+4. **Comprehensive Status**: All backport labels across all versions
+5. **Dependency Detection**: LinkedPRs field shows PR dependencies
+6. **Consistency**: Reduces variation in manual git and GitHub CLI usage
+7. **Reliability**: Authoritative data from PowerShell repository systems
+8. **Performance**: Single MCP call vs multiple git/GitHub CLI commands
+9. **Error Prevention**: Proper branch naming and upstream tracking guaranteed
 
 ## Implementation Priority
 
-### Phase 1: PR Validation (High Priority)
-- Update STEP 1 in custom instructions to use MCP server
-- Fallback to GitHub CLI when MCP unavailable
-- Test with multiple PR scenarios
+### Phase 1: Complete Automation (High Priority) ✅
+- ✅ PR validation using MCP server
+- ✅ Automated branch creation with `New_BackportBranch`
+- ✅ Automated PR creation with `New_BackportPR`
+- ✅ Automated label management
+- Fallback to manual commands when MCP unavailable
 
 ### Phase 2: Enhanced Dependency Detection (Medium Priority)
 - Use LinkedPRs field to identify prerequisite PRs
 - Automatically warn about missing prerequisites
 - Guide users through correct backport ordering
 
-### Phase 3: Full Integration (Low Priority)
-- Replace all GitHub CLI calls where possible
-- Enhanced error handling and validation
-- Automated status reporting
+### Phase 3: Advanced Conflict Resolution (Low Priority)
+- Enhanced conflict analysis and suggestions
+- Automated conflict resolution for common scenarios
+- Integration with code review tools
 
 ## Migration Strategy
 

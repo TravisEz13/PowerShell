@@ -49,6 +49,7 @@ mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
 
 **Returns**:
 - PR number, title, state, author, URL
+- Merge commit SHA (needed for cherry-picking)
 - All backport labels (e.g., `BackPort-7.6.x-Consider`)
 - Changelog labels (e.g., `CL-BuildPackaging`)
 - Linked/dependent PRs
@@ -61,15 +62,55 @@ mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
   "State": "MERGED",
   "Author": "adityapatwardhan",
   "Url": "https://github.com/PowerShell/PowerShell/pull/26404",
+  "MergeCommit": "e5d40dc06de24cf3fe6d6316414673af8aba5d2e",
   "BackportLabels": ["BackPort-7.6.x-Consider"],
   "ChangelogLabels": ["CL-BuildPackaging"],
   "LinkedPRs": []
 }
 ```
 
+### Create Backport Branch
+
+```powershell
+# Get PR information first
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
+
+# Create backport branch and cherry-pick commit
+$result = mcp_powershell_ba_New_BackportBranch `
+    -RepoFullPath $PWD `
+    -PRNumber <pr-number> `
+    -MergeCommitSHA $prInfo.MergeCommit `
+    -TargetBranch "release/v<version>"
+```
+
+**What This Tool Does Automatically**:
+- ✅ **Fetches latest upstream changes** for the target release branch
+- ✅ **Creates properly named branch** following convention: `backport/release/v<version>/<pr-number>-<short-hash>`
+- ✅ **Sets up upstream tracking** to the release branch
+- ✅ **Cherry-picks the merge commit** from the original PR
+- ✅ **Detects merge conflicts** and reports affected files
+
+**Returns**:
+```powershell
+@{
+    BranchName = "backport/release/v7.6/26282-e5d40dc06"
+    Success = $true  # or $false if conflicts
+    ConflictFiles = @()  # Array of files with conflicts (if any)
+    Message = "Successfully created backport branch and cherry-picked commit"
+}
+```
+
+**If conflicts occur**: The tool will report which files have conflicts. You'll need to:
+1. Resolve conflicts manually
+2. Stage resolved files: `git add <files>`
+3. Continue cherry-pick: `git cherry-pick --continue`
+4. See "Handling Merge Conflicts" section below for detailed guidance
+
 ### Advantages of MCP Server
 
 - **Single call** gets all required backport information
+- **Automated branch creation** handles git operations with proper naming and tracking
+- **Conflict detection** automatically identifies merge conflicts
 - **Comprehensive status** including all backport labels across versions
 - **Dependency detection** via LinkedPRs field
 - **Authoritative source** from PowerShell repository data
@@ -212,13 +253,34 @@ Add this summary to the PR description after the Risk section.
 
 ### Using PowerShell Backport MCP Server (Preferred)
 
-**PREFERRED METHOD**: Use the PowerShell Backport MCP server to create backport PRs with properly formatted title, body, and metadata.
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server for the complete backport workflow.
 
+**Step 1: Get PR Information**
 ```powershell
-# Get original PR information
+# Get original PR information including merge commit
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
+```
 
-# Create backport PR
+**Step 2: Create Backport Branch and Cherry-Pick**
+```powershell
+# Create branch and cherry-pick commit
+$branchResult = mcp_powershell_ba_New_BackportBranch `
+    -RepoFullPath $PWD `
+    -PRNumber <original-pr-number> `
+    -MergeCommitSHA $prInfo.MergeCommit `
+    -TargetBranch "release/v<version>"
+
+# Check if successful
+if (-not $branchResult.Success) {
+    Write-Warning "Cherry-pick resulted in conflicts in: $($branchResult.ConflictFiles -join ', ')"
+    # Resolve conflicts manually, then continue
+    # See "Handling Merge Conflicts" section
+}
+```
+
+**Step 3: Create Backport PR**
+```powershell
+# Create backport PR with proper formatting
 $backportUrl = mcp_powershell_ba_New_BackportPR `
     -RepoFullPath $PWD `
     -OriginalPRNumber <original-pr-number> `
