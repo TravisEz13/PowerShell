@@ -11,6 +11,32 @@ applyTo:
 
 Backporting in the PowerShell repository involves applying changes from a merged PR on the main branch to a release branch (e.g., `release/v7.4`, `release/v7.5`). This ensures critical fixes and approved features reach released versions.
 
+## Prerequisites
+
+### CRITICAL: Verify MCP Server Availability First
+
+**BEFORE STARTING ANY BACKPORT**, ensure the PowerShell Backport MCP server is available and activated:
+
+1. **Test MCP server connectivity**:
+   ```powershell
+   # Try a simple MCP call to verify it's working
+   mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26233
+   ```
+
+2. **If MCP server is disabled or unavailable**:
+   - Check VS Code's MCP settings (`mcp.json`)
+   - Verify the MCP server process is running
+   - Restart the MCP server if needed
+   - Wait for confirmation that tools are available before proceeding
+
+3. **Why this matters**:
+   - MCP server creates PRs with properly formatted metadata
+   - Without it, you'll need to manually create PRs using GitHub CLI
+   - MCP server ensures upstream tracking is set on branches
+   - Prevents workflow interruptions mid-backport
+
+**DO NOT PROCEED** with backport workflow until MCP server responds successfully.
+
 ## PowerShell Backport MCP Server
 
 **PREFERRED METHOD**: Use the PowerShell Backport MCP server for comprehensive PR information and backport status validation.
