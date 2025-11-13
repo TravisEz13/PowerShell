@@ -220,6 +220,7 @@ $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
 
 # Create backport PR
 $backportUrl = mcp_powershell_ba_New_BackportPR `
+    -RepoFullPath $PWD `
     -OriginalPRNumber <original-pr-number> `
     -TargetBranch "release/v<version>" `
     -HeadBranch "backport/release/v<version>/<pr-number>-<short-hash>" `
