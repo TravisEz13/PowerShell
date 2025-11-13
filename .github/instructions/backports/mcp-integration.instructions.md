@@ -73,7 +73,7 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 - `OriginalTitle` (string, required): Title of the original PR
 - `OriginalAuthor` (string, required): GitHub username of original PR author
 - `CurrentUser` (string, required): GitHub username of person triggering the backport
-- `OriginalCLLabel` (string, recommended): Changelog label from original PR (e.g., "CL-BuildPackaging")
+- `OriginalCLLabel` (string, required): Changelog label from original PR (e.g., "CL-BuildPackaging"), will tag the new PR with this label
 - `TestingDescription` (string, required): How the fix was verified and what tests were added
 - `Risk` (string, required): "High", "Medium", or "Low"
 - `RiskJustification` (string, required): Justification for the risk level
