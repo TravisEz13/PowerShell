@@ -66,6 +66,7 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 **Purpose**: Creates a backport PR with properly formatted title, body, and metadata following PowerShell repository standards.
 
 **Parameters**:
+- `RepoFullPath` (string, required): The full path to the root of the local git repository (e.g., "Q:\src\git\powershell")
 - `OriginalPRNumber` (integer, required): The original PR number being backported
 - `TargetBranch` (string, required): Target release branch (e.g., "release/v7.4", "release/v7.5")
 - `HeadBranch` (string, required): The head branch containing backport changes (e.g., "backport/release/v7.4/26193-4aff02475")
@@ -97,6 +98,7 @@ $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
 
 # Create backport PR
 $backportUrl = mcp_powershell_ba_New_BackportPR `
+    -RepoFullPath "Q:\src\git\powershell" `
     -OriginalPRNumber 26193 `
     -TargetBranch "release/v7.4" `
     -HeadBranch "backport/release/v7.4/26193-4aff02475" `
