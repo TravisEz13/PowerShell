@@ -63,7 +63,15 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 
 **Tool**: `mcp_powershell_ba_New_BackportPR`
 
-**Purpose**: Creates a backport PR with properly formatted title, body, and metadata following PowerShell repository standards.
+**Purpose**: Creates a backport PR with properly formatted title, body, and metadata following PowerShell repository standards. This tool automatically:
+- Pushes the backport branch to the `origin` remote
+- Applies the CL label from `OriginalCLLabel` to the new PR
+- Sets up proper upstream tracking for the branch
+
+**Prerequisites**:
+- The backport branch must exist locally
+- The `origin` remote must be configured and accessible
+- The branch will be pushed to `origin` before creating the PR
 
 **Parameters**:
 - `RepoFullPath` (string, required): The full path to the root of the local git repository (e.g., "Q:\src\git\powershell")
@@ -120,6 +128,8 @@ Write-Output "Backport PR created: $backportUrl"
 - Generates PR body following complete template from `pr-template.instructions.md`
 - Includes auto-generated metadata comment with `$$$originalprnumber:` marker
 - Sets base branch to target release branch
+- **Automatically pushes the branch to `origin` remote** before creating the PR
+- **Automatically applies the `OriginalCLLabel` to the new backport PR** (no manual labeling needed)
 - At least one of `CustomerImpact` or `ToolingImpact` must be provided
 - If conflicts occurred, include description in `MergeConflicts` parameter
 
@@ -199,17 +209,21 @@ This indicates PR #26290 depends on PR #25837 and cannot be backported until #25
 
 ### 4. Label Management Integration
 
-Use MCP server data for label operations:
+**CL Label Application**: The `New_BackportPR` tool automatically applies the CL label specified in the `OriginalCLLabel` parameter to the newly created backport PR. No manual label addition is needed.
 
-```markdown
-### Extract CL label from MCP response:
+**Example workflow**:
 ```powershell
+# Get original PR information including CL labels
 $mcpResponse = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26404
 $clLabel = $mcpResponse.ChangelogLabels | Select-Object -First 1
 
-# Add to backport PR
-gh pr edit $backportPrNumber --add-label $clLabel --repo PowerShell/PowerShell
-```
+# Pass CL label to New_BackportPR - it will be automatically applied
+$backportUrl = mcp_powershell_ba_New_BackportPR `
+    -OriginalPRNumber 26404 `
+    -OriginalCLLabel $clLabel `
+    # ... other parameters ...
+
+# CL label is already applied - no manual step needed!
 ```
 
 ## Advantages of MCP Integration

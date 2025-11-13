@@ -239,9 +239,16 @@ $backportPrNumber = $backportUrl -replace '.*/', ''
 Write-Output "Created backport PR #$backportPrNumber : $backportUrl"
 ```
 
+**What This Tool Does Automatically**:
+- ✅ **Pushes the branch to `origin` remote** (no manual `git push` needed)
+- ✅ **Applies the CL label** specified in `OriginalCLLabel` to the new PR
+- ✅ Sets up upstream tracking for the branch
+- ✅ Creates PR with properly formatted title and body
+
 **Required Parameters**:
 - At least one of `CustomerImpact`/`CustomerDescription` or `ToolingImpact`/`ToolingDescription` must be provided
 - `Risk` must be "High", "Medium", or "Low"
+- The `origin` remote must be configured and accessible
 - See `mcp-integration.instructions.md` for complete parameter documentation
 
 **Optional Parameters for Special Cases**:
@@ -266,7 +273,9 @@ gh pr create --title "[release/v<version>] <title>" --body "<body>" --base relea
 
 #### After Creating Backport PR
 
-1. **Add CL label to backport PR**:
+**Note**: If you used `mcp_powershell_ba_New_BackportPR` to create the backport PR, the CL label was **automatically applied** - skip step 1 below.
+
+1. **Add CL label to backport PR** (only needed if PR was created manually):
    ```powershell
    # Get CL label from original PR using MCP server
    $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>

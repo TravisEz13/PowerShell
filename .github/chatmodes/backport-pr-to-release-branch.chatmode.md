@@ -263,34 +263,16 @@ Only proceed after user confirms "yes" or equivalent.
 
 ---
 
-## STEP 3: Push Branch
+## STEP 3: Create Backport PR
 
-After user confirms to push:
+**Note**: The `mcp_powershell_ba_New_BackportPR` tool automatically:
+- Pushes the branch to `origin` remote
+- Applies the CL label to the new backport PR
+- Creates the PR with properly formatted title and body
 
-1. Identify the correct remote:
-   ```bash
-   git remote -v
-   ```
+No manual push or label addition is needed.
 
-2. Push branch:
-   ```bash
-   git push {remote} backport/release/v{version}/{pr-number}-{short-hash}
-   ```
-
-3. Confirm:
-   ```
-   ✅ Branch pushed to {remote}/backport/release/v{version}/{pr-number}-{short-hash}
-
-   Ready to create PR. Continue? (yes/no)
-   ```
-
-Wait for confirmation.
-
----
-
-## STEP 4: Create Backport PR
-
-After user confirms:
+After cherry-pick succeeds (or conflicts are resolved):
 
 1. **Analyze the PR content** to fill required parameters:
 
@@ -360,6 +342,11 @@ After user confirms:
 
    See `mcp-integration.instructions.md` for complete parameter documentation.
 
+   **What the MCP server does automatically**:
+   - ✅ Pushes branch to `origin` remote
+   - ✅ Applies the CL label (from `OriginalCLLabel`) to the backport PR
+   - ✅ Creates PR with formatted title and complete body
+
    **Fallback**: If MCP server unavailable, use GitHub CLI (see `gh-cli-fallback.instructions.md`):
    ```bash
    gh pr create --title "[release/v{version}] {original-title}" --body "{pr-body}" --base release/v{version} --repo PowerShell/PowerShell
@@ -377,34 +364,30 @@ After user confirms:
    PR #{backport-pr-number}: {backport-url}
    • Base: release/v{version}
    • Head: backport/release/v{version}/{pr-number}-{short-hash}
+   • CL label "{cl-label}" automatically applied
 
-   Ready to add labels. Continue? (yes/no)
+   Ready to update original PR labels. Continue? (yes/no)
    ```
 
 ---
 
-## STEP 5: Label Management
+## STEP 4: Update Original PR Labels
 
 After user confirms:
 
-1. Add CL label to backport PR (if original had one) using MCP server:
-   ```powershell
-   mcp_powershell_ba_Add_PRLabel -PRNumber {backport-pr-number} -Labels @("{cl-label}")
-   ```
-
-2. Update original PR labels per `label-system.instructions.md` using MCP server:
+1. Update original PR labels per `label-system.instructions.md` using MCP server:
    ```powershell
    # Transition from Consider to Migrated (automatically removes Consider and adds Migrated)
    mcp_powershell_ba_Set_PRBackportMigrated -PRNumber {original-pr-number} -Version "{version}"
    ```
    See `label-system.instructions.md` for complete label workflow. If MCP server is unavailable, fallback to GitHub CLI commands in `gh-cli-fallback.instructions.md`.
 
-3. Confirm:
+2. Confirm:
    ```
    ✅ Labels updated:
 
    Backport PR #{backport-pr-number}:
-   • Added: {cl-label}
+   • CL label "{cl-label}" (automatically applied by New_BackportPR)
 
    Original PR #{original-pr-number}:
    • Added: Backport-{version}.x-Migrated
@@ -415,7 +398,7 @@ After user confirms:
 
 ---
 
-## STEP 6: Completion Summary
+## STEP 5: Completion Summary
 
 Present final summary:
 
@@ -518,9 +501,8 @@ Before each step, verify:
 - **Step 1**: Must have PR number and version
 - **Step 2**: PR must be merged, no duplicate backport in progress
 - **Step 3**: Cherry-pick must succeed or conflicts must be resolved
-- **Step 4**: Branch must be pushed successfully
-- **Step 5**: PR must be created successfully
-- **Step 6**: Labels must be updated
+- **Step 4**: PR must be created successfully (branch push and label application are automatic)
+- **Step 5**: Original PR labels must be updated
 
 If any validation fails, STOP and address the issue before proceeding.
 
@@ -548,11 +530,11 @@ A successful backport includes:
 - ✅ PR validated as merged
 - ✅ Correct branch name format used
 - ✅ Changes cherry-picked (with conflicts resolved if needed)
-- ✅ Branch pushed to remote
+- ✅ Branch pushed to `origin` remote (automatic via MCP server)
 - ✅ PR created with complete body following template
 - ✅ Base branch set to target release branch
-- ✅ Labels updated correctly (added Migrated, removed Consider)
-- ✅ CL label copied to backport PR
+- ✅ CL label automatically applied to backport PR (via MCP server)
+- ✅ Original PR labels updated correctly (added Migrated, removed Consider)
 - ✅ User informed of completion with clear next steps
 
 ---
