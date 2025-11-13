@@ -33,7 +33,7 @@ mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
 {
   "PRNumber": 26404,
   "Title": "Update PSResourceGet package version to preview4",
-  "State": "MERGED", 
+  "State": "MERGED",
   "Author": "adityapatwardhan",
   "Url": "https://github.com/PowerShell/PowerShell/pull/26404",
   "BackportLabels": ["BackPort-7.6.x-Consider"],
@@ -183,24 +183,98 @@ After resolving conflicts, create a summary including:
 
 Add this summary to the PR description after the Risk section.
 
+## Creating Backport PRs
+
+### Using PowerShell Backport MCP Server (Preferred)
+
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server to create backport PRs with properly formatted title, body, and metadata.
+
+```powershell
+# Get original PR information
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
+
+# Create backport PR
+$backportUrl = mcp_powershell_ba_New_BackportPR `
+    -OriginalPRNumber <original-pr-number> `
+    -TargetBranch "release/v<version>" `
+    -HeadBranch "backport/release/v<version>/<pr-number>-<short-hash>" `
+    -OriginalTitle $prInfo.Title `
+    -OriginalAuthor $prInfo.Author `
+    -CurrentUser "<your-github-username>" `
+    -OriginalCLLabel ($prInfo.ChangelogLabels | Select-Object -First 1) `
+    -TestingDescription "How the fix was verified and what tests were added" `
+    -Risk "Medium" `
+    -RiskJustification "Justification for the risk level" `
+    -ToolingImpact "Required" `
+    -ToolingDescription "Description of how this impacts build/tooling"
+
+# Extract PR number from URL
+$backportPrNumber = $backportUrl -replace '.*/', ''
+Write-Output "Created backport PR #$backportPrNumber : $backportUrl"
+```
+
+**Required Parameters**:
+- At least one of `CustomerImpact`/`CustomerDescription` or `ToolingImpact`/`ToolingDescription` must be provided
+- `Risk` must be "High", "Medium", or "Low"
+- See `mcp-integration.instructions.md` for complete parameter documentation
+
+**Optional Parameters for Special Cases**:
+- `IsRegression` and `RegressionDetails` - If fixing a regression
+- `MergeConflicts` - If conflicts were resolved during cherry-pick
+- `Draft` - Set to `$true` to create draft PR
+
+### Fallback: GitHub CLI Commands
+
+**If MCP server unavailable**, see: `.github/instructions/backports/gh-cli-fallback.instructions.md`
+
+Quick reference:
+```powershell
+gh pr create --title "[release/v<version>] <title>" --body "<body>" --base release/v<version> --repo PowerShell/PowerShell
+```
+
 ## Label Management
 
-### After Creating Backport PR
+### Using PowerShell Backport MCP Server (Preferred)
+
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server for label management.
+
+#### After Creating Backport PR
 
 1. **Add CL label to backport PR**:
-   ```bash
-   gh pr edit <backport-pr-number> --repo PowerShell/PowerShell --add-label "<original-cl-label>"
+   ```powershell
+   # Get CL label from original PR using MCP server
+   $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
+   $clLabel = $prInfo.ChangelogLabels | Select-Object -First 1
+
+   # Add CL label to backport PR
+   mcp_powershell_ba_Add_PRLabel -PRNumber <backport-pr-number> -Labels @($clLabel)
    ```
 
 2. **Update original PR labels**:
-   ```bash
-   gh pr edit <original-pr-number> --repo PowerShell/PowerShell --add-label "Backport-<version>.x-Migrated" --remove-label "Backport-<version>.x-Consider"
+   ```powershell
+   # Transition from Consider to Migrated
+   mcp_powershell_ba_Set_PRBackportMigrated -PRNumber <original-pr-number> -Version "<version>"
    ```
 
    Notes:
-   - If original had `Backport-<version>.x-Approved`, remove that label
+   - `Set_PRBackportMigrated` automatically removes `Backport-<version>.x-Consider` and adds `Backport-<version>.x-Migrated`
+   - If original had `Backport-<version>.x-Approved`, only maintainers should transition it
    - `Migrated` indicates backport PR created (not yet merged)
    - `Done` should only be added once backport PR is merged
+
+#### When Backport is Already Merged (No PR Needed)
+
+If the commit is already in the target release branch:
+
+```powershell
+# Add Done label and remove Consider label
+mcp_powershell_ba_Add_PRLabel -PRNumber <original-pr-number> -Labels @("BackPort-<version>.x-Done")
+mcp_powershell_ba_Remove_PRLabel -PRNumber <original-pr-number> -Labels @("BackPort-<version>.x-Consider")
+```
+
+### Fallback: GitHub CLI Commands
+
+**If MCP server unavailable**, see: `.github/instructions/backports/gh-cli-fallback.instructions.md`
 
 ## Using PowerShell Tools
 

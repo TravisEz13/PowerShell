@@ -30,19 +30,23 @@ Your conversation MUST follow this exact sequence. Do not deviate or skip steps.
 
 **On first message, immediately:**
 
-1. Read ALL 6 instruction files in parallel using `read_file`:
+1. Read ALL instruction files in parallel using `read_file`:
    - `.github/instructions/backports/backport-process.instructions.md`
    - `.github/instructions/backports/pr-template.instructions.md`
    - `.github/instructions/backports/conflict-resolution.instructions.md`
-   - `.github/instructions/backports/gh-cli-usage.instructions.md`
    - `.github/instructions/backports/label-system.instructions.md`
    - `.github/instructions/backports/branch-naming.instructions.md`
+   - `.github/instructions/backports/mcp-integration.instructions.md`
+
+   **Optional** (only if MCP server unavailable):
+   - `.github/instructions/backports/gh-cli-fallback.instructions.md`
 
 2. After reading, state:
    ```
-   ✅ Initialization complete. Read all 6 instruction files.
+   ✅ Initialization complete. Read all instruction files.
 
    Key requirements loaded from instruction files:
+   • MCP server integration (see mcp-integration.instructions.md)
    • Branch naming conventions (see branch-naming.instructions.md)
    • Label management rules (see label-system.instructions.md)
    • PR template requirements (see pr-template.instructions.md)
@@ -85,19 +89,30 @@ Wait for user response.
 
 ### Once you have PR number and version:
 
-1. **Fetch PR details** using the PowerShell Backport MCP Server (see `backport-process.instructions.md` for details):
-   - Use `mcp_powershell_ba_Get_PRBackportInfo` to get comprehensive PR information
-   - This returns: PR state, merge commit, author, backport labels, CL labels, and **linked PRs** (existing backports)
+1. **Fetch PR details** using the PowerShell Backport MCP Server (preferred method):
+   ```powershell
+   mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
+   ```
+
+   This returns comprehensive PR information:
+   - PR state, title, author, URL
+   - Merge commit SHA (use for cherry-pick)
+   - All backport labels (e.g., `BackPort-7.6.x-Consider`)
+   - Changelog labels (e.g., `CL-BuildPackaging`)
+   - **LinkedPRs**: Existing backport PRs for this change
+
+   See `backport-process.instructions.md` and `mcp-integration.instructions.md` for details.
 
 2. Validate:
    - ✅ PR state is "MERGED" (if not, STOP and inform user)
-   - ✅ Extract merge commit SHA (full and short hash)
-   - ✅ Extract CL label (if present)
+   - ✅ Extract merge commit SHA (full and short hash - use first 9 chars)
+   - ✅ Extract CL label (if present in ChangelogLabels)
    - ✅ Extract author
    - ✅ Check LinkedPRs field for existing backport PRs
 
-3. Check backport labels on original PR (see label-system.instructions.md for complete workflow):
-   - Interpret label state and existing backport status
+3. Check backport status for target version (see label-system.instructions.md for complete workflow):
+   - Look for `BackPort-{version}.x-*` labels in BackportLabels field
+   - Interpret label state: Consider, Approved, Migrated, Done
    - Use LinkedPRs to identify existing backport PRs
    - Check for discrepancies (e.g., Migrated label but no linked PR found)
 
@@ -269,81 +284,91 @@ Wait for confirmation.
 
 After user confirms:
 
-1. Build PR body using the complete template from `pr-template.instructions.md`.
+1. **Analyze the PR content** to fill required parameters:
 
-   **Chatmode-specific filling guidance:**
+   **Required Analysis:**
+   - **Impact**: Determine if this is Tooling or Customer impact (or both)
+     - Tooling: Build systems, CI/CD, packaging, developer tools
+     - Customer: User-facing features, cmdlets, runtime behavior, performance
+   - **Testing**: How was the fix verified? What tests were added? How was backport tested?
+   - **Risk Assessment**: High (core engine, security, breaking changes, infrastructure) / Medium (default) / Low (docs, tests only)
+   - **Risk Justification**: Explain the risk level choice
 
-   - **Title format**: `[release/v{version}] {original-title}`
-   - **Auto-generated comment**: Include with `$$$originalprnumber:{pr-number}$$$` (never modify)
-   - **Attribution**: `Triggered by @{current-user} on behalf of @{original-author}`
-   - **CL Label**: Include if original PR had one
-   - **Maintainer CC**: Always include `/cc @PowerShell/powershell-maintainers`
+   **Optional Analysis:**
+   - **Regression**: Does original PR fix a regression? When was it introduced?
+   - **Merge Conflicts**: If conflicts occurred in Step 2, include resolution summary
 
-   **Pre-filled defaults (adjust based on analysis):**
-   - **Regression**: Pre-check `[x] No` unless original explicitly fixes a regression
-   - **Risk**: Pre-check `[x] Medium` by default
-     - Adjust to `[x] High` for: core engine, security, breaking changes, build infrastructure
-     - Adjust to `[x] Low` for: documentation only, test-only changes
-
-   **Required content to analyze and include:**
-   - **Impact**: Determine Tooling vs Customer impact from original PR
-   - **Testing**: Both original PR testing AND backport verification steps
-   - **Risk justification**: Explain why you selected the risk level
-
-   **If conflicts occurred in Step 2:**
-   - Add "## Merge Conflicts" section after Risk section
-   - Include the detailed resolution summary from Step 2
-
-   See `pr-template.instructions.md` for complete template structure and examples.
-
-2. Show PR body to user:
+2. **Present PR parameters** to user for confirmation:
    ```
-   📄 PR Body Preview:
+   📋 Backport PR Parameters:
 
-   {show the complete PR body}
+   Title: [release/v{version}] {original-title}
+   Original PR: #{pr-number} by @{original-author}
+   Target Branch: release/v{version}
+   Head Branch: backport/release/v{version}/{pr-number}-{short-hash}
 
-   Create PR with this body? (yes/no/edit)
+   Impact: {Tooling: Required/Optional OR Customer: Reported/Internal}
+   Description: {impact-description}
+
+   Regression: {Yes/No} {+ details if yes}
+   Testing: {testing-description}
+   Risk: {High/Medium/Low}
+   Justification: {risk-justification}
+
+   {If conflicts: Merge Conflicts: {conflict-summary}}
+
+   Create PR with these parameters? (yes/no/edit)
    ```
 
-3. If user says "edit", ask what section to modify and make changes.
+3. If user says "edit", ask what to modify and update the parameters.
 
-4. Once approved, create PR:
+4. Once approved, **create PR using MCP server**:
+   ```powershell
+   # Use MCP server to create backport PR (preferred method)
+   $backportUrl = mcp_powershell_ba_New_BackportPR `
+       -OriginalPRNumber {pr-number} `
+       -TargetBranch "release/v{version}" `
+       -HeadBranch "backport/release/v{version}/{pr-number}-{short-hash}" `
+       -OriginalTitle "{original-title}" `
+       -OriginalAuthor "{original-author}" `
+       -CurrentUser "{current-user}" `
+       -OriginalCLLabel "{cl-label}" `
+       -TestingDescription "{testing-description}" `
+       -Risk "{High/Medium/Low}" `
+       -RiskJustification "{risk-justification}" `
+       -ToolingImpact "{Required/Optional}" `
+       -ToolingDescription "{tooling-description}" `
+       {If customer impact: -CustomerImpact "{CustomerReported/FoundInternally}" -CustomerDescription "{customer-description}"} `
+       {If regression: -IsRegression $true -RegressionDetails "{regression-details}"} `
+       {If conflicts: -MergeConflicts "{conflict-summary}"}
+   ```
+
+   **Note**: The MCP server automatically:
+   - Formats title as `[release/v{version}] {original-title}`
+   - Generates PR body following complete template
+   - Includes auto-generated metadata comment
+   - Sets base branch to target release branch
+   - Adds attribution and maintainer CC
+
+   See `mcp-integration.instructions.md` for complete parameter documentation.
+
+   **Fallback**: If MCP server unavailable, use GitHub CLI (see `gh-cli-fallback.instructions.md`):
    ```bash
-   gh pr create \
-     --title "[release/v{version}] {original-title}" \
-     --body "{pr-body}" \
-     --repo PowerShell/PowerShell \
-     --base release/v{version} \
-     --head {remote}:backport/release/v{version}/{pr-number}-{short-hash}
+   gh pr create --title "[release/v{version}] {original-title}" --body "{pr-body}" --base release/v{version} --repo PowerShell/PowerShell
    ```
 
-   **Note:** `gh pr create` defaults to the repository's default branch. Base branch will be updated in Step 4.5.
-
-   See `gh-cli-usage.instructions.md` for detailed command options and troubleshooting.
-
-5. Capture new PR number from the creation output.
-
----
-
-## STEP 4.5: Update Base Branch (CRITICAL)
-
-**This step is only needed if the base branch was not set correctly during PR creation.**
-
-1. Update the PR's base branch to the target release branch:
-   ```bash
-   gh pr edit {backport-pr-number} --base release/v{version} --repo PowerShell/PowerShell
+5. Extract PR number from URL:
+   ```powershell
+   $backportPrNumber = $backportUrl -replace '.*/', ''
    ```
 
-2. Verify the base branch is correct by checking the PR details
-
-3. Confirm:
+6. Confirm:
    ```
-   ✅ Base branch updated successfully
+   ✅ Backport PR created successfully!
 
-   PR #{backport-pr-number}:
-   • Base: release/v{version} ✓
-   • Head: {remote}:backport/release/v{version}/{pr-number}-{short-hash}
-   • URL: {pr-url}
+   PR #{backport-pr-number}: {backport-url}
+   • Base: release/v{version}
+   • Head: backport/release/v{version}/{pr-number}-{short-hash}
 
    Ready to add labels. Continue? (yes/no)
    ```
@@ -354,21 +379,17 @@ After user confirms:
 
 After user confirms:
 
-1. Add CL label to backport PR (if original had one):
-   ```bash
-   gh pr edit {backport-pr-number} --repo PowerShell/PowerShell --add-label "{cl-label}"
+1. Add CL label to backport PR (if original had one) using MCP server:
+   ```powershell
+   mcp_powershell_ba_Add_PRLabel -PRNumber {backport-pr-number} -Labels @("{cl-label}")
    ```
 
-2. Update original PR labels per `label-system.instructions.md`:
-   ```bash
-   gh pr edit {original-pr-number} --repo PowerShell/PowerShell \
-     --add-label "Backport-{version}.x-Migrated" \
-     --remove-label "Backport-{version}.x-Consider"
+2. Update original PR labels per `label-system.instructions.md` using MCP server:
+   ```powershell
+   # Transition from Consider to Migrated (automatically removes Consider and adds Migrated)
+   mcp_powershell_ba_Set_PRBackportMigrated -PRNumber {original-pr-number} -Version "{version}"
    ```
-
-   **Important**: If original had `Backport-{version}.x-Approved`, also remove it (maintainer-only label).
-
-   See `label-system.instructions.md` for complete label workflow and `gh-cli-usage.instructions.md` for command details.
+   See `label-system.instructions.md` for complete label workflow. If MCP server is unavailable, fallback to GitHub CLI commands in `gh-cli-fallback.instructions.md`.
 
 3. Confirm:
    ```
@@ -500,13 +521,15 @@ If any validation fails, STOP and address the issue before proceeding.
 ## Key Reminders
 
 1. **Always read instruction files first** - No exceptions
-2. **Wait for user confirmation** at decision points
-3. **Explain what you're doing** at each step
-4. **Show previews** before taking irreversible actions (PR creation, label updates)
-5. **Handle errors gracefully** with clear next steps
-6. **Never modify Backport-*-Approved labels** (maintainer-only)
-7. **Use exact branch naming format** - don't make up your own
-8. **Include all required PR body sections** - Impact, Regression, Testing, Risk
+2. **Use MCP server as primary method** - For PR info and label management
+3. **Wait for user confirmation** at decision points
+4. **Explain what you're doing** at each step
+5. **Show previews** before taking irreversible actions (PR creation, label updates)
+6. **Handle errors gracefully** with clear next steps
+7. **Never modify Backport-*-Approved labels** (maintainer-only)
+8. **Use exact branch naming format** - don't make up your own
+9. **Include all required PR body sections** - Impact, Regression, Testing, Risk
+10. **Fallback to GitHub CLI** only when MCP server unavailable
 
 ---
 
@@ -526,11 +549,19 @@ A successful backport includes:
 
 ---
 
-## Alternative Methods
+## Primary and Fallback Methods
 
-This chatmode uses the PowerShell Backport MCP Server and instruction file references as the primary method for backporting PRs. If the MCP server is unavailable or you need to use alternative approaches:
+This chatmode uses the **PowerShell Backport MCP Server** as the primary method for:
+- Getting PR information (`mcp_powershell_ba_Get_PRBackportInfo`)
+- Creating backport PRs (`mcp_powershell_ba_New_BackportPR`)
+- Managing labels (`mcp_powershell_ba_Add_PRLabel`, `mcp_powershell_ba_Remove_PRLabel`, `mcp_powershell_ba_Set_PRBackportMigrated`)
 
-- **GitHub CLI fallback commands**: See `.github/instructions/backports/gh-pr-view-examples.instructions.md` for comprehensive `gh pr view` and `gh pr` command examples
+**If the MCP server is unavailable**, fallback methods are available:
+
+- **GitHub CLI fallback commands**: See `.github/instructions/backports/gh-cli-fallback.instructions.md` for quick reference commands
+- **Comprehensive GitHub CLI guide**: See `.github/instructions/backports/gh-cli-usage.instructions.md` for detailed `gh pr` command examples
 - **Manual PowerShell tools**: See `.github/instructions/backports/backport-process.instructions.md` for using `Invoke-PRBackport` from `tools/releaseTools.psm1`
+
+**MCP Server Configuration**: See `.github/instructions/backports/mcp-integration.instructions.md` for setup instructions.
 
 These alternative methods are documented separately to keep this chatmode focused on the preferred MCP-based workflow.

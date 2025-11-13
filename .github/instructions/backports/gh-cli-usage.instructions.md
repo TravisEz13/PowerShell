@@ -5,13 +5,22 @@ applyTo:
   - ".github/agents/backport-agent.md"
 ---
 
-# GitHub CLI for Backport PR Creation
+# GitHub CLI for Backport PR Creation - Comprehensive Reference
 
 ## Overview
 
+**IMPORTANT**: This is a comprehensive reference for GitHub CLI usage in backport operations.
+
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server for most operations. See:
+- `.github/instructions/backports/backport-process.instructions.md`
+- `.github/instructions/backports/label-system.instructions.md`
+- `.github/instructions/backports/mcp-integration.instructions.md`
+
+**For quick fallback commands** when MCP server is unavailable, see: `.github/instructions/backports/gh-cli-fallback.instructions.md`
+
 **Note**: For branch naming conventions, see `.github/instructions/backports/branch-naming.instructions.md`. Examples in this document use `<backport-branch-name>` as a generic placeholder.
 
-Guidelines for using GitHub CLI (`gh`) to create and manage backport PRs.
+This document provides detailed guidelines for using GitHub CLI (`gh`) to create and manage backport PRs when the MCP server is not available or for reference purposes.
 
 ## Prerequisites
 

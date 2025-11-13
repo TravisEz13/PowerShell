@@ -59,6 +59,68 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 }
 ```
 
+### Create Backport PR
+
+**Tool**: `mcp_powershell_ba_New_BackportPR`
+
+**Purpose**: Creates a backport PR with properly formatted title, body, and metadata following PowerShell repository standards.
+
+**Parameters**:
+- `OriginalPRNumber` (integer, required): The original PR number being backported
+- `TargetBranch` (string, required): Target release branch (e.g., "release/v7.4", "release/v7.5")
+- `HeadBranch` (string, required): The head branch containing backport changes (e.g., "backport/release/v7.4/26193-4aff02475")
+- `OriginalTitle` (string, required): Title of the original PR
+- `OriginalAuthor` (string, required): GitHub username of original PR author
+- `CurrentUser` (string, required): GitHub username of person triggering the backport
+- `OriginalCLLabel` (string, recommended): Changelog label from original PR (e.g., "CL-BuildPackaging")
+- `TestingDescription` (string, required): How the fix was verified and what tests were added
+- `Risk` (string, required): "High", "Medium", or "Low"
+- `RiskJustification` (string, required): Justification for the risk level
+- `CustomerImpact` (string, recommended): "CustomerReported" or "FoundInternally" (empty if not applicable)
+- `CustomerDescription` (string, optional): Description of customer impact (required if CustomerImpact is set)
+- `ToolingImpact` (string, optional): "Required" or "Optional" (empty if not applicable)
+- `ToolingDescription` (string, optional): Description of tooling impact (required if ToolingImpact is set)
+- `IsRegression` (boolean, recommended): Whether this fixes a regression (default: false)
+- `RegressionDetails` (string, optional): When regression was introduced (required if IsRegression is true)
+- `MergeConflicts` (string, recommended): Description of merge conflicts and resolution
+- `Draft` (boolean, optional): Whether to create as draft PR (default: false)
+- `Owner` (string, optional): Repository owner (default: "PowerShell")
+- `Repo` (string, optional): Repository name (default: "PowerShell")
+
+**Returns**: URL of the created backport PR
+
+**Example Usage**:
+
+```powershell
+# Get original PR information
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
+
+# Create backport PR
+$backportUrl = mcp_powershell_ba_New_BackportPR `
+    -OriginalPRNumber 26193 `
+    -TargetBranch "release/v7.4" `
+    -HeadBranch "backport/release/v7.4/26193-4aff02475" `
+    -OriginalTitle $prInfo.Title `
+    -OriginalAuthor $prInfo.Author `
+    -CurrentUser "travisez13" `
+    -OriginalCLLabel "CL-BuildPackaging" `
+    -TestingDescription "Verified by running affected workflows in fork. Confirmed builds complete successfully." `
+    -Risk "High" `
+    -RiskJustification "High risk as it modifies build infrastructure, but necessary to prevent build failures." `
+    -ToolingImpact "Required" `
+    -ToolingDescription "Fixes GitHub Actions workflow failures on release/v7.4 by updating deprecated actions."
+
+Write-Output "Backport PR created: $backportUrl"
+```
+
+**Notes**:
+- Automatically formats PR title as `[<target-branch>] <original-title>`
+- Generates PR body following complete template from `pr-template.instructions.md`
+- Includes auto-generated metadata comment with `$$$originalprnumber:` marker
+- Sets base branch to target release branch
+- At least one of `CustomerImpact` or `ToolingImpact` must be provided
+- If conflicts occurred, include description in `MergeConflicts` parameter
+
 ## Integration Points
 
 ### 1. PR Discovery and Validation (STEP 1)

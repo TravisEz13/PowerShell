@@ -104,61 +104,44 @@ Each version has independent state tracking.
 
 ## Label Management Commands
 
-### Adding Labels
+### Using PowerShell Backport MCP Server (Preferred)
+
+**PREFERRED METHOD**: Use the PowerShell Backport MCP server tools for label management.
+
+#### Transition from Consider to Migrated
 
 ```powershell
-# Mark for consideration
-gh pr edit 26193 --add-label "Backport-7.4.x-Consider" --repo PowerShell/PowerShell
-
-# Approve for backport
-gh pr edit 26193 --add-label "Backport-7.4.x-Migrated" --remove-label "Backport-7.4.x-Consider" --repo PowerShell/PowerShell
-
-# Mark as migrated (backport PR created)
-gh pr edit 26193 --add-label "Backport-7.4.x-Migrated" --remove-label "Backport-7.4.x-Migrated" --repo PowerShell/PowerShell
-
-# Mark as done (backport PR merged)
-gh pr edit 26193 --add-label "Backport-7.4.x-Done" --remove-label "Backport-7.4.x-Migrated" --repo PowerShell/PowerShell
+# Mark that backport PR has been created (Consider → Migrated)
+mcp_powershell_ba_Set_PRBackportMigrated -PRNumber 26193 -Version "7.4"
 ```
 
-### Querying by Label
+This automatically:
+- Removes `Backport-7.4.x-Consider` label
+- Adds `Backport-7.4.x-Migrated` label
+
+#### Add Labels
 
 ```powershell
-# Find all PRs needing backport consideration
-gh pr list --repo PowerShell/PowerShell --label "Backport-7.4.x-Consider" --state merged
+# Add single label
+mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Done")
 
-# Find all approved backports
-gh pr list --repo PowerShell/PowerShell --label "Backport-7.4.x-Approved" --state merged
-
-# Find all in-progress backports
-gh pr list --repo PowerShell/PowerShell --label "Backport-7.4.x-Migrated" --state merged
-
-# Find all completed backports
-gh pr list --repo PowerShell/PowerShell --label "Backport-7.4.x-Done" --state merged
+# Add multiple labels
+mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Done", "CL-BuildPackaging")
 ```
 
-## Changelog (CL) Labels
-
-In addition to backport labels, PRs should have a changelog label that gets copied to the backport PR.
-
-### Common CL Labels
-
-- `CL-BuildPackaging` - Build, packaging, or infrastructure changes
-- `CL-Engine` - PowerShell engine changes
-- `CL-General` - General improvements
-- `CL-Cmdlets-Utility` - Utility cmdlet changes
-- `CL-Cmdlets-Management` - Management cmdlet changes
-- `CL-BreakingChange` - Breaking changes (rare in backports)
-
-### CL Label Workflow
+#### Remove Labels
 
 ```powershell
-# Extract CL label from original PR
-$pr = gh pr view 26193 --repo PowerShell/PowerShell --json labels | ConvertFrom-Json
-$clLabel = $pr.labels | Where-Object { $_.name -like "CL-*" } | Select-Object -First 1 -ExpandProperty name
+# Remove single label
+mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Migrated")
 
-# Add to backport PR
-gh pr edit 26389 --add-label $clLabel --repo PowerShell/PowerShell
+# Remove multiple labels
+mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Consider", "Backport-7.4.x-Migrated")
 ```
+
+### Fallback: GitHub CLI Commands
+
+**If MCP server unavailable**, use GitHub CLI commands as documented in: `.github/instructions/backports/gh-cli-fallback.instructions.md`
 
 ## Agent and Copilot Label Usage
 
@@ -174,22 +157,19 @@ These labels are applied to **original PRs only**, not to backport PRs themselve
 
 ### When Creating Backport PR
 
-1. **Update original PR labels**:
+1. **Update original PR labels** (use MCP server):
    ```powershell
-   gh pr edit <original-pr> --add-label "Backport-X.X.x-Migrated" --remove-label "Backport-X.X.x-Consider" --repo PowerShell/PowerShell
+   # Preferred: Use MCP server to transition Consider → Migrated
+   mcp_powershell_ba_Set_PRBackportMigrated -PRNumber <original-pr> -Version "<version>"
    ```
 
-2. **Add CL label to backport PR**:
+2. **Add CL label to backport PR** (use MCP server):
    ```powershell
-   gh pr edit <backport-pr> --add-label "<original-cl-label>" --repo PowerShell/PowerShell
+   # Preferred: Use MCP server
+   mcp_powershell_ba_Add_PRLabel -PRNumber <backport-pr> -Labels @("<original-cl-label>")
    ```
 
-### When Backport PR Merges
-
-Maintainer should update:
-```powershell
-gh pr edit <original-pr> --add-label "Backport-X.X.x-Done" --remove-label "Backport-X.X.x-Migrated" --repo PowerShell/PowerShell
-```
+**Fallback to GitHub CLI** if MCP server unavailable (see `.github/instructions/backports/gh-cli-fallback.instructions.md`)
 
 ## Reporting and Tracking
 
@@ -216,7 +196,8 @@ Get-PRBackportReport -Version 7.4 -TriageState Approved -Web
 # Original PR has: Backport-7.4.x-Consider
 # After creating backport PR (agents/Copilot CAN do this):
 
-gh pr edit 26193 --add-label "Backport-7.4.x-Migrated" --remove-label "Backport-7.4.x-Consider" --repo PowerShell/PowerShell
+# Preferred: Use MCP server
+mcp_powershell_ba_Set_PRBackportMigrated -PRNumber 26193 -Version "7.4"
 ```
 
 **Note**: If original PR has `Backport-7.4.x-Approved`, only maintainers should transition it to `Migrated` by removing the `Approved` label.
@@ -224,23 +205,24 @@ gh pr edit 26193 --add-label "Backport-7.4.x-Migrated" --remove-label "Backport-
 ### Scenario 2: Backport PR Failed/Rejected
 
 ```powershell
-# Remove Migrated, add back Consider for re-evaluation
-gh pr edit 26193 --add-label "Backport-7.4.x-Consider" --remove-label "Backport-7.4.x-Migrated" --repo PowerShell/PowerShell
+# Preferred: Use MCP server
+mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Migrated")
+mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Consider")
 ```
 
 ### Scenario 3: Backport No Longer Needed
 
 ```powershell
-# Remove all backport labels for that version
-gh pr edit 26193 --remove-label "Backport-7.4.x-Consider" --repo PowerShell/PowerShell
+# Preferred: Use MCP server
+mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Consider")
 ```
 
 ### Scenario 4: Checking Backport Status
 
 ```powershell
-# Get all backport labels for a PR
-$pr = gh pr view 26193 --repo PowerShell/PowerShell --json labels | ConvertFrom-Json
-$pr.labels | Where-Object { $_.name -like "Backport-*" } | Select-Object -ExpandProperty name
+# Preferred: Use MCP server (returns all labels in one call)
+$prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
+$prInfo.BackportLabels
 
 # Output example:
 # Backport-7.4.x-Done
