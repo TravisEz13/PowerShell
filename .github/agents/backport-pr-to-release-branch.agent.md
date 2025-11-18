@@ -1,3 +1,9 @@
+---
+name: local-backport-agent
+description: Specialized agent for backporting merged PRs to PowerShell release branches
+tools: ['edit', 'search', 'PowerShell Backport/*', 'runCommands', 'problems', 'changes', 'github.vscode-pull-request-github/copilotCodingAgent', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/suggest-fix', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest']
+---
+
 # Backport PR to Release Branch (Interactive Mode)
 
 ## Description
@@ -156,7 +162,7 @@ Only proceed after user confirms "yes" or equivalent.
 1. Inform user:
    ```
    Creating backport branch using MCP server...
-   
+
    Branch format: backport/release/v{version}/{pr-number}-{short-hash}
    This will automatically:
    • Fetch latest upstream changes
@@ -188,7 +194,7 @@ Only proceed after user confirms "yes" or equivalent.
 3. **Handle outcomes:**
 
    **A) Success (no conflicts):**
-   
+
    The MCP server will return:
    ```powershell
    @{
@@ -215,7 +221,7 @@ Only proceed after user confirms "yes" or equivalent.
    Wait for confirmation, then go to Step 3.
 
    **B) Conflicts occurred:**
-   
+
    The MCP server will return:
    ```powershell
    @{
