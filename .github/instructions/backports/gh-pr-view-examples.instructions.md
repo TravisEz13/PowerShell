@@ -17,10 +17,10 @@ Examples and patterns for using `gh pr view` to retrieve PR information for back
 ### Using PowerShell Backport MCP Server (PREFERRED)
 
 ```powershell
-# Get comprehensive backport information (single call)
+# MCP Tool Call (not a regular PowerShell command)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
 
-# Access fields
+# Standard PowerShell for accessing fields
 $prInfo.PRNumber        # PR number
 $prInfo.Title           # PR title  
 $prInfo.State           # MERGED, OPEN, CLOSED

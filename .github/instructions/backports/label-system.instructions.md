@@ -110,8 +110,8 @@ Each version has independent state tracking.
 
 #### Transition from Consider to Migrated
 
-```powershell
-# Mark that backport PR has been created (Consider → Migrated)
+```
+# MCP Tool Call (not a PowerShell command)
 mcp_powershell_ba_Set_PRBackportMigrated -PRNumber 26193 -Version "7.4"
 ```
 
@@ -121,8 +121,8 @@ This automatically:
 
 #### Add Labels
 
-```powershell
-# Add single label
+```
+# MCP Tool Calls (not PowerShell commands)
 mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Done")
 
 # Add multiple labels
@@ -131,8 +131,8 @@ mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Done", "
 
 #### Remove Labels
 
-```powershell
-# Remove single label
+```
+# MCP Tool Calls (not PowerShell commands)
 mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Migrated")
 
 # Remove multiple labels
@@ -158,14 +158,14 @@ These labels are applied to **original PRs only**, not to backport PRs themselve
 ### When Creating Backport PR
 
 1. **Update original PR labels** (use MCP server):
-   ```powershell
-   # Preferred: Use MCP server to transition Consider → Migrated
+   ```
+   # MCP Tool Call (not a PowerShell command)
    mcp_powershell_ba_Set_PRBackportMigrated -PRNumber <original-pr> -Version "<version>"
    ```
 
 2. **Add CL label to backport PR** (use MCP server):
-   ```powershell
-   # Preferred: Use MCP server
+   ```
+   # MCP Tool Call (not a PowerShell command)
    mcp_powershell_ba_Add_PRLabel -PRNumber <backport-pr> -Labels @("<original-cl-label>")
    ```
 
@@ -192,11 +192,11 @@ Get-PRBackportReport -Version 7.4 -TriageState Approved -Web
 
 ### Scenario 1: Manual Backport of Consider PR
 
-```powershell
+```
 # Original PR has: Backport-7.4.x-Consider
 # After creating backport PR (agents/Copilot CAN do this):
 
-# Preferred: Use MCP server
+# MCP Tool Call (not a PowerShell command)
 mcp_powershell_ba_Set_PRBackportMigrated -PRNumber 26193 -Version "7.4"
 ```
 
@@ -204,23 +204,23 @@ mcp_powershell_ba_Set_PRBackportMigrated -PRNumber 26193 -Version "7.4"
 
 ### Scenario 2: Backport PR Failed/Rejected
 
-```powershell
-# Preferred: Use MCP server
+```
+# MCP Tool Calls (not PowerShell commands)
 mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Migrated")
 mcp_powershell_ba_Add_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Consider")
 ```
 
 ### Scenario 3: Backport No Longer Needed
 
-```powershell
-# Preferred: Use MCP server
+```
+# MCP Tool Call (not a PowerShell command)
 mcp_powershell_ba_Remove_PRLabel -PRNumber 26193 -Labels @("Backport-7.4.x-Consider")
 ```
 
 ### Scenario 4: Checking Backport Status
 
 ```powershell
-# Preferred: Use MCP server (returns all labels in one call)
+# MCP Tool Call (not a regular PowerShell command)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
 $prInfo.BackportLabels
 

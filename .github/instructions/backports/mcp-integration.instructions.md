@@ -97,17 +97,16 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 **Example Usage**:
 
 ```powershell
-# Get PR information first
+# MCP Tool Calls (not regular PowerShell commands)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26282
 
-# Create backport branch and cherry-pick
 $result = mcp_powershell_ba_New_BackportBranch `
     -RepoFullPath "Q:\src\git\powershell" `
     -PRNumber 26282 `
     -MergeCommitSHA $prInfo.MergeCommit `
     -TargetBranch "release/v7.6"
 
-# Check result
+# Standard PowerShell for checking result
 if ($result.Success) {
     Write-Output "Branch created successfully: $($result.BranchName)"
 } else {
@@ -165,10 +164,9 @@ if ($result.Success) {
 **Example Usage**:
 
 ```powershell
-# Get original PR information
+# MCP Tool Calls (not regular PowerShell commands)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26193
 
-# Create backport PR
 $backportUrl = mcp_powershell_ba_New_BackportPR `
     -RepoFullPath "Q:\src\git\powershell" `
     -OriginalPRNumber 26193 `
@@ -209,7 +207,8 @@ Write-Output "Backport PR created: $backportUrl"
 **PREFERRED**: Use the PowerShell Backport MCP server for comprehensive validation:
 
 1. **Get comprehensive PR information using MCP server**:
-   ```powershell
+   ```
+   # MCP Tool Call (not a PowerShell command)
    mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
    ```
 
@@ -237,12 +236,14 @@ Write-Output "Backport PR created: $backportUrl"
 **PREFERRED**: Use the PowerShell Backport MCP server to automate git operations:
 
 1. **Get PR information** (if not already done):
-   ```powershell
+   ```
+   # MCP Tool Call (not a PowerShell command)
    $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
    ```
 
 2. **Create branch and cherry-pick commit**:
-   ```powershell
+   ```
+   # MCP Tool Call (not a PowerShell command)
    $result = mcp_powershell_ba_New_BackportBranch `
        -RepoFullPath $PWD `
        -PRNumber <pr-number> `
@@ -279,7 +280,8 @@ The interactive backport custom instructions should be updated to include:
 
    ### Use MCP server for comprehensive PR information:
 
-   ```powershell
+   ```
+   # MCP Tool Call (not a PowerShell command)
    $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber {pr-number}
    ```
 
@@ -293,7 +295,8 @@ The interactive backport custom instructions should be updated to include:
 
    ### Use MCP server for automated branch creation:
 
-   ```powershell
+   ```
+   # MCP Tool Call (not a PowerShell command)
    $result = mcp_powershell_ba_New_BackportBranch `
        -RepoFullPath $PWD `
        -PRNumber {pr-number} `
@@ -330,11 +333,10 @@ This indicates PR #26290 depends on PR #25837 and cannot be backported until #25
 
 **Example workflow**:
 ```powershell
-# Get original PR information including CL labels
+# MCP Tool Calls (not regular PowerShell commands)
 $mcpResponse = mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26404
 $clLabel = $mcpResponse.ChangelogLabels | Select-Object -First 1
 
-# Pass CL label to New_BackportPR - it will be automatically applied
 $backportUrl = mcp_powershell_ba_New_BackportPR `
     -OriginalPRNumber 26404 `
     -OriginalCLLabel $clLabel `

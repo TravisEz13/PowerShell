@@ -17,8 +17,8 @@ Backporting in the PowerShell repository involves applying changes from a merged
 **BEFORE STARTING ANY BACKPORT**, ensure the PowerShell Backport MCP server is available and activated:
 
 1. **Test MCP server connectivity**:
-   ```powershell
-   # Try a simple MCP call to verify it's working
+   ```
+   # MCP Tool Call (not a PowerShell command)
    mcp_powershell_ba_Get_PRBackportInfo -PRNumber 26233
    ```
 
@@ -42,8 +42,8 @@ Backporting in the PowerShell repository involves applying changes from a merged
 
 ### Get PR Backport Information
 
-```powershell
-# Get comprehensive backport information for a PR
+```
+# MCP Tool Call (not a PowerShell command)
 mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
 ```
 
@@ -71,8 +71,8 @@ mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
 
 ### Create Backport Branch
 
-```powershell
-# Get PR information first
+```
+# MCP Tool Calls (not PowerShell commands)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <pr-number>
 
 # Create backport branch and cherry-pick commit
@@ -256,21 +256,21 @@ Add this summary to the PR description after the Risk section.
 **PREFERRED METHOD**: Use the PowerShell Backport MCP server for the complete backport workflow.
 
 **Step 1: Get PR Information**
-```powershell
-# Get original PR information including merge commit
+```
+# MCP Tool Call (not a PowerShell command)
 $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
 ```
 
 **Step 2: Create Backport Branch and Cherry-Pick**
 ```powershell
-# Create branch and cherry-pick commit
+# MCP Tool Call (not a regular PowerShell command)
 $branchResult = mcp_powershell_ba_New_BackportBranch `
     -RepoFullPath $PWD `
     -PRNumber <original-pr-number> `
     -MergeCommitSHA $prInfo.MergeCommit `
     -TargetBranch "release/v<version>"
 
-# Check if successful
+# Standard PowerShell for checking result
 if (-not $branchResult.Success) {
     Write-Warning "Cherry-pick resulted in conflicts in: $($branchResult.ConflictFiles -join ', ')"
     # Resolve conflicts manually, then continue
@@ -279,8 +279,8 @@ if (-not $branchResult.Success) {
 ```
 
 **Step 3: Create Backport PR**
-```powershell
-# Create backport PR with proper formatting
+```
+# MCP Tool Call (not a PowerShell command)
 $backportUrl = mcp_powershell_ba_New_BackportPR `
     -RepoFullPath $PWD `
     -OriginalPRNumber <original-pr-number> `
@@ -339,17 +339,17 @@ gh pr create --title "[release/v<version>] <title>" --body "<body>" --base relea
 
 1. **Add CL label to backport PR** (only needed if PR was created manually):
    ```powershell
-   # Get CL label from original PR using MCP server
+   # MCP Tool Call (not a regular PowerShell command)
    $prInfo = mcp_powershell_ba_Get_PRBackportInfo -PRNumber <original-pr-number>
    $clLabel = $prInfo.ChangelogLabels | Select-Object -First 1
 
-   # Add CL label to backport PR
+   # MCP Tool Call (not a regular PowerShell command)
    mcp_powershell_ba_Add_PRLabel -PRNumber <backport-pr-number> -Labels @($clLabel)
    ```
 
 2. **Update original PR labels**:
-   ```powershell
-   # Transition from Consider to Migrated
+   ```
+   # MCP Tool Call (not a PowerShell command)
    mcp_powershell_ba_Set_PRBackportMigrated -PRNumber <original-pr-number> -Version "<version>"
    ```
 
@@ -363,8 +363,8 @@ gh pr create --title "[release/v<version>] <title>" --body "<body>" --base relea
 
 If the commit is already in the target release branch:
 
-```powershell
-# Add Done label and remove Consider label
+```
+# MCP Tool Calls (not PowerShell commands)
 mcp_powershell_ba_Add_PRLabel -PRNumber <original-pr-number> -Labels @("BackPort-<version>.x-Done")
 mcp_powershell_ba_Remove_PRLabel -PRNumber <original-pr-number> -Labels @("BackPort-<version>.x-Consider")
 ```
