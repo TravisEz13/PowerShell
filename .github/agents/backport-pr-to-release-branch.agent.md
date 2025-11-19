@@ -122,6 +122,11 @@ Wait for user response.
    - Use LinkedPRs to identify existing backport PRs
    - Check for discrepancies (e.g., Migrated label but no linked PR found)
 
+3a. **Check for other versions needing backport** (multi-version detection):
+   - Scan all BackportLabels for other `BackPort-*-Consider` or `BackPort-*-Approved` labels
+   - Identify versions besides the target version that also need this backport
+   - Present this information when done with the backport to help user plan complete backport scope
+
 4. Present findings:
    ```
    📋 PR Validation Results:
@@ -135,6 +140,13 @@ Wait for user response.
    Backport Status for v{version}:
    • Current label: {label}
    • Existing backport PR: {Yes/No + link or "None found"}
+
+   {If other versions also need backport:
+   "📌 Other versions also need backport:
+   • v{version2}: {label-state}
+   • v{version3}: {label-state}
+
+   Note: Each version will be handled separately. You can backport to additional versions after completing this one."}
 
    {If Done: "⚠️ This PR appears to already be backported to v{version}. Are you sure you want to create another backport?"}
    {If Migrated: "⚠️ A backport PR already exists for v{version}. Do you want to create a new attempt?"}
@@ -211,6 +223,11 @@ Only proceed after user confirms "yes" or equivalent.
 
    Branch: {result.BranchName}
    Status: Cherry-pick completed without conflicts
+
+   ⚠️ IMPORTANT: Branch created in separate worktree
+   Worktree location: {result.WorktreePath or extract from BranchName}
+
+   All subsequent operations will use this worktree directory.
 
    Changes applied:
    {list changed files from git diff}
@@ -446,9 +463,16 @@ Next steps:
 3. Request review from maintainers
 4. Once merged, maintainers will update label to Backport-{version}.x-Done
 
+⚠️ IMPORTANT: PRs cannot be merged without passing CI checks.
+If CI fails, you must address the failures before the backport can be merged.  Therefore, tests do not need to be run locally when backporting.
+
 {If conflicts occurred:}
 ⚠️ Note: This backport had merge conflicts that were resolved. Please review
 the "Merge Conflicts" section in the PR description carefully.
+
+{If other versions also need backport:}
+📌 Reminder: This PR also needs backporting to: {list other versions}
+You can backport to additional versions by running this agent again.
 ```
 
 Ask: **"Need to backport another PR? (yes/no)"**
