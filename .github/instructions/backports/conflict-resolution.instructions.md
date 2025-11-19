@@ -90,9 +90,9 @@ If you suspect a missing prerequisite:
 
 This often resolves "missing prerequisite" conflicts that are actually just due to outdated local branches.
 
-### Step 1: Analyze the Original Change
+### Step 1: Analyze the Original Change and Check for Missing Files
 
-Before resolving conflicts, understand what the original PR changed:
+Before resolving conflicts, understand what the original PR changed and check for missing dependencies:
 
 ```powershell
 # Fetch the original PR diff
@@ -106,6 +106,49 @@ Get-Content pr-<pr-number>.diff | more
 - What was the bug or issue being fixed?
 - What code changed to fix it?
 - What's the scope of the change?
+- **Does the PR reference any new files that might not exist in the target branch?**
+
+**Conceptual Goal: Detect When PRs Depend on Other Unbackported PRs**
+
+PRs often build on work from other recent PRs. When backporting, if a **prerequisite PR hasn't been backported to the target release branch yet**, you'll see conflicts that cannot be resolved because the foundational code/files are missing.
+
+**Key insight**: When a PR modifies or references files/code structures that were introduced by another recent PR, and that other PR isn't in the target branch, the backport will fail. Rather than trying to manually resolve these conflicts (which is impossible), you need to **identify the prerequisite PR, ensure it gets backported first, then retry**.
+
+**How to detect this**: Look for conflicts where the PR is trying to use/modify something that doesn't exist in the target branch at all.
+
+**Check for missing file references** (key indicator of prerequisite PRs):
+
+Look for patterns in the diff that reference other files:
+- Workflow files: `uses: ./.github/workflows/new-workflow.yml`
+- Templates: `template: path/to/template.yml`
+- Module imports: `Import-Module ./path/to/module.psm1`
+- Relative file paths in code
+- Property groups or configurations that were added recently
+- Functions/classes/methods being called or modified
+
+If you find file references, **verify they exist in the target branch**:
+
+```powershell
+# Example: PR references a reusable workflow
+$referencedFile = ".github/workflows/xunit-tests.yml"
+
+# Check if it exists in target branch
+git ls-tree upstream/release/v7.6 $referencedFile
+
+# If empty result, the file doesn't exist
+# This is a strong indicator of a missing prerequisite PR
+```
+
+**If referenced files are missing from target branch**:
+1. Find when the file was added:
+   ```powershell
+   git log --all --diff-filter=A --format="%H %s" -1 -- $referencedFile
+   ```
+2. Extract the PR number from the commit message
+3. This is likely your prerequisite PR
+4. **STOP and follow the prerequisite handling process** (Step 0)
+
+**It's okay to abort a backport** when you discover missing prerequisites. Better to abort early than struggle with unresolvable conflicts.
 
 ### Step 2: Identify Conflict Type
 
