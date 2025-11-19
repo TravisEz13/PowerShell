@@ -263,15 +263,21 @@ public void MyMethod(string param1, string param2)
 
 ### Step 3: Resolve the Conflict
 
-```powershell
-# Check which files have conflicts
-git status
+**Important**: When using MCP server, use the MCP worktree tools for file access:
+
+```
+# Check which files have conflicts (MCP Tool Call)
+mcp_powershell_ba_Get_WorktreeStatus -RepoFullPath $result.BackportWorktreePath
 
 # For each conflicting file:
-# 1. Open in editor
+# 1. Read file (MCP Tool Call)
+$fileContent = mcp_powershell_ba_Get_WorktreeFileContent -RepoFullPath $result.BackportWorktreePath -FilePath "src/path/to/file.cs"
+
 # 2. Find conflict markers (<<<<<<<, =======, >>>>>>>)
 # 3. Understand both versions
-# 4. Apply the fix using release branch code patterns
+# 4. Generate resolved content
+# 5. Write resolved content (MCP Tool Call)
+mcp_powershell_ba_Set_WorktreeFileContent -RepoFullPath $result.BackportWorktreePath -FilePath "src/path/to/file.cs" -Content $resolvedContent
 
 **Resolution strategies**:
 
@@ -293,12 +299,14 @@ git status
 
 ### Step 4: Verify Resolution
 
-```powershell
-# Build the code
-./build.ps1 -Clean
+**Important**: When using MCP server, backports are in a separate worktree. Use MCP tools to execute commands:
 
-# Run relevant tests
-./build.ps1 -Test
+```
+# Build the code (MCP Tool Call)
+mcp_powershell_ba_Invoke_WorktreeCommand -RepoFullPath $result.BackportWorktreePath -Command "./build.ps1 -Clean"
+
+# Run relevant tests (MCP Tool Call)
+mcp_powershell_ba_Invoke_WorktreeCommand -RepoFullPath $result.BackportWorktreePath -Command "./build.ps1 -Test"
 
 # Manual verification if needed
 ```
@@ -327,13 +335,15 @@ The following files had conflicts during cherry-pick:
 
 ### Step 6: Continue Cherry-Pick
 
-```powershell
-# Stage resolved files
-git add <resolved-files>
-
-# Continue the cherry-pick
-git cherry-pick --continue
 ```
+# Stage resolved files (MCP Tool Call)
+mcp_powershell_ba_Invoke_WorktreeCommand -RepoFullPath $result.BackportWorktreePath -Command "git add <resolved-files>"
+
+# Continue the cherry-pick with --no-edit to avoid interactive editor (MCP Tool Call)
+mcp_powershell_ba_Invoke_WorktreeCommand -RepoFullPath $result.BackportWorktreePath -Command "git cherry-pick --continue --no-edit"
+```
+
+**Note**: The `--no-edit` flag uses the existing commit message without opening an editor, which is required when running via MCP tools.
 
 ## Common Scenarios and Solutions
 

@@ -85,14 +85,23 @@ The PowerShell Backport MCP server should be configured in VS Code's MCP setting
 
 **Returns**: Hashtable with backport branch creation results:
 
-```powershell
+```
 @{
     BranchName = "backport/release/v7.6/26282-e5d40dc06"
     Success = $true  # or $false if conflicts occurred
     ConflictFiles = @()  # Array of file paths with conflicts (if any)
     Message = "Successfully created backport branch and cherry-picked commit"
+    BackportWorktreePath = "Q:\src\git\powershell-backport"  # Path to worktree
 }
 ```
+
+**Important: Worktree Behavior**
+
+The MCP server creates backports in a **separate git worktree** at `<repo-name>-backport`. This means:
+- The backport branch exists in a different directory
+- VS Code's file tools (`read_file`, `replace_string_in_file`) cannot access worktree files
+- All file operations must use MCP worktree tools: `mcp_powershell_ba_Get_WorktreeFileContent`, `mcp_powershell_ba_Set_WorktreeFileContent`, etc.
+- Git operations must be run using `mcp_powershell_ba_Invoke_WorktreeCommand` or `mcp_powershell_ba_Get_WorktreeStatus`
 
 **Example Usage**:
 
@@ -118,9 +127,52 @@ if ($result.Success) {
 **Notes**:
 - Branch naming follows convention: `backport/release/v<version>/<pr-number>-<short-hash>`
 - Automatically extracts short hash (first 9 characters) from merge commit
+- **Creates a separate git worktree** at `BackportWorktreePath` for isolation
 - If conflicts occur, the branch is created and cherry-pick is started, but left in conflict state
 - User must resolve conflicts, stage files, and continue cherry-pick manually
 - See "Handling Merge Conflicts" section in `backport-process.instructions.md` for conflict resolution guidance
+
+### Working with Worktree Files
+
+Because backports are created in a separate worktree, you **cannot** use VS Code file tools. Instead, use the MCP worktree tools:
+
+**Read a file:**
+```
+# MCP Tool Call (not a PowerShell command)
+mcp_powershell_ba_Get_WorktreeFileContent -RepoFullPath $result.BackportWorktreePath -FilePath "src/path/to/file.cs"
+```
+
+**Write a file:**
+```
+# MCP Tool Call (not a PowerShell command)
+mcp_powershell_ba_Set_WorktreeFileContent -RepoFullPath $result.BackportWorktreePath -FilePath "src/path/to/file.cs" -Content $resolvedContent
+```
+
+**Check git status:**
+```
+# MCP Tool Call (not a PowerShell command)
+mcp_powershell_ba_Get_WorktreeStatus -RepoFullPath $result.BackportWorktreePath
+```
+
+**View conflicts:**
+```
+# MCP Tool Call (not a PowerShell command)
+mcp_powershell_ba_Get_WorktreeDiff -RepoFullPath $result.BackportWorktreePath
+```
+
+**Execute git commands:**
+```
+# MCP Tool Call (not a PowerShell command)
+mcp_powershell_ba_Invoke_WorktreeCommand -RepoFullPath $result.BackportWorktreePath -Command "git add src/path/to/file.cs"
+```
+
+**Important**: `Invoke_WorktreeCommand` has a default timeout of 60 seconds and **cannot run interactive commands**. Commands that open editors or require user input will timeout. Always use non-interactive flags:
+- ✅ `git cherry-pick --continue --no-edit` (non-interactive)
+- ❌ `git cherry-pick --continue` (interactive, will timeout)
+- ✅ `git commit --no-edit` (non-interactive)
+- ❌ `git commit` (interactive, will timeout)
+
+All file and git operations in the worktree must use these MCP tools.
 
 ### Create Backport PR
 
