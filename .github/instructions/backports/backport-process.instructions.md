@@ -205,8 +205,10 @@ If PR #26290 modifies code added by PR #25837:
 ### Conflict Resolution Approach
 
 1. **Analyze the diff first**:
-   ```bash
-   gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-diff.txt
+   ```
+   # Use MCP server to get PR diff
+   $prDiff = mcp_powershell_ba_Get_PRDiff -PRNumber <pr-number>
+   $prDiff | Out-File pr-diff.txt
    ```
 
 2. **Check for missing prerequisite PRs FIRST**:

@@ -260,7 +260,7 @@ Only proceed after user confirms "yes" or equivalent.
    ```
 
    **Conflict resolution workflow:**
-   1. Fetch original PR diff: `gh pr diff {pr-number} --repo PowerShell/PowerShell`
+   1. Fetch original PR diff using MCP server: `mcp_powershell_ba_Get_PRDiff -PRNumber {pr-number}`
    2. Apply resolution strategies from `conflict-resolution.instructions.md`:
       - **Key principle**: Apply the *change* from the PR, not make code identical to main
       - Preserve release branch patterns and code structure

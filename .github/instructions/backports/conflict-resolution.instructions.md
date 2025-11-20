@@ -94,12 +94,12 @@ This often resolves "missing prerequisite" conflicts that are actually just due 
 
 Before resolving conflicts, understand what the original PR changed and check for missing dependencies:
 
-```powershell
-# Fetch the original PR diff
-gh pr diff <pr-number> --repo PowerShell/PowerShell | Out-File pr-<pr-number>.diff
+```
+# Fetch the original PR diff using MCP server
+$prDiff = mcp_powershell_ba_Get_PRDiff -PRNumber <pr-number>
 
 # Review the diff
-Get-Content pr-<pr-number>.diff | more
+$prDiff | Out-String | more
 ```
 
 **Identify**:
