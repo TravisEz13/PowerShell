@@ -57,8 +57,12 @@ runs:
             changedMarkdownFiles = comparison.files
               .filter(file => file.filename.endsWith('.md'))
               .map(file => file.filename);
+          } else if (context.eventName === 'schedule' || context.eventName === 'workflow_dispatch') {
+            // For scheduled runs or manual dispatch, check all markdown files
+            // Return empty array to signal that all files should be checked
+            changedMarkdownFiles = [];
           } else {
-            core.setFailed(`Unsupported event type: ${context.eventName}. This action only supports 'pull_request' and 'push' events.`);
+            core.setFailed(`Unsupported event type: ${context.eventName}. This action only supports 'pull_request', 'push', 'schedule', and 'workflow_dispatch' events.`);
             return;
           }
 
@@ -77,8 +81,17 @@ runs:
         $changedFilesJson = '${{ steps.changed-files.outputs.files }}'
         $changedFiles = $changedFilesJson | ConvertFrom-Json
         
+        # For schedule or workflow_dispatch events, check all markdown files
+        $eventName = '${{ github.event_name }}'
+        if ($changedFiles.Count -eq 0 -and ($eventName -eq 'schedule' -or $eventName -eq 'workflow_dispatch')) {
+          Write-Host "Running full repository scan (event: $eventName)" -ForegroundColor Cyan
+          $changedFiles = Get-ChildItem -Path . -Filter *.md -Recurse -File | 
+            Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' -and $_.FullName -notmatch '[\\/]node_modules[\\/]' } |
+            ForEach-Object { $_.FullName.Replace((Get-Location).Path, '').TrimStart('\', '/') }
+        }
+        
         if ($changedFiles.Count -eq 0) {
-          Write-Host "No markdown files changed, skipping verification" -ForegroundColor Yellow
+          Write-Host "No markdown files to verify, skipping verification" -ForegroundColor Yellow
           "total=0" >> $env:GITHUB_OUTPUT
           "passed=0" >> $env:GITHUB_OUTPUT
           "failed=0" >> $env:GITHUB_OUTPUT
@@ -86,7 +99,7 @@ runs:
           exit 0
         }
         
-        Write-Host "Changed markdown files: $($changedFiles.Count)" -ForegroundColor Cyan
+        Write-Host "Markdown files to verify: $($changedFiles.Count)" -ForegroundColor Cyan
         $changedFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Gray }
 
         # Build parameters for each file
