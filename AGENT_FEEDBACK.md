@@ -177,6 +177,72 @@ Instruction files and agent prompts may be:
 **Always verify** where the files exist before trying to read them.
 ```
 
+## 5. Add Workflow Adaptation Guidance for Release Branches
+
+**Issue**: When backporting GitHub Actions workflows to release branches, workflow branch filters and event handling may need adaptation.
+
+**Problem encountered in this backport**: 
+- The original workflow only triggered on `main, master` branches
+- Release branches use the `release/**` pattern
+- Workflow also defined `schedule` and `workflow_dispatch` events but action code didn't handle them
+- Required manual fixes after cherry-pick
+
+**Suggested improvement**: Add a new section to backport-agent instructions:
+
+```markdown
+## Special Considerations for GitHub Actions Workflows
+
+When backporting changes to `.github/workflows/` or `.github/actions/`, verify:
+
+### 1. Branch Filters Match Target Branch
+
+**Check**: `on.push.branches` and `on.pull_request.branches` in workflow files
+
+**Issue**: Original workflows may only target `main` or `master`, but release branches need `release/**`
+
+**How to verify**:
+```bash
+# Compare branch patterns with existing release branch workflows
+git show origin/release/v7.5:.github/workflows/linux-ci.yml | grep -A5 "branches:"
+
+# Expected pattern for release branches:
+# branches:
+#   - master
+#   - release/**
+```
+
+**Action**: Update branch filters in backported workflow to match patterns used by existing release branch workflows.
+
+### 2. Event Types Are Fully Supported
+
+**Check**: All event types defined in workflow `on:` trigger are handled by action code
+
+**Issue**: Workflows may define `schedule`, `workflow_dispatch`, or other events that action code doesn't handle
+
+**How to verify**:
+```bash
+# List events in workflow
+grep -A20 "^on:" .github/workflows/verify-markdown-links.yml
+
+# Check if action handles all these events
+grep -A30 "eventName ===" .github/actions/infrastructure/markdownlinks/action.yml
+```
+
+**Action**: Ensure action code has logic for all event types defined in workflow, or remove unsupported events from workflow.
+
+### 3. Test Workflow Syntax
+
+**Validate YAML**:
+```bash
+python3 -c "import yaml; yaml.safe_load(open('.github/workflows/verify-markdown-links.yml'))"
+python3 -c "import yaml; yaml.safe_load(open('.github/actions/infrastructure/markdownlinks/action.yml'))"
+```
+
+### Why This Matters
+
+Workflows that don't trigger on release branches won't provide value to the release, and workflows with unsupported events will fail when triggered. These issues aren't caught by simple cherry-pick and require verification.
+```
+
 ## Summary
 
 These improvements focus on:
@@ -185,5 +251,6 @@ These improvements focus on:
 2. **Template validation**: Adding a checklist to ensure all required sections are included
 3. **Better error messages**: Providing clearer guidance when branch name verification fails
 4. **Dynamic branch discovery**: Teaching the agent to find instruction files rather than assuming they're in "upstream/master"
+5. **Workflow adaptation for release branches**: Verifying and updating GitHub Actions workflows when backporting to release branches
 
-These changes would help ensure backport PRs follow the correct template on the first attempt and reduce confusion about how to properly format and submit the PR description, while also making the agent more robust when instruction files are in non-standard locations.
+These changes would help ensure backport PRs follow the correct template on the first attempt and reduce confusion about how to properly format and submit the PR description, while also making the agent more robust when instruction files are in non-standard locations and when backporting CI/CD infrastructure.
